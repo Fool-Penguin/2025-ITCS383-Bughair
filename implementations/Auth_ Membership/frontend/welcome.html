@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FITPAY — Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --lime: #c8f53c;
+            --lime2: #d9ff52;
+            --text: #f2f2f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: 'Barlow', sans-serif; 
+            overflow: hidden; /* กัน Scroll bar โผล่ */
+            height: 100vh;
+        }
+
+        /* --- BACKGROUND ANIMATION --- */
+        .bg-wrapper {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            opacity: 0.3; /* ปรับให้ภาพดูจางๆ ไม่กวนสายตา */
+            z-index: 0;
+        }
+
+        .bg-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: scrollDown 40s linear infinite;
+        }
+
+        /* ทำให้คอลัมน์ที่สองไหลช้าลงนิดนึงเพื่อความมีมิติ */
+        .bg-column:nth-child(2) { animation-duration: 50s; }
+        .bg-column:nth-child(3) { animation-duration: 35s; }
+
+        .bg-column img {
+            width: 100%;
+            border-radius: 12px;
+            filter: grayscale(100%) contrast(120%); /* ทำเป็นขาวดำให้คุมธีม */
+        }
+
+        @keyframes scrollDown {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); } /* วิ่งขึ้นไปครึ่งนึงแล้ววนใหม่ */
+        }
+
+        /* ม่านดำบังแสงเพื่อให้ตัวอักษรชัด */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 20%, var(--bg) 90%);
+            z-index: 1;
+        }
+
+        /* --- CONTENT --- */
+        .content {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .main-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(5rem, 15vw, 10rem); /* ขนาดตัวใหญ่สะใจ */
+            line-height: 1;
+            letter-spacing: 5px;
+            color: var(--lime);
+            text-shadow: 0 0 30px rgba(200, 245, 60, 0.3);
+        }
+
+        .btn-get-started {
+            background: var(--lime);
+            color: #000;
+            padding: 20px 40px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            text-decoration: none;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .btn-get-started:hover {
+            background: var(--lime2);
+            transform: scale(1.1) rotate(-2deg);
+            box-shadow: 0 0 40px rgba(200, 245, 60, 0.4);
+        }
+
+        .tagline {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: var(--text);
+            opacity: 0.6;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-wrapper">
+        <div class="bg-column">
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1000&auto=format&fit=crop&q=60" alt="Fitness 1">
+            <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1000&auto=format&fit=crop&q=60" alt="Fitness 2">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1000&auto=format&fit=crop&q=60" alt="Fitness 3">
+            <img src="https://images.unsplash.com/photo-1519505907962-0a6cb0167c73?w=1000&auto=format&fit=crop&q=60" alt="Fitness 4">
+            <img src="https://media.istockphoto.com/id/1391563451/photo/taiwanese-badminton-players-warm-up-exercise-practicing-in-badminton-court-endurance-training.webp?a=1&b=1&s=612x612&w=0&k=20&c=cmUKZF6Sr614dinkQDwSf9toXY8JG_VV0ZiBTufVlk8=" alt="Badminton 5">
+            
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1000&auto=format&fit=crop&q=60" alt="Fitness 1">
+            <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1000&auto=format&fit=crop&q=60" alt="Fitness 2">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1000&auto=format&fit=crop&q=60" alt="Fitness 3">
+            <img src="https://images.unsplash.com/photo-1519505907962-0a6cb0167c73?w=1000&auto=format&fit=crop&q=60" alt="Fitness 4">
+            <img src="https://media.istockphoto.com/id/1391563451/photo/taiwanese-badminton-players-warm-up-exercise-practicing-in-badminton-court-endurance-training.webp?a=1&b=1&s=612x612&w=0&k=20&c=cmUKZF6Sr614dinkQDwSf9toXY8JG_VV0ZiBTufVlk8=" alt="Badminton 5">
+        </div>
+
+        <div class="bg-column">
+            <img src="https://images.unsplash.com/photo-1519505907962-0a6cb0167c73?w=1000&auto=format&fit=crop&q=60" alt="Fitness 4">
+            <img src="https://media.istockphoto.com/id/1391563451/photo/taiwanese-badminton-players-warm-up-exercise-practicing-in-badminton-court-endurance-training.webp?a=1&b=1&s=612x612&w=0&k=20&c=cmUKZF6Sr614dinkQDwSf9toXY8JG_VV0ZiBTufVlk8=" alt="Badminton 5">
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1000&auto=format&fit=crop&q=60" alt="Fitness 1">
+            <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1000&auto=format&fit=crop&q=60" alt="Fitness 2">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1000&auto=format&fit=crop&q=60" alt="Fitness 3">
+
+            <img src="https://images.unsplash.com/photo-1519505907962-0a6cb0167c73?w=1000&auto=format&fit=crop&q=60" alt="Fitness 4">
+            <img src="https://media.istockphoto.com/id/1391563451/photo/taiwanese-badminton-players-warm-up-exercise-practicing-in-badminton-court-endurance-training.webp?a=1&b=1&s=612x612&w=0&k=20&c=cmUKZF6Sr614dinkQDwSf9toXY8JG_VV0ZiBTufVlk8=" alt="Badminton 5">
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1000&auto=format&fit=crop&q=60" alt="Fitness 1">
+            <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1000&auto=format&fit=crop&q=60" alt="Fitness 2">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1000&auto=format&fit=crop&q=60" alt="Fitness 3">
+        </div>
+    </div>
+
+    <div class="overlay"></div>
+
+    <div class="content">
+        <div class="logo-box">
+            <h1 class="main-logo">FITPAY</h1>
+            <a href="auth.html" class="btn-get-started">GET STARTED →</a>
+        </div>
+        <p class="tagline">The Elite Gym Management System</p>
+    </div>
+
+</body>
+</html>

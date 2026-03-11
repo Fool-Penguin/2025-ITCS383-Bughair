@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FITPAY — Join the Gym</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --bg2: #141414;
+            --bg3: #1c1c1c;
+            --lime: #c8f53c;
+            --lime2: #d9ff52;
+            --border: #2a2a2a;
+            --text: #f2f2f0;
+            --text2: #888;
+            --r: 4px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: 'Barlow', sans-serif; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+        }
+
+        /* NAV */
+        nav {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(13,13,13,0.95);
+            border-bottom: 1px solid var(--border);
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        }
+        .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 3px; color: var(--lime); cursor: pointer; }
+        .nav-logo span { color: var(--text); }
+
+        /* AUTH SECTION */
+        .auth-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 64px;
+            position: relative;
+            overflow: hidden;
+        }
+        .bg-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px); background-size: 60px 60px; opacity: .15; }
+        .bg-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(200,245,60,0.05) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+        .auth-card {
+            position: relative; z-index: 1;
+            display: grid; grid-template-columns: 1fr 1.2fr;
+            max-width: 900px; width: 100%;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            margin: 20px;
+            min-height: 550px;
+        }
+
+        /* Left Side (Visual/Branding) */
+        .auth-left {
+            background: var(--bg3);
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid var(--border);
+        }
+        .auth-headline { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 0.95; letter-spacing: 2px; margin-bottom: 20px; }
+        .auth-headline span { color: var(--lime); }
+        .auth-desc { color: var(--text2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 30px; }
+
+        /* Right Side (Form) */
+        .auth-right { padding: 60px 50px; display: flex; flex-direction: column; justify-content: center; }
+        .auth-right h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .auth-hint { color: var(--text2); font-size: 0.85rem; margin-bottom: 30px; }
+
+        .field { margin-bottom: 18px; }
+        .field label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
+        .field input {
+            width: 100%; background: var(--bg3); border: 1px solid var(--border);
+            color: var(--text); font-family: 'Barlow', sans-serif; padding: 12px 15px;
+            border-radius: var(--r); outline: none; transition: 0.2s;
+        }
+        .field input:focus { border-color: var(--lime); }
+
+        .btn-auth {
+            width: 100%; background: var(--lime); color: #0d0d0d; border: none;
+            padding: 14px; font-weight: 800; font-family: 'Barlow', sans-serif;
+            text-transform: uppercase; letter-spacing: 2px; border-radius: var(--r);
+            cursor: pointer; transition: 0.2s; margin-top: 10px;
+        }
+        .btn-auth:hover { background: var(--lime2); transform: translateY(-1px); }
+
+        .toggle-link {
+            text-align: center; margin-top: 25px; font-size: 0.85rem; color: var(--text2);
+        }
+        .toggle-link a { color: var(--lime); text-decoration: none; font-weight: 700; margin-left: 5px; }
+        .toggle-link a:hover { text-decoration: underline; }
+
+        /* Elements to hide/show */
+        .reg-only { display: none; }
+
+        @media (max-width: 768px) {
+            .auth-card { grid-template-columns: 1fr; }
+            .auth-left { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-logo">FIT<span>PAY</span></div>
+</nav>
+
+<div class="auth-container">
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <div class="auth-card">
+        <div class="auth-left">
+            <div class="auth-headline" id="sideHeadline">JOIN THE<br><span>ELITE</span><br>COMMUNITY</div>
+            <p class="auth-desc" id="sideDesc">Create an account to manage your membership, access premium facilities, and track your fitness progress.</p>
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--lime);">● SYSTEM ONLINE / SANDBOX MODE</div>
+        </div>
+
+        <div class="auth-right">
+            <h2 id="formTitle">Sign In</h2>
+            <p class="auth-hint" id="formHint">Welcome back! Please enter your details.</p>
+
+            <div class="field reg-only">
+                <label>Full Name</label>
+                <input type="text" id="regName" placeholder="Your Name">
+            </div>
+
+            <div class="field">
+                <label>Email Address</label>
+                <input type="email" id="authEmail" placeholder="name@example.com">
+            </div>
+
+            <div class="field">
+                <label>Password</label>
+                <input type="password" id="authPass" placeholder="••••••••">
+            </div>
+
+            <button class="btn-auth" id="authBtn" onclick="submitAuth()">Sign In →</button>
+
+            <div class="toggle-link">
+                <span id="toggleText">Don't have an account?</span>
+                <a href="javascript:void(0)" onclick="toggleMode()" id="toggleLink">Sign Up</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Check if user is already logged in before showing the form
+    window.onload = function() {
+        if (localStorage.getItem('token')) {
+            window.location.href = 'index.html'; // If token exists, skip login
+        }
+    }
+    let isLogin = true;
+
+    function toggleMode() {
+        isLogin = !isLogin;
+        
+        // Update Form Texts
+        document.getElementById('formTitle').textContent = isLogin ? 'Sign In' : 'Create Account';
+        document.getElementById('formHint').textContent = isLogin ? 'Welcome back! Please enter your details.' : 'Start your journey with us today.';
+        document.getElementById('authBtn').textContent = isLogin ? 'Sign In →' : 'Register Now →';
+        document.getElementById('toggleText').textContent = isLogin ? "Don't have an account?" : "Already have an account?";
+        document.getElementById('toggleLink').textContent = isLogin ? "Sign Up" : "Sign In";
+
+        // Update Side Headline
+        document.getElementById('sideHeadline').innerHTML = isLogin ? 'BACK TO<br><span>GRIND</span><br>AGAIN' : 'JOIN THE<br><span>ELITE</span><br>COMMUNITY';
+
+        // Show/Hide Name Field
+        const regFields = document.querySelectorAll('.reg-only');
+        regFields.forEach(el => el.style.display = isLogin ? 'none' : 'block');
+    }
+
+    // 1. ตั้งค่า URL ของ Backend (ตรวจสอบว่า Port ตรงกับ server.js หรือไม่)
+const API = 'http://localhost:8080/api';
+
+async function submitAuth() {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPass').value.trim();
+    const full_name = document.getElementById('regName').value.trim();
+    const btn = document.getElementById('authBtn');
+
+    // ตรวจสอบค่าว่าง
+    if (!email || !password || (!isLogin && !full_name)) {
+        alert("Please fill in all required fields.");
+        return;
+    }
+
+    // แสดงสถานะการทำงานบนปุ่ม
+    btn.disabled = true;
+    btn.textContent = isLogin ? "SIGNING IN..." : "CREATING ACCOUNT...";
+
+    const endpoint = isLogin ? '/auth/login' : '/auth/register';
+
+    try {
+        // 2. ยิง API ไปหา Backend
+        const response = await fetch(`${API}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, full_name })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            if (isLogin) {
+                // 3. เก็บข้อมูลสำคัญลงเครื่อง (localStorage) เพื่อให้หน้าอื่นๆ นำไปใช้ต่อ
+                localStorage.setItem('token', result.token);
+                localStorage.setItem('user', JSON.stringify({
+                    id: result.userId,
+                    memberId: result.memberId,
+                    name: result.full_name
+                }));
+
+                alert("Login Successful! Welcome back.");
+                window.location.href = 'index.html'; // ส่งผู้ใช้ไปหน้า Dashboard
+            } else {
+                alert("Registration Successful! Now you can Sign In.");
+                toggleMode(); // สลับกลับไปหน้า Login อัตโนมัติ
+            }
+        } else {
+            alert(result.message || result.error || "Authentication failed.");
+        }
+    } catch (error) {
+        alert("Cannot connect to server. Please check if your Backend is running.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = isLogin ? 'Sign In →' : 'Register Now →';
+    }
+}
+</script>
+
+</body>
+</html>
