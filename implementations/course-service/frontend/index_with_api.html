@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courses & Trainers — FitZone</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a; --dark: #111111; --card: #161616; --border: #2a2a2a;
+    --lime: #c8f135; --lime-dim: #a8d020; --white: #f5f5f0; --muted: #888;
+    --danger: #ff4545; --warn: #facc15; --purple: #7c6cfa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(10,10,10,0.97); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2.5rem; display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center; height: 60px;
+  }
+  .nav-logo { font-family: 'Bebas Neue', cursive; font-size: 1.7rem; letter-spacing: 3px; color: var(--lime); justify-self: start; }
+  .nav-links { justify-self: center; }
+  .nav-user { display: flex; align-items: center; gap: 1rem; justify-self: end; }
+  .nav-user-info { text-align: right; }
+  .nav-user-name { font-family: 'Space Mono', monospace; font-size: 0.72rem; font-weight: 700; color: var(--white); letter-spacing: 1px; text-transform: uppercase; }
+  .nav-user-id   { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--lime); letter-spacing: 1px; margin-top: 1px; }
+  .btn-logout {
+    padding: 0.38rem 0.9rem; border-radius: 6px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.18s; flex-shrink: 0;
+  }
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+  .nav-links { display: flex; gap: 0; }
+  .nav-link {
+    padding: 0 1.4rem; height: 60px; line-height: 60px;
+    border: none; background: transparent;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+    cursor: pointer; transition: color 0.18s; position: relative;
+  }
+  .nav-link:hover { color: var(--white); }
+  .nav-link.active { color: var(--lime); }
+
+  /* PAGE SWITCHER (Courses / Trainers) — below hero */
+  .page-switcher {
+    display: inline-flex; gap: 0.5rem; align-items: center;
+    margin-bottom: 1rem;
+  }
+  .page-switch-btn {
+    padding: 0.38rem 1.1rem; border-radius: 100px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.18s;
+  }
+  .page-switch-btn:hover { color: var(--white); border-color: #555; }
+  .page-switch-btn.active { background: var(--lime); border-color: var(--lime); color: var(--black); }
+
+  /* ROLE SWITCHER — inline below hero */
+  .role-switcher-inline {
+    display: inline-flex; align-items: center; gap: 0;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 100px; padding: 0.25rem;
+  }
+  .role-btn { padding: 0.32rem 1rem; border-radius: 100px; border: none; background: transparent; color: var(--muted); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: 'Space Mono', monospace; letter-spacing: 0.5px; }
+  .role-btn.is-customer { background: var(--lime); color: var(--black); }
+  .role-btn.is-admin    { background: var(--purple); color: #fff; }
+
+  /* ADMIN BANNER */
+  .admin-banner { display: none; padding: 0.55rem 2rem; font-size: 0.75rem; font-family: 'Space Mono', monospace; letter-spacing: 1px; text-align: center; background: rgba(124,108,250,0.1); color: var(--purple); border-bottom: 1px solid rgba(124,108,250,0.18); }
+  .admin-banner.show { display: block; }
+
+  /* HERO */
+  .hero { padding: 3.5rem 2.5rem 2rem; max-width: 1200px; margin: 0 auto; }
+  .hero-controls {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  h1.hero-title { font-family: 'Bebas Neue', cursive; font-size: clamp(3rem, 8vw, 5.5rem); line-height: 0.92; letter-spacing: 2px; margin-bottom: 0.75rem; }
+  h1.hero-title span { color: var(--lime); }
+  .hero-sub { color: var(--muted); font-size: 0.92rem; max-width: 480px; line-height: 1.7; margin-bottom: 2rem; }
+
+  /* FILTER BAR */
+  .filters-bar { max-width: 1200px; margin: 0 auto 1.5rem; padding: 0 2rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .filter-label { font-family: 'Space Mono', monospace; font-size: 0.66rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .filter-chip { padding: 0.38rem 0.88rem; border-radius: 100px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 0.8rem; cursor: pointer; transition: all 0.18s; font-family: 'DM Sans', sans-serif; }
+  .filter-chip:hover { border-color: var(--lime); color: var(--white); }
+  .filter-chip.active { background: var(--lime); border-color: var(--lime); color: var(--black); font-weight: 600; }
+
+  /* ADMIN TOOLBAR */
+  .admin-toolbar { max-width: 1200px; margin: 0 auto 1.25rem; padding: 0 2rem; display: none; align-items: center; justify-content: space-between; }
+  .admin-toolbar.show { display: flex; }
+  .admin-label { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--purple); letter-spacing: 1px; text-transform: uppercase; }
+  .btn-create { display: flex; align-items: center; gap: 0.4rem; padding: 0.52rem 1.1rem; border-radius: 8px; border: none; background: var(--purple); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.18s; }
+  .btn-create:hover { opacity: 0.85; }
+
+  /* SECTION */
+  .section-wrap { max-width: 1200px; margin: 0 auto; padding: 0 2rem 5rem; }
+  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+  .section-title { font-family: 'Bebas Neue', cursive; font-size: 2rem; letter-spacing: 2px; }
+  .section-count { font-family: 'Space Mono', monospace; font-size: 0.73rem; color: var(--muted); }
+
+  .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.2rem; }
+
+  /* COURSE CARD */
+  .course-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; position: relative; transition: transform 0.2s, border-color 0.2s; }
+  .course-card:hover { transform: translateY(-3px); }
+  .course-card.customer-hover:hover { border-color: rgba(200,241,53,0.35); }
+  .course-card.admin-hover:hover    { border-color: rgba(124,108,250,0.4); }
+  .course-card.is-cancelled { opacity: 0.55; }
+  .cancelled-overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; font-family: 'Bebas Neue', cursive; font-size: 2.2rem; letter-spacing: 4px; color: var(--danger); pointer-events: none; }
+  .course-card.is-cancelled .cancelled-overlay { display: flex; }
+
+  .course-card-top { padding: 1.2rem 1.2rem 0; display: flex; justify-content: space-between; align-items: flex-start; }
+  .course-type-badge { font-family: 'Space Mono', monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 4px; background: rgba(200,241,53,0.09); color: var(--lime); border: 1px solid rgba(200,241,53,0.22); }
+  .level-dot { display: flex; align-items: center; gap: 0.35rem; font-size: 0.73rem; color: var(--muted); }
+  .level-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; }
+  .level-dot.beginner::before     { background: #4ade80; }
+  .level-dot.intermediate::before { background: #facc15; }
+  .level-dot.advanced::before     { background: #f87171; }
+
+  .course-card-body { padding: 1rem 1.2rem 1.2rem; }
+  .course-name { font-family: 'Bebas Neue', cursive; font-size: 1.4rem; letter-spacing: 1px; margin-bottom: 0.25rem; line-height: 1; }
+  .course-instructor { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.9rem; }
+  .course-instructor strong { color: var(--white); }
+
+  .course-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.9rem; }
+  .meta-item { display: flex; align-items: center; gap: 0.3rem; }
+  .hours-badge { display: inline-flex; align-items: center; gap: 0.3rem; font-family: 'Space Mono', monospace; font-size: 0.62rem; font-weight: 700; padding: 0.18rem 0.5rem; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--white); border: 1px solid var(--border); }
+
+  .capacity-bar { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 0.35rem; overflow: hidden; }
+  .capacity-fill { height: 100%; border-radius: 2px; background: var(--lime); transition: width 0.4s; }
+  .capacity-fill.warn { background: var(--warn); }
+  .capacity-fill.full { background: var(--danger); }
+  .capacity-text { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.9rem; }
+
+  /* Conflict warning */
+  .conflict-warn { display: none; align-items: center; gap: 0.45rem; padding: 0.5rem 0.7rem; border-radius: 6px; margin-bottom: 0.75rem; background: rgba(255,69,69,0.1); border: 1px solid rgba(255,69,69,0.28); font-size: 0.73rem; color: var(--danger); }
+  .conflict-warn.show { display: flex; }
+
+  /* Enroll button */
+  .enroll-btn { width: 100%; padding: 0.68rem; border: none; border-radius: 8px; background: var(--lime); color: var(--black); font-family: 'DM Sans', sans-serif; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: all 0.18s; }
+  .enroll-btn:hover:not(:disabled) { background: var(--lime-dim); transform: translateY(-1px); }
+  .enroll-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
+  .enroll-btn.enrolled  { background: transparent; border: 1px solid var(--lime); color: var(--lime); }
+  .enroll-btn.conflict  { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+
+  /* Admin action buttons */
+  .admin-actions { display: none; gap: 0.45rem; margin-top: 0.75rem; }
+  .admin-actions.show { display: flex; }
+  .btn-edit, .btn-delete, .btn-cancel-course { flex: 1; padding: 0.5rem 0; border-radius: 6px; border: 1px solid; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.18s; background: transparent; }
+  .btn-edit         { border-color: var(--purple); color: var(--purple); }
+  .btn-edit:hover   { background: var(--purple); color: #fff; }
+  .btn-delete       { border-color: var(--danger); color: var(--danger); }
+  .btn-delete:hover { background: var(--danger); color: #fff; }
+  .btn-cancel-course       { border-color: var(--warn); color: var(--warn); }
+  .btn-cancel-course:hover { background: rgba(250,204,21,0.12); }
+  .btn-undo-cancel { flex:1; padding: 0.5rem 0; border-radius: 6px; border: 1px solid #4ade80; color: #4ade80; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.18s; background: transparent; }
+  .btn-undo-cancel:hover { background: rgba(74,222,128,0.12); }
+  .cancel-reason-box { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0.75rem; border-radius: 6px; margin-bottom: 0.85rem; background: rgba(255,69,69,0.08); border: 1px solid rgba(255,69,69,0.25); font-size: 0.75rem; color: var(--danger); line-height: 1.5; }
+  .cancel-reason-box .crb-label { font-size: 0.65rem; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.75; font-family: 'Space Mono', monospace; }
+
+  /* PAGE */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* TRAINERS */
+  .trainers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 1.2rem; }
+  .trainer-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
+  .trainer-card:hover { transform: translateY(-3px); border-color: rgba(200,241,53,0.3); }
+  .trainer-avatar { width: 100%; height: 150px; background: linear-gradient(135deg, #1a1a1a, #222); display: flex; align-items: center; justify-content: center; }
+  .avatar-initials { font-family: 'Bebas Neue', cursive; font-size: 3.2rem; color: rgba(200,241,53,0.15); letter-spacing: 4px; }
+  .trainer-body { padding: 1.1rem; }
+  .trainer-name { font-family: 'Bebas Neue', cursive; font-size: 1.3rem; letter-spacing: 1px; margin-bottom: 0.2rem; }
+  .trainer-expertise { font-size: 0.76rem; color: var(--lime); font-weight: 500; margin-bottom: 0.6rem; }
+  .trainer-bio { font-size: 0.78rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .availability-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.9rem; }
+  .avail-chip { font-family: 'Space Mono', monospace; font-size: 0.57rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--muted); }
+  .book-btn { width: 100%; padding: 0.62rem; border: 1px solid var(--lime); border-radius: 8px; background: transparent; color: var(--lime); font-family: 'DM Sans', sans-serif; font-size: 0.83rem; font-weight: 600; cursor: pointer; transition: all 0.18s; }
+  .book-btn:hover { background: var(--lime); color: var(--black); }
+  .trainer-admin-actions { display: none; gap: 0.45rem; margin-top: 0.75rem; }
+  .trainer-admin-actions.show { display: flex; }
+  .trainer-status-badge { display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 0.2rem 0.55rem; border-radius: 4px; margin-bottom: 0.5rem; }
+  .trainer-status-badge.active   { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+  .trainer-status-badge.inactive { background: rgba(255,69,69,0.1);   color: var(--danger); border: 1px solid rgba(255,69,69,0.25); }
+
+  /* MODALS */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 300; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--dark); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 500px; padding: 1.75rem; max-height: 90vh; overflow-y: auto; animation: slideUp 0.22s ease; }
+  @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; }
+  .modal-title { font-family: 'Bebas Neue', cursive; font-size: 1.55rem; letter-spacing: 1px; }
+  .modal-title.purple { color: var(--purple); }
+  .modal-title.danger { color: var(--danger); }
+  .modal-close { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; transition: all 0.18s; }
+  .modal-close:hover { border-color: var(--white); color: var(--white); }
+  .form-group { margin-bottom: 1rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+  .form-label { display: block; font-size: 0.68rem; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.38rem; }
+  .form-input { width: 100%; padding: 0.65rem 0.85rem; background: var(--black); border: 1px solid var(--border); border-radius: 8px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.86rem; outline: none; transition: border-color 0.18s; }
+  .form-input:focus { border-color: var(--lime); }
+  .form-input.purple:focus { border-color: var(--purple); }
+  .submit-btn { width: 100%; padding: 0.78rem; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.18s; }
+  .submit-btn.lime   { background: var(--lime); color: var(--black); }
+  .submit-btn.lime:hover { background: var(--lime-dim); }
+  .submit-btn.purple { background: var(--purple); color: #fff; }
+  .submit-btn.danger { background: var(--danger); color: #fff; }
+  .submit-btn:hover  { opacity: 0.88; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--card); border: 1px solid var(--lime); border-radius: 10px; padding: 0.78rem 1.1rem; font-size: 0.83rem; z-index: 400; transform: translateY(80px); opacity: 0; transition: all 0.28s; max-width: 300px; }
+  .toast.show  { transform: translateY(0); opacity: 1; }
+  .toast.error { border-color: var(--danger); }
+  .toast.info  { border-color: var(--purple); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">FitZone</div>
+  <div class="nav-links">
+    <button class="nav-link" id="nav-dashboard">Dashboard</button>
+    <button class="nav-link" id="nav-courts">Courts</button>
+    <button class="nav-link active" id="nav-courses" onclick="focusCourses()">Courses</button>
+    <button class="nav-link" id="nav-payments">Payments</button>
+  </div>
+  <div class="nav-user">
+    <div class="nav-user-info">
+      <div class="nav-user-name">Chayocha Thongprasert</div>
+      <div class="nav-user-id">MEM495252</div>
+    </div>
+    <button class="btn-logout" onclick="showToast('Logged out.', 'info')">Logout</button>
+  </div>
+</nav>
+
+<div class="admin-banner" id="admin-banner">⚡ ADMIN MODE — Create, edit, cancel and delete courses</div>
+
+<div class="hero">
+  <!-- Controls row: page switcher LEFT, role switcher RIGHT — above TRAIN HARDER -->
+  <div class="hero-controls">
+    <div class="page-switcher">
+      <button class="page-switch-btn active" id="psw-courses" onclick="showPage('courses', this, 'psw-courses')">Courses</button>
+      <button class="page-switch-btn" id="psw-trainers" onclick="showPage('trainers', this, 'psw-trainers')">Trainers</button>
+    </div>
+    <div class="role-switcher-inline">
+      <button class="role-btn is-customer" id="btn-customer" onclick="setRole('customer')">Customer</button>
+      <button class="role-btn" id="btn-admin" onclick="setRole('admin')">Admin</button>
+    </div>
+  </div>
+  <h1 class="hero-title">TRAIN<br><span>HARDER.</span></h1>
+  <p class="hero-sub">Explore group fitness classes and book private sessions with certified trainers.</p>
+</div>
+
+<!-- COURSES PAGE -->
+<div id="page-courses" class="page active">
+  <div class="filters-bar">
+    <span class="filter-label">Level</span>
+    <button class="filter-chip active" onclick="filterCourses('all',this)">All</button>
+    <button class="filter-chip" onclick="filterCourses('beginner',this)">Beginner</button>
+    <button class="filter-chip" onclick="filterCourses('intermediate',this)">Intermediate</button>
+    <button class="filter-chip" onclick="filterCourses('advanced',this)">Advanced</button>
+  </div>
+  <div class="admin-toolbar" id="admin-toolbar">
+    <span class="admin-label">⚡ Manage Courses</span>
+    <button class="btn-create" onclick="openCreateModal()">＋ Create Course</button>
+  </div>
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-title">GROUP CLASSES</div>
+      <div class="section-count" id="course-count"></div>
+    </div>
+    <div class="courses-grid" id="courses-grid"></div>
+  </div>
+</div>
+
+<!-- TRAINERS PAGE -->
+<div id="page-trainers" class="page">
+  <div class="filters-bar">
+    <span class="filter-label">Expertise</span>
+    <button class="filter-chip active" onclick="filterTrainers('all',this)">All</button>
+    <button class="filter-chip" onclick="filterTrainers('Yoga',this)">Yoga</button>
+    <button class="filter-chip" onclick="filterTrainers('CrossFit',this)">CrossFit</button>
+    <button class="filter-chip" onclick="filterTrainers('Badminton',this)">Badminton</button>
+    <button class="filter-chip" onclick="filterTrainers('Strength',this)">Strength</button>
+  </div>
+  <div class="admin-toolbar" id="admin-toolbar-trainers">
+    <span class="admin-label">⚡ Manage Trainers</span>
+    <button class="btn-create" onclick="openCreateTrainerModal()">＋ Add Trainer</button>
+  </div>
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-title">CERTIFIED TRAINERS</div>
+      <div class="section-count" id="trainer-count"></div>
+    </div>
+    <div class="trainers-grid" id="trainers-grid"></div>
+  </div>
+</div>
+
+<!-- MODAL: CREATE / EDIT COURSE -->
+<div class="modal-overlay" id="course-form-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title purple" id="form-modal-title">CREATE COURSE</div>
+      <button class="modal-close" onclick="closeModal('course-form-modal')">✕</button>
+    </div>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div><label class="form-label">Course Name *</label><input class="form-input purple" id="f-name" placeholder="e.g. Morning Yoga"></div>
+      <div><label class="form-label">Course Type *</label><input class="form-input purple" id="f-type" placeholder="e.g. Yoga"></div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">Instructor *</label><input class="form-input purple" id="f-instructor" placeholder="Instructor name"></div>
+      <div><label class="form-label">Fitness Level *</label>
+        <select class="form-input purple" id="f-level">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">Schedule *</label><input type="datetime-local" class="form-input purple" id="f-schedule"></div>
+      <div><label class="form-label">Duration *</label>
+        <select class="form-input purple" id="f-duration">
+          <option value="0.5">0.5 hr (30 min)</option>
+          <option value="1" selected>1 hr</option>
+          <option value="1.5">1.5 hrs</option>
+          <option value="2">2 hrs</option>
+          <option value="2.5">2.5 hrs</option>
+          <option value="3">3 hrs</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">Max Attendees *</label><input type="number" class="form-input purple" id="f-max" placeholder="20" min="1"></div>
+      <div><label class="form-label">Description</label><input class="form-input purple" id="f-desc" placeholder="Short description"></div>
+    </div>
+    <button class="submit-btn purple" onclick="submitCourseForm()">Save Course</button>
+  </div>
+</div>
+
+<!-- MODAL: CANCEL REASON -->
+<div class="modal-overlay" id="cancel-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title danger">CANCEL COURSE</div>
+      <button class="modal-close" onclick="closeModal('cancel-modal')">✕</button>
+    </div>
+    <p style="color:var(--muted);font-size:0.83rem;margin-bottom:1.2rem;line-height:1.6">A cancellation reason is required before the course is marked as cancelled.</p>
+    <input type="hidden" id="cancel-id">
+    <div class="form-group">
+      <label class="form-label">Reason *</label>
+      <input class="form-input" id="cancel-reason" placeholder="e.g. Instructor unavailable">
+    </div>
+    <button class="submit-btn danger" onclick="confirmCancel()">Confirm Cancellation</button>
+  </div>
+</div>
+
+<!-- MODAL: CREATE / EDIT TRAINER -->
+<div class="modal-overlay" id="trainer-form-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title purple" id="trainer-modal-title">ADD TRAINER</div>
+      <button class="modal-close" onclick="closeModal('trainer-form-modal')">✕</button>
+    </div>
+    <input type="hidden" id="edit-trainer-id">
+    <div class="form-row">
+      <div><label class="form-label">Name *</label><input class="form-input purple" id="tf-name" placeholder="Full name"></div>
+      <div><label class="form-label">Expertise *</label><input class="form-input purple" id="tf-expertise" placeholder="e.g. Yoga, Pilates"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Bio</label>
+      <input class="form-input purple" id="tf-bio" placeholder="Short biography">
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">Phone</label><input class="form-input purple" id="tf-phone" placeholder="e.g. 081-000-0001"></div>
+      <div><label class="form-label">Email</label><input class="form-input purple" id="tf-email" placeholder="trainer@gym.com"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Availability (e.g. Monday|08:00|17:00,Wednesday|08:00|17:00)</label>
+      <input class="form-input purple" id="tf-avail" placeholder="Monday|09:00|18:00,Wednesday|09:00|18:00">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-input purple" id="tf-status">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+    <button class="submit-btn purple" onclick="submitTrainerForm()">Save Trainer</button>
+  </div>
+</div>
+
+<!-- MODAL: BOOK TRAINER -->
+<div class="modal-overlay" id="book-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">BOOK SESSION</div>
+      <button class="modal-close" onclick="closeModal('book-modal')">✕</button>
+    </div>
+    <div style="margin-bottom:1.2rem;padding-bottom:1.2rem;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Bebas Neue',cursive;font-size:1.3rem" id="modal-trainer-name"></div>
+      <div style="font-size:0.78rem;color:var(--lime)" id="modal-trainer-expertise"></div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">Date</label><input type="date" class="form-input" id="session-date"></div>
+      <div><label class="form-label">Time</label><input type="time" class="form-input" id="session-time"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Duration</label>
+      <select class="form-input" id="session-duration">
+        <option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes (optional)</label>
+      <input class="form-input" id="session-notes" placeholder="e.g. Focus on core strength">
+    </div>
+    <button class="submit-btn lime" onclick="submitBooking()">Confirm Booking</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG — เปลี่ยน API_BASE ถ้า deploy ที่อื่น
+// ══════════════════════════════════════════════════════════
+const API_BASE = 'http://localhost:3003/api';
+let TOKEN = localStorage.getItem('fitzone_token') || null;
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let role        = 'customer';
+let allCourses  = [];
+let allTrainers = [];
+let selectedTrainer   = null;
+let currentFilterLevel = 'all';
+let currentFilterExp   = 'all';
+const enrolledSet   = new Set();
+const enrolledTimes = new Map();
+
+// ══════════════════════════════════════════════════════════
+// API HELPER
+// ══════════════════════════════════════════════════════════
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}) }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res  = await fetch(API_BASE + path, opts);
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.message || `HTTP ${res.status}`);
+  return json;
+}
+
+// map backend field names → frontend
+function mapCourse(c) {
+  return {
+    id:           c.courseID,
+    name:         c.courseName,
+    type:         c.courseType,
+    level:        c.fitnessLevel,
+    instructor:   c.instructor,
+    schedule:     c.schedule,
+    dur:          c.durationHours   || 1,
+    max:          c.maxAttendees,
+    cur:          c.currentAttendees || 0,
+    desc:         c.description,
+    status:       c.status,
+    cancelReason: c.cancelReason || null
+  };
+}
+function mapTrainer(t) {
+  return {
+    id:        t.trainerID,
+    name:      t.name,
+    expertise: t.expertise,
+    bio:       t.bio       || '',
+    phone:     t.phone     || '',
+    email:     t.email     || '',
+    avail:     t.avail     || '',
+    status:    t.status    || 'active'
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// ROLE
+// ══════════════════════════════════════════════════════════
+function setRole(r) {
+  role = r;
+  document.getElementById('btn-customer').className = 'role-btn' + (r==='customer' ? ' is-customer' : '');
+  document.getElementById('btn-admin').className    = 'role-btn' + (r==='admin'    ? ' is-admin'    : '');
+  document.getElementById('admin-banner').classList.toggle('show', r==='admin');
+  document.getElementById('admin-toolbar').classList.toggle('show', r==='admin');
+  document.getElementById('admin-toolbar-trainers').classList.toggle('show', r==='admin');
+  loadCourses(currentFilterLevel);
+  loadTrainers(currentFilterExp);
+  showToast(r === 'admin' ? '⚡ Admin mode' : '👤 Customer mode', 'info');
+}
+
+// ══════════════════════════════════════════════════════════
+// PAGE NAV
+// ══════════════════════════════════════════════════════════
+function showPage(page, btn, pswID) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.page-switch-btn').forEach(b => b.classList.remove('active'));
+  if (pswID) document.getElementById(pswID).classList.add('active');
+  else btn.classList.add('active');
+}
+function focusCourses() { showPage('courses', null, 'psw-courses'); }
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function fmtDur(h) {
+  if (h < 1) return `${h*60} min`;
+  if (h === 1) return '1 hr';
+  if (Number.isInteger(h)) return `${h} hrs`;
+  return `${Math.floor(h)} hr ${Math.round((h%1)*60)} min`;
+}
+function getConflict(courseID) {
+  const c = allCourses.find(x => x.id === courseID);
+  if (!c) return null;
+  const cS = new Date(c.schedule), cE = new Date(cS.getTime() + c.dur * 3600000);
+  for (const [eid, t] of enrolledTimes) {
+    if (eid === courseID) continue;
+    if (cS < t.end && cE > t.start) {
+      const other = allCourses.find(x => x.id === eid);
+      return other ? other.name : 'another course';
+    }
+  }
+  return null;
+}
+
+// ══════════════════════════════════════════════════════════
+// COURSES — LOAD & RENDER
+// ══════════════════════════════════════════════════════════
+async function loadCourses(filterLevel = 'all') {
+  currentFilterLevel = filterLevel;
+  try {
+    const endpoint = role === 'admin' ? '/courses/admin/all' : '/courses';
+    const params   = filterLevel !== 'all' ? `?fitnessLevel=${filterLevel}` : '';
+    const json     = await api('GET', endpoint + params);
+    allCourses     = json.data.map(mapCourse);
+    renderCourses(allCourses);
+  } catch (err) {
+    showToast('Failed to load courses: ' + err.message, 'error');
+  }
+}
+
+function renderCourses(list) {
+  const grid = document.getElementById('courses-grid');
+  document.getElementById('course-count').textContent = `${list.length} courses`;
+  if (!list.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted)">No courses found.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(c => {
+    const pct    = Math.round((c.cur / c.max) * 100);
+    const isFull = c.cur >= c.max;
+    const fillCls= isFull ? 'full' : pct >= 80 ? 'warn' : '';
+    const d      = new Date(c.schedule);
+    const dateStr= d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const timeStr= d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+    const isEnrolled = enrolledSet.has(c.id);
+    const conflict   = (!isEnrolled && role==='customer') ? getConflict(c.id) : null;
+
+    let btnCls = 'enroll-btn', btnTxt = 'Enroll Now', btnDis = '';
+    if (c.status === 'cancelled')  { btnTxt = 'Cancelled'; btnDis = 'disabled'; }
+    else if (isEnrolled)           { btnCls += ' enrolled'; btnTxt = '✓ Enrolled — tap to cancel'; }
+    else if (conflict)             { btnCls += ' conflict'; btnTxt = '⚠ Schedule Conflict'; btnDis = 'disabled'; }
+    else if (isFull)               { btnTxt = 'Class Full'; btnDis = 'disabled'; }
+
+    const conflictHtml = role === 'customer'
+      ? `<div class="conflict-warn${conflict?' show':''}" id="cw-${c.id}">⚠ Conflicts with <strong style="margin-left:3px">${conflict||''}</strong></div>` : '';
+    const cancelReasonHtml = (role === 'customer' && c.status === 'cancelled' && c.cancelReason)
+      ? `<div class="cancel-reason-box"><span class="crb-label">Cancellation reason</span>${c.cancelReason}</div>` : '';
+    const enrollBtn = role === 'customer'
+      ? `<button class="${btnCls}" ${btnDis} onclick="toggleEnroll(${c.id},this)">${btnTxt}</button>` : '';
+    const cancelOrUndo = c.status === 'cancelled'
+      ? `<button class="btn-undo-cancel" onclick="undoCancel(${c.id})">↩ Undo Cancel</button>`
+      : `<button class="btn-cancel-course" onclick="openCancelModal(${c.id})">✕ Cancel</button>`;
+    const adminBtns = role === 'admin'
+      ? `<div class="admin-actions show">
+           <button class="btn-edit" onclick="openEditModal(${c.id})">✏ Edit</button>
+           ${cancelOrUndo}
+           <button class="btn-delete" onclick="deleteCourse(${c.id})">🗑 Delete</button>
+         </div>` : '';
+
+    return `
+    <div class="course-card ${role==='admin'?'admin-hover':'customer-hover'}${c.status==='cancelled'?' is-cancelled':''}" id="card-${c.id}">
+      <div class="cancelled-overlay">CANCELLED</div>
+      <div class="course-card-top">
+        <span class="course-type-badge">${c.type}</span>
+        <span class="level-dot ${c.level}">${c.level}</span>
+      </div>
+      <div class="course-card-body">
+        <div class="course-name">${c.name}</div>
+        <div class="course-instructor">with <strong>${c.instructor}</strong></div>
+        <div class="course-meta">
+          <div class="meta-item">📅 ${dateStr}</div>
+          <div class="meta-item">🕐 ${timeStr}</div>
+          <div class="meta-item"><span class="hours-badge">⏱ ${fmtDur(c.dur)}</span></div>
+        </div>
+        <div class="capacity-bar"><div class="capacity-fill ${fillCls}" style="width:${pct}%"></div></div>
+        <div class="capacity-text" id="cap-${c.id}">${c.cur} / ${c.max} spots filled</div>
+        ${cancelReasonHtml}
+        ${conflictHtml}
+        ${enrollBtn}
+        ${adminBtns}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCourses(level, btn) {
+  document.querySelectorAll('#page-courses .filter-chip').forEach(x => x.classList.remove('active'));
+  btn.classList.add('active');
+  loadCourses(level);
+}
+
+// ══════════════════════════════════════════════════════════
+// CUSTOMER: ENROLL / CANCEL
+// ══════════════════════════════════════════════════════════
+async function toggleEnroll(cid, btn) {
+  const c = allCourses.find(x => x.id === cid);
+  if (!c || c.status === 'cancelled') return;
+
+  if (enrolledSet.has(cid)) {
+    // CANCEL enrollment
+    try {
+      await api('POST', '/courses/enroll/cancel', { courseID: cid });
+      enrolledSet.delete(cid); enrolledTimes.delete(cid);
+      c.cur = Math.max(0, c.cur - 1);
+      btn.textContent = 'Enroll Now'; btn.className = 'enroll-btn'; btn.disabled = false;
+      showToast('Enrollment cancelled.');
+      updateCapacityUI(c); refreshAllConflicts();
+    } catch (err) { showToast(err.message, 'error'); }
+  } else {
+    if (c.cur >= c.max) return;
+    const conflict = getConflict(cid);
+    if (conflict) { showToast(`⚠ Conflicts with "${conflict}"`, 'error'); return; }
+    // ENROLL
+    try {
+      await api('POST', '/courses/enroll', { courseID: cid });
+      enrolledSet.add(cid);
+      const s = new Date(c.schedule);
+      enrolledTimes.set(cid, { start: s, end: new Date(s.getTime() + c.dur * 3600000) });
+      c.cur++;
+      btn.textContent = '✓ Enrolled — tap to cancel'; btn.className = 'enroll-btn enrolled';
+      showToast('Successfully enrolled!');
+      updateCapacityUI(c); refreshAllConflicts();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+}
+
+function updateCapacityUI(c) {
+  const cap = document.getElementById('cap-' + c.id);
+  const bar = document.querySelector(`#card-${c.id} .capacity-fill`);
+  if (!cap || !bar) return;
+  const pct = Math.round((c.cur / c.max) * 100), isFull = c.cur >= c.max;
+  cap.textContent = `${c.cur} / ${c.max} spots filled`;
+  bar.style.width = pct + '%';
+  bar.className   = 'capacity-fill' + (isFull ? ' full' : pct >= 80 ? ' warn' : '');
+  if (isFull && !enrolledSet.has(c.id)) {
+    const btn = document.querySelector(`#card-${c.id} .enroll-btn`);
+    if (btn) { btn.textContent = 'Class Full'; btn.disabled = true; btn.className = 'enroll-btn'; }
+  }
+}
+
+function refreshAllConflicts() {
+  allCourses.filter(c => c.status === 'published').forEach(c => {
+    if (enrolledSet.has(c.id)) return;
+    const cw  = document.getElementById('cw-' + c.id);
+    const btn = document.querySelector(`#card-${c.id} .enroll-btn`);
+    if (!cw || !btn) return;
+    const conflict = getConflict(c.id), isFull = c.cur >= c.max;
+    if (conflict) {
+      cw.innerHTML = `⚠ Conflicts with <strong style="margin-left:3px">${conflict}</strong>`;
+      cw.classList.add('show');
+      btn.textContent = '⚠ Schedule Conflict'; btn.className = 'enroll-btn conflict'; btn.disabled = true;
+    } else {
+      cw.innerHTML = ''; cw.classList.remove('show');
+      if (!isFull) { btn.textContent = 'Enroll Now'; btn.className = 'enroll-btn'; btn.disabled = false; }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// ADMIN: CREATE / EDIT COURSE
+// ══════════════════════════════════════════════════════════
+function openCreateModal() {
+  document.getElementById('form-modal-title').textContent = 'CREATE COURSE';
+  document.getElementById('edit-id').value = '';
+  ['f-name','f-type','f-instructor','f-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-level').value = 'beginner';
+  document.getElementById('f-duration').value = '1';
+  document.getElementById('f-max').value = '';
+  document.getElementById('f-schedule').value = '';
+  openModal('course-form-modal');
+}
+
+function openEditModal(cid) {
+  const c = allCourses.find(x => x.id === cid); if (!c) return;
+  document.getElementById('form-modal-title').textContent = 'EDIT COURSE';
+  document.getElementById('edit-id').value       = cid;
+  document.getElementById('f-name').value        = c.name;
+  document.getElementById('f-type').value        = c.type;
+  document.getElementById('f-instructor').value  = c.instructor;
+  document.getElementById('f-level').value       = c.level;
+  document.getElementById('f-schedule').value    = c.schedule.replace(' ', 'T').slice(0,16);
+  document.getElementById('f-duration').value    = c.dur;
+  document.getElementById('f-max').value         = c.max;
+  document.getElementById('f-desc').value        = c.desc || '';
+  openModal('course-form-modal');
+}
+
+async function submitCourseForm() {
+  const name  = document.getElementById('f-name').value.trim();
+  const type  = document.getElementById('f-type').value.trim();
+  const instr = document.getElementById('f-instructor').value.trim();
+  const level = document.getElementById('f-level').value;
+  const sched = document.getElementById('f-schedule').value;
+  const dur   = parseFloat(document.getElementById('f-duration').value);
+  const max   = parseInt(document.getElementById('f-max').value);
+  const desc  = document.getElementById('f-desc').value.trim();
+  const eid   = document.getElementById('edit-id').value;
+  if (!name || !type || !instr || !sched || !max) { showToast('Please fill all required fields.', 'error'); return; }
+
+  const body = { courseName: name, courseType: type, instructor: instr,
+                 fitnessLevel: level, schedule: sched, durationHours: dur,
+                 maxAttendees: max, description: desc };
+  try {
+    if (eid) { await api('PUT',  `/courses/${eid}`, body); showToast('Course updated.', 'info'); }
+    else     { await api('POST', '/courses', body);        showToast('Course created!', 'info'); }
+    closeModal('course-form-modal');
+    await loadCourses(currentFilterLevel);
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// ADMIN: CANCEL / UNDO / DELETE COURSE
+// ══════════════════════════════════════════════════════════
+function openCancelModal(cid) {
+  document.getElementById('cancel-id').value    = cid;
+  document.getElementById('cancel-reason').value = '';
+  openModal('cancel-modal');
+}
+
+async function confirmCancel() {
+  const cid    = document.getElementById('cancel-id').value;
+  const reason = document.getElementById('cancel-reason').value.trim();
+  if (!reason) { showToast('Cancellation reason required.', 'error'); return; }
+  try {
+    await api('PATCH', `/courses/${cid}/cancel`, { cancelReason: reason });
+    closeModal('cancel-modal');
+    await loadCourses(currentFilterLevel);
+    showToast('Course cancelled.', 'info');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function undoCancel(cid) {
+  try {
+    await api('PATCH', `/courses/${cid}/undo-cancel`);
+    await loadCourses(currentFilterLevel);
+    showToast('Cancellation reversed — course is published again.', 'info');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function deleteCourse(cid) {
+  try {
+    await api('DELETE', `/courses/${cid}`);
+    enrolledSet.delete(cid); enrolledTimes.delete(cid);
+    await loadCourses(currentFilterLevel);
+    showToast('Course deleted.', 'info');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// TRAINERS — LOAD & RENDER
+// ══════════════════════════════════════════════════════════
+async function loadTrainers(filterExp = 'all') {
+  currentFilterExp = filterExp;
+  try {
+    const endpoint = role === 'admin' ? '/trainers/admin/all' : '/trainers';
+    const params   = filterExp !== 'all' ? `?expertise=${filterExp}` : '';
+    const json     = await api('GET', endpoint + params);
+    const list     = json.data.map(mapTrainer);
+    renderTrainers(list);
+  } catch (err) {
+    showToast('Failed to load trainers: ' + err.message, 'error');
+  }
+}
+
+function renderTrainers(list) {
+  document.getElementById('trainer-count').textContent = `${list.length} trainers`;
+  document.getElementById('trainers-grid').innerHTML = list.map(t => {
+    const ini   = t.name.split(' ').map(n => n[0]).join('');
+    const chips = (t.avail||'').split(',').map(a => `<span class="avail-chip">${a.split('|')[0].slice(0,3).toUpperCase()}</span>`).join('');
+    const statusBadge = role === 'admin'
+      ? `<span class="trainer-status-badge ${t.status}">${t.status}</span>` : '';
+    const bookOrAdmin = role === 'customer'
+      ? `<button class="book-btn" onclick="openBookModal(${t.id})">Book Private Session</button>`
+      : `<div class="trainer-admin-actions show">
+           <button class="btn-edit" onclick="openEditTrainerModal(${t.id})">✏ Edit</button>
+           <button class="btn-delete" onclick="deleteTrainer(${t.id})">🗑 Delete</button>
+         </div>`;
+    return `
+    <div class="trainer-card" id="tcard-${t.id}">
+      <div class="trainer-avatar"><div class="avatar-initials">${ini}</div></div>
+      <div class="trainer-body">
+        ${statusBadge}
+        <div class="trainer-name">${t.name}</div>
+        <div class="trainer-expertise">${t.expertise}</div>
+        <div class="trainer-bio">${t.bio}</div>
+        <div class="availability-chips">${chips}</div>
+        ${bookOrAdmin}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterTrainers(exp, btn) {
+  document.querySelectorAll('#page-trainers .filter-chip').forEach(x => x.classList.remove('active'));
+  btn.classList.add('active');
+  loadTrainers(exp);
+}
+
+// ══════════════════════════════════════════════════════════
+// ADMIN: CREATE / EDIT TRAINER
+// ══════════════════════════════════════════════════════════
+function openCreateTrainerModal() {
+  document.getElementById('trainer-modal-title').textContent = 'ADD TRAINER';
+  document.getElementById('edit-trainer-id').value = '';
+  ['tf-name','tf-expertise','tf-bio','tf-phone','tf-email','tf-avail'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tf-status').value = 'active';
+  openModal('trainer-form-modal');
+}
+
+function openEditTrainerModal(tid) {
+  // find from rendered list via DOM data or re-fetch — use stored list via allTrainers
+  const card = document.getElementById('tcard-' + tid);
+  if (!card) return;
+  // re-open modal prefilled from current trainer data stored as data attrs or just re-fetch
+  openModal('trainer-form-modal');
+  api('GET', `/trainers/${tid}`).then(json => {
+    const t = mapTrainer(json.data);
+    document.getElementById('trainer-modal-title').textContent = 'EDIT TRAINER';
+    document.getElementById('edit-trainer-id').value = tid;
+    document.getElementById('tf-name').value      = t.name;
+    document.getElementById('tf-expertise').value = t.expertise;
+    document.getElementById('tf-bio').value       = t.bio;
+    document.getElementById('tf-phone').value     = t.phone;
+    document.getElementById('tf-email').value     = t.email;
+    document.getElementById('tf-avail').value     = t.avail;
+    document.getElementById('tf-status').value    = t.status;
+  }).catch(err => { closeModal('trainer-form-modal'); showToast(err.message, 'error'); });
+}
+
+async function submitTrainerForm() {
+  const name      = document.getElementById('tf-name').value.trim();
+  const expertise = document.getElementById('tf-expertise').value.trim();
+  const bio       = document.getElementById('tf-bio').value.trim();
+  const phone     = document.getElementById('tf-phone').value.trim();
+  const email     = document.getElementById('tf-email').value.trim();
+  const avail     = document.getElementById('tf-avail').value.trim();
+  const status    = document.getElementById('tf-status').value;
+  const eid       = document.getElementById('edit-trainer-id').value;
+  if (!name || !expertise) { showToast('Name and expertise are required.', 'error'); return; }
+
+  const body = { name, expertise, bio, phone, email, avail, status };
+  try {
+    if (eid) { await api('PUT',  `/trainers/${eid}`, body); showToast('Trainer updated.', 'info'); }
+    else     { await api('POST', '/trainers', body);        showToast('Trainer added!',   'info'); }
+    closeModal('trainer-form-modal');
+    await loadTrainers(currentFilterExp);
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function deleteTrainer(tid) {
+  try {
+    await api('DELETE', `/trainers/${tid}`);
+    await loadTrainers(currentFilterExp);
+    showToast('Trainer deleted.', 'info');
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// BOOK TRAINER
+// ══════════════════════════════════════════════════════════
+function openBookModal(tid) {
+  api('GET', `/trainers/${tid}`).then(json => {
+    selectedTrainer = mapTrainer(json.data);
+    document.getElementById('modal-trainer-name').textContent      = selectedTrainer.name;
+    document.getElementById('modal-trainer-expertise').textContent = selectedTrainer.expertise;
+    document.getElementById('session-date').min   = new Date().toISOString().split('T')[0];
+    document.getElementById('session-date').value = '';
+    document.getElementById('session-time').value = '';
+    openModal('book-modal');
+  }).catch(err => showToast(err.message, 'error'));
+}
+
+async function submitBooking() {
+  const date     = document.getElementById('session-date').value;
+  const time     = document.getElementById('session-time').value;
+  const duration = parseInt(document.getElementById('session-duration').value);
+  const notes    = document.getElementById('session-notes').value.trim();
+  const name     = selectedTrainer ? selectedTrainer.name : 'trainer';
+  const tid      = selectedTrainer ? selectedTrainer.id   : null;
+  if (!date || !time) { showToast('Please select date and time.', 'error'); return; }
+  try {
+    await api('POST', '/trainers/book', { trainerID: tid, sessionDate: date, sessionTime: time, durationMinutes: duration, notes });
+    closeModal('book-modal');
+    showToast(`Session booked with ${name} on ${date} at ${time}!`);
+  } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ══════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'book-modal') selectedTrainer = null;
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show${type ? ' ' + type : ''}`;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = 'toast', 3200);
+}
+
+// INIT
+loadCourses();
+loadTrainers();
+</script>
+</body>
+</html>
