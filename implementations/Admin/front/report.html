@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reports & Analytics - Fitness Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --lime: #c8f53c; --bg: #0a0a0a; --glass: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Barlow', sans-serif; }
+
+        nav { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid var(--border); }
+        .logo { font-family: 'Bebas Neue'; font-size: 2.2rem; color: var(--lime); text-decoration: none; letter-spacing: 2px;}
+        
+        .back-link { text-decoration: none; color: #888; font-size: 0.9rem; font-weight: bold; transition: 0.3s; }
+        .back-link:hover { color: var(--lime); }
+
+        .container { max-width: 1300px; margin: 50px auto; padding: 0 30px; }
+        .h-large { font-family: 'Bebas Neue'; font-size: 3rem; margin-bottom: 30px; text-align: center; }
+
+        /* Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: var(--glass); border: 1px solid var(--border); border-radius: 15px; padding: 25px; border-top: 2px solid var(--lime); position: relative; }
+        .stat-card p { color: #888; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; }
+        .stat-card h2 { font-family: 'Bebas Neue'; font-size: 3rem; color: #fff; }
+        .stat-card h2.highlight { color: var(--lime); }
+
+        /* Full Width Usage Chart Section */
+        .chart-box { background: var(--glass); border: 1px solid var(--border); border-radius: 15px; padding: 40px; margin-top: 30px; }
+        .peak-indicator { display: inline-block; background: rgba(255, 68, 68, 0.1); color: #ff4444; padding: 5px 12px; border-radius: 5px; font-size: 0.8rem; font-weight: bold; margin-left: 15px; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="admin.html" class="logo">FITNESS ADMIN</a>
+        <a href="admin.html" class="back-link">← Back to Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <h1 class="h-large">SYSTEM OPERATIONAL REPORT</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p>TOTAL REVENUE</p>
+                <h2 class="highlight" id="rev-display">$0</h2>
+            </div>
+            <div class="stat-card">
+                <p>ACTIVE MEMBERS</p>
+                <h2 id="mem-display">0</h2>
+            </div>
+            <div class="stat-card">
+                <p>TODAY'S ATTENDANCE</p>
+                <h2 id="att-display">0</h2>
+            </div>
+            <div class="stat-card">
+                <p>ACTIVE PROMOTIONS</p>
+                <h2 class="highlight" id="promo-display">0</h2>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <h3 style="font-family: 'Bebas Neue'; color: var(--lime); font-size: 1.8rem; margin-bottom: 30px;">
+                📊 DAILY GYM USAGE ANALYSIS 
+                <span class="peak-indicator">LATEST PEAK: 18:00</span>
+            </h3>
+            <div style="height: 500px;">
+                <canvas id="usageChart"></canvas>
+            </div>
+            <p style="margin-top: 30px; color: #888; font-size: 0.9rem; text-align: center;">
+                This chart identifies usage trends to help administrators manage staff and equipment during peak periods.
+            </p>
+        </div>
+    </div>
+
+    <script>
+    window.onload = function() {
+        fetch('http://localhost:8080/api/dashboard/stats')
+            .then(res => res.json())
+            .then(data => {
+                // Update Numeric Cards
+                document.getElementById('rev-display').innerText = '$' + (data.revenue || 0);
+                document.getElementById('mem-display').innerText = data.activeMembers || 0;
+                document.getElementById('att-display').innerText = data.attendanceToday || 0;
+                document.getElementById('promo-display').innerText = data.activePromos || 0;
+
+                // Update the Chart to match the 0 values
+                const ctx = document.getElementById('usageChart').getContext('2d');
+                
+                // We create an array of 9 zeros to match the 9 labels below
+                // This ensures the chart is a flat line at 0
+                const zeroHistory = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', 'Current'],
+                        datasets: [{
+                            label: 'Current Occupancy',
+                            data: zeroHistory, // Set to all zeros
+                            borderColor: '#c8f53c',
+                            backgroundColor: 'rgba(200, 245, 60, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#fff',
+                            pointRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#fff', font: { family: 'Barlow' } } }
+                        },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                // Set max to 10 so the "0" line is visible but the scale isn't huge
+                                max: 10, 
+                                grid: { color: 'rgba(255,255,255,0.05)' }, 
+                                ticks: { color: '#888' } 
+                            },
+                            x: { 
+                                grid: { display: false }, 
+                                ticks: { color: '#888' } 
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(err => console.error("Fetch error:", err));
+    };
+</script>
+</body>
+</html>

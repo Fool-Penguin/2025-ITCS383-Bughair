@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Course Management - Fitness Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --lime: #c8f53c; --bg: #0a0a0a; --glass: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Barlow', sans-serif; }
+
+        nav { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid var(--border); }
+        .logo { font-family: 'Bebas Neue'; font-size: 2.2rem; color: var(--lime); text-decoration: none; letter-spacing: 2px;}
+        .back-link { text-decoration: none; color: #888; font-size: 0.9rem; font-weight: bold; transition: 0.3s; }
+        .back-link:hover { color: var(--lime); }
+
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 30px; }
+        h1 { font-family: 'Bebas Neue'; font-size: 2.5rem; margin-bottom: 20px; color: var(--lime); }
+
+        .form-panel { background: var(--glass); border: 1px solid var(--border); padding: 30px; border-radius: 15px; margin-bottom: 40px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        label { font-size: 0.8rem; color: #888; font-weight: bold; display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; background: #111; border: 1px solid #333; color: #fff; border-radius: 5px; margin-bottom: 10px; }
+        
+        .btn { padding: 12px; background: var(--lime); color: #000; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; text-transform: uppercase; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #fff; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { color: #888; text-transform: uppercase; font-size: 0.75rem; }
+        .action-btn { background: none; border: 1px solid #444; color: #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; margin-right: 5px; }
+        .action-btn:hover { border-color: var(--lime); color: var(--lime); }
+        .delete-btn:hover { border-color: #ff4444; color: #ff4444; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="admin.html" class="logo">FITNESS ADMIN</a>
+        <a href="admin.html" class="back-link">← Back to Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <h1>CREATE NEW COURSE</h1>
+        <div class="form-panel">
+            <form id="courseForm">
+                <div class="form-grid">
+                    <div>
+                        <label>COURSE NAME</label>
+                        <input type="text" id="course_name" placeholder="e.g. Yoga Flow" required>
+                    </div>
+                    <div>
+                        <label>INSTRUCTOR</label>
+                        <input type="text" id="instructor" placeholder="e.g. Coach Sarah" required>
+                    </div>
+                    <div>
+                        <label>SCHEDULE</label>
+                        <input type="text" id="schedule" placeholder="e.g. Mon/Wed 18:00" required>
+                    </div>
+                    <div>
+                        <label>MAX ATTENDEES</label>
+                        <input type="number" id="max_attendees" placeholder="50" required>
+                    </div>
+                    <div>
+                        <label>COURSE TYPE</label>
+                        <select id="course_type">
+                            <option value="Group">Group Class</option>
+                            <option value="Personal">Personal Training</option>
+                            <option value="Workshop">Workshop</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>FITNESS LEVEL</label>
+                        <select id="fitness_level">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Create & Save Course</button>
+            </form>
+        </div>
+
+        <h1>MANAGE COURSES</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Instructor</th>
+                    <th>Schedule</th>
+                    <th>Capacity</th>
+                    <th>Level</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="courseTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadCourses() {
+    fetch('http://localhost:8080/api/courses')
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById('courseTableBody');
+            tbody.innerHTML = '';
+            data.forEach(c => {
+                // Determine the button text based on status
+                const btnText = c.status === 'UNPUBLISHED' ? 'Publish' : 'Unpublish';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b style="color:var(--lime)">${c.course_name}</b></td>
+                        <td>${c.instructor}</td>
+                        <td>${c.schedule}</td>
+                        <td>${c.max_attendees}</td>
+                        <td>${c.fitness_level}</td>
+                        <td><span style="color: ${c.status === 'PUBLISHED' ? 'var(--lime)' : '#ff4444'}">${c.status}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="togglePublish(${c.id}, '${c.status}')">
+                                ${btnText}
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteCourse(${c.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        });
+}
+        document.getElementById('courseForm').onsubmit = (e) => {
+            e.preventDefault();
+            const body = {
+                course_name: document.getElementById('course_name').value,
+                instructor: document.getElementById('instructor').value,
+                schedule: document.getElementById('schedule').value,
+                max_attendees: document.getElementById('max_attendees').value,
+                course_type: document.getElementById('course_type').value,
+                fitness_level: document.getElementById('fitness_level').value
+            };
+            fetch('http://localhost:8080/api/courses', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            }).then(() => { alert('Course Created!'); loadCourses(); });
+        };
+        function togglePublish(id, currentStatus) {
+    // Determine the new status
+    const newStatus = currentStatus === 'UNPUBLISHED' ? 'PUBLISHED' : 'UNPUBLISHED';
+
+    fetch(`http://localhost:8080/api/courses/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            loadCourses(); // Refresh the table to show the new status
+        }
+    })
+    .catch(err => console.error("Error toggling status:", err));
+}
+        function deleteCourse(id) {
+            const reason = prompt("Requirement: Please provide a reason for canceling this course:");
+            if (reason) {
+                fetch(`http://localhost:8080/api/courses/${id}`, {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ reason })
+                }).then(() => loadCourses());
+            }
+        }
+
+        loadCourses();
+    </script>
+</body>
+</html>

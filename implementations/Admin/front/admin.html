@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Fitness</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --lime: #c8f53c; --bg: #0a0a0a; --glass: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Barlow', sans-serif; overflow-x: hidden; }
+
+        nav { 
+            height: 80px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 5%; 
+            border-bottom: 1px solid var(--border); 
+            backdrop-filter: blur(20px); 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+        .logo { font-family: 'Bebas Neue'; font-size: 2.2rem; color: var(--lime); letter-spacing: 3px; text-decoration: none; }
+        
+        .nav-links { display: flex; gap: 35px; align-items: center; }
+        .nav-links a { 
+            text-decoration: none; 
+            color: #888; 
+            font-weight: 700; 
+            font-size: 0.85rem; 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--lime); }
+
+        .container { max-width: 1300px; margin: 50px auto; padding: 0 30px; }
+        
+        .h-large { font-family: 'Bebas Neue'; font-size: 3rem; line-height: 0.9; margin-bottom: 20px; text-align: center; color: var(--lime)}
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card { 
+            background: var(--glass); 
+            border: 1px solid var(--border); 
+            border-radius: 20px; 
+            padding: 30px; 
+            text-decoration: none;
+            color: #fff;
+            transition: 0.3s;
+        }
+        .card:hover {
+            border-color: var(--lime);
+            transform: translateY(-5px);
+        }
+        .card h3 { 
+            font-family: 'Bebas Neue'; 
+            font-size: 1.8rem; 
+            color: var(--lime); 
+            margin-bottom: 10px;
+        }
+        .card p {
+            font-size: 0.85rem;
+            color: #888;
+            line-height: 1.6;
+        }
+        .btn { display: inline-block; width: 100%; padding: 18px; background: var(--lime); color: #000; text-align: center; text-decoration: none; font-weight: 900; border-radius: 10px; margin-top: 25px; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn:hover { transform: scale(1.02); filter: brightness(1.1); box-shadow: 0 0 30px rgba(200, 245, 60, 0.3); }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="../Auth_ Membership/frontend/Home.html" class="logo">Fitness - Admin</a>
+        <div class="nav-links">
+            <a href="admin.html" class="active">Dashboard</a>
+        </div>
+        <div style="display:flex; align-items:center; gap:20px;">
+            <div style="text-align: right;">
+                <div id="adminName" style="font-weight: 800; font-size: 0.9rem;">ADMIN</div>
+                <div id="adminRole" style="font-size: 0.7rem; color: var(--lime);">System Operator</div>
+            </div>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:8px 15px; border-radius:5px; cursor:pointer; font-size:0.7rem;">LOGOUT</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1 class="h-large">ADMINISTRATOR CONTROL PANEL</h1>
+        
+        <div class="admin-grid">
+            <a href="customer.html" class="card">
+                <h3> 📈Customer Data</h3>
+                <p>View and manage all customer information, including profiles, membership details, and interaction history.</p>
+            </a>
+            <a href="course.html" class="card">
+                <h3> 📊Course Management</h3>
+                <p>View and manage all course offerings, schedules, and instructor assignments.</p>
+            </a>
+            <a href="report.html" class="card">
+                <h3>📊 REPORTS</h3>
+                <p>Access interactive dashboards and charts showing gym usage, membership trends, and revenue growth.</p>
+            </a>
+            <a href="promotion.html" class="card">
+                <h3>📢 PROMOTIONS</h3>
+                <p>Manage promotional offers and create new marketing campaigns.</p>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // This is a placeholder for admin authentication
+            // In a real application, you would verify the admin's token
+            const isAdmin = true; // Simplified for demonstration
+            if (!isAdmin) {
+                window.location.href = '../Auth_ Membership/frontend/auth.html';
+            }
+        };
+
+        function logout() {
+            // Placeholder for logout functionality
+            localStorage.clear();
+            window.location.href = '../Auth_ Membership/frontend/auth.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Promotions - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --lime: #c8f53c; --bg: #0a0a0a; --glass: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Barlow', sans-serif; }
+
+        /* Navigation with Top Right Link */
+        nav { 
+            height: 80px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 5%; 
+            border-bottom: 1px solid var(--border); 
+        }
+        .logo { font-family: 'Bebas Neue'; font-size: 2.2rem; color: var(--lime); text-decoration: none; letter-spacing: 2px;}
+        
+        /* THE TOP RIGHT BACK LINK */
+        .back-link { 
+            text-decoration: none; 
+            color: #888; 
+            font-size: 0.9rem; 
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .back-link:hover { color: var(--lime); }
+
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 30px; }
+        h1 { font-family: 'Bebas Neue'; font-size: 2.5rem; margin-bottom: 20px; color: var(--lime); }
+
+        .form-panel { background: var(--glass); border: 1px solid var(--border); padding: 30px; border-radius: 15px; margin-bottom: 40px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        label { font-size: 0.85rem; color: #888; font-weight: bold; margin-bottom: 5px; display: block; }
+        input, select { width: 100%; padding: 12px; background: #111; border: 1px solid #333; color: #fff; border-radius: 5px; font-family: 'Barlow'; }
+        input:focus, select:focus { outline: none; border-color: var(--lime); }
+        
+        .btn { padding: 12px 25px; background: var(--lime); color: #000; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; text-transform: uppercase; margin-top: 20px; width: 100%; font-family: 'Barlow'; transition: 0.3s; }
+        .btn:hover { background: #fff; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid var(--border); }
+        th { color: #888; font-size: 0.85rem; text-transform: uppercase; }
+        .status-active { color: #00ff7f; font-weight: bold; background: rgba(0,255,127,0.1); padding: 5px 10px; border-radius: 5px; font-size: 0.8rem;}
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="admin.html" class="logo">FITNESS ADMIN</a>
+        <a href="admin.html" class="back-link">← Back to Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <h1>CREATE NEW PROMOTION</h1>
+        
+        <div class="form-panel">
+            <form id="promoForm">
+                <div class="form-grid">
+                    <div>
+                        <label>PROMO CODE</label>
+                        <input type="text" id="promo_code" placeholder="e.g. SUMMER26" required>
+                    </div>
+                    <div>
+                        <label>PROMO NAME</label>
+                        <input type="text" id="promo_name" placeholder="e.g. Summer Shred" required>
+                    </div>
+                    <div>
+                        <label>DISCOUNT AMOUNT</label>
+                        <input type="number" id="discount_amount" placeholder="e.g. 20" required>
+                    </div>
+                    <div>
+                        <label>DISCOUNT TYPE</label>
+                        <select id="discount_type">
+                            <option value="PERCENTAGE">Percentage (%)</option>
+                            <option value="FLAT">Flat Amount ($)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>EXPIRY DATE</label>
+                        <input type="date" id="expiry_date" required>
+                    </div>
+                    <div>
+                        <label>USAGE LIMIT</label>
+                        <input type="number" id="usage_limit" placeholder="e.g. 100" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn">Create Promotion</button>
+            </form>
+        </div>
+
+        <h1>ACTIVE PROMOTIONS</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Discount</th>
+                    <th>Expiry</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="promoTableBody">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadPromotions() {
+            fetch('http://localhost:8080/api/promotions')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('promoTableBody');
+                    tbody.innerHTML = '';
+                    data.forEach(promo => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong style="color:var(--lime)">${promo.promo_code}</strong></td>
+                                <td>${promo.promo_name}</td>
+                                <td>${promo.discount_type === 'PERCENTAGE' ? promo.discount_amount + '%' : '$' + promo.discount_amount}</td>
+                                <td>${promo.expiry_date}</td>
+                                <td><span class="status-active">${promo.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        loadPromotions();
+
+        document.getElementById('promoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newPromo = {
+                promo_code: document.getElementById('promo_code').value,
+                promo_name: document.getElementById('promo_name').value,
+                discount_amount: parseFloat(document.getElementById('discount_amount').value),
+                discount_type: document.getElementById('discount_type').value,
+                expiry_date: document.getElementById('expiry_date').value,
+                usage_limit: parseInt(document.getElementById('usage_limit').value)
+            };
+
+            fetch('http://localhost:8080/api/promotions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newPromo)
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert('Promotion created!');
+                document.getElementById('promoForm').reset();
+                loadPromotions();
+            })
+            .catch(err => alert('Error creating promotion'));
+        });
+    </script>
+</body>
+</html>

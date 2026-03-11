@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Management - Fitness Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --lime: #c8f53c; --bg: #0a0a0a; --glass: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Barlow', sans-serif; }
+        nav { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 5%; border-bottom: 1px solid var(--border); }
+        .logo { font-family: 'Bebas Neue'; font-size: 2.2rem; color: var(--lime); text-decoration: none; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 30px; }
+        h1 { font-family: 'Bebas Neue'; font-size: 2.5rem; color: var(--lime); margin-bottom: 20px; }
+        
+        .search-box { width: 100%; padding: 15px; background: var(--glass); border: 1px solid var(--border); color: #fff; border-radius: 10px; margin-bottom: 30px; font-size: 1rem; }
+        
+        table { width: 100%; border-collapse: collapse; background: var(--glass); border-radius: 15px; }
+        th, td { padding: 18px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: #888; font-size: 0.8rem; text-transform: uppercase; }
+        
+        .status-pill { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 900; }
+        .active { background: rgba(200, 245, 60, 0.1); color: var(--lime); }
+        .banned { background: rgba(255, 68, 68, 0.1); color: #ff4444; }
+
+        .btn-sm { padding: 6px 12px; border: 1px solid #444; background: none; color: #fff; cursor: pointer; border-radius: 4px; font-size: 0.75rem; transition: 0.3s; }
+        .btn-sm:hover { border-color: var(--lime); color: var(--lime); }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="admin.html" class="logo">FITNESS ADMIN</a>
+        <a href="admin.html" style="color:#888; text-decoration:none; font-weight:bold;">← BACK</a>
+    </nav>
+
+    <div class="container">
+        <h1>MANAGE CUSTOMER DATA</h1>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search by Member ID or Role..." onkeyup="filterTable()">
+        
+        <table id="customerTable">
+            <thead>
+                <tr>
+                    <th>DB_ID</th>
+                    <th>Member_ID</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="customerBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function loadCustomers() {
+            fetch('http://localhost:8080/api/admin/customers')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('customerBody');
+                    tbody.innerHTML = '';
+                    data.forEach(u => {
+                        const status = u.status || 'active';
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="color:#444">#${u.id}</td>
+                                <td><b>${u.actor_id}</b></td>
+                                <td>${u.actor_role}</td>
+                                <td><span class="status-pill ${status}">${status.toUpperCase()}</span></td>
+                                <td>
+                                    <button class="btn-sm" onclick="toggleStatus(${u.id}, '${u.actor_id}', '${status}')">
+                                        ${status === 'active' ? 'SUSPEND' : 'ACTIVATE'}
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        function toggleStatus(id, actor_id, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'banned' : 'active';
+            fetch(`http://localhost:8080/api/admin/customers/${id}/status`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ status: newStatus, actor_id: actor_id })
+            }).then(() => loadCustomers());
+        }
+
+        function filterTable() {
+            let input = document.getElementById("searchInput").value.toUpperCase();
+            let rows = document.getElementById("customerBody").getElementsByTagName("tr");
+            for (let i = 0; i < rows.length; i++) {
+                rows[i].style.display = rows[i].innerText.toUpperCase().includes(input) ? "" : "none";
+            }
+        }
+
+        window.onload = loadCustomers;
+    </script>
+</body>
+</html>
