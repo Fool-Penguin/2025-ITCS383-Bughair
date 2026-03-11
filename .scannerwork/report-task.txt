@@ -1,0 +1,6 @@
+projectKey=2025-ITCS383-Bughair
+serverUrl=https://solid-waddle-x5pvp9vqx56q3vqv-9000.app.github.dev
+serverVersion=26.3.0.120487
+dashboardUrl=https://solid-waddle-x5pvp9vqx56q3vqv-9000.app.github.dev/dashboard?id=2025-ITCS383-Bughair
+ceTaskId=487113f5-cf99-4485-9562-7259d5014fef
+ceTaskUrl=https://solid-waddle-x5pvp9vqx56q3vqv-9000.app.github.dev/api/ce/task?id=487113f5-cf99-4485-9562-7259d5014fef
