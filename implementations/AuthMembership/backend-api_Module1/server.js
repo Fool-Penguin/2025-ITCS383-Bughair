@@ -101,6 +101,9 @@ app.get('/api/reports/attendance', async (req, res) => {
     await handleAttendance(req, res, '/api/reports/attendance', 'GET');
 });
 
+app.use('/course-service', express.static(path.join(__dirname, '../../course-service')));
+app.use('/payment-service', express.static(path.join(__dirname, '../../payment-service')));
+app.use('/reservation-service', express.static(path.join(__dirname, '../../reservation-service')));
 // รันเซิร์ฟเวอร์
 app.listen(PORT, () => {
     console.log(`\n=========================================`);

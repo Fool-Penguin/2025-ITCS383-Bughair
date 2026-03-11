@@ -64,13 +64,13 @@
 <body>
 
     <nav>
-        <a href="Home.html" class="logo">Fitness</a>
+        <a href="/home" class="logo">FITNESS</a>
         
         <div class="nav-links">
-            <a href="Home.html" class="active">DASHBOARD</a>
-            <a href="courts.html">COURTS</a>
-            <a href="courses.html">COURSES</a>
-            <a href="payments.html">PAYMENTS</a>
+            <a href="/home" class="active">DASHBOARD</a>
+            <a href="/reservation-service/frontend/index.html">COURTS</a>
+            <a href="/course-service/frontend/index.html">COURSES</a>
+            <a href="/payment-service/fitness-payment-frontend.html">PAYMENTS</a>
         </div>
 
         <div style="display:flex; align-items:center; gap:20px;">
@@ -97,7 +97,7 @@
 
                     <div class="menu-grid">
                         <a href="courts.html" class="menu-item"><h3>🏸 COURT BOOKING</h3><p style="font-size:0.7rem; color:#666;">Reserve your court now.</p></a>
-                        <a href="courses.html" class="menu-item"><h3>🏋️ FITNESS COURSES</h3><p style="font-size:0.7rem; color:#666;">Join professional training.</p></a>
+                        <a href="../../course-service/frontend/index.html" class="menu-item"><h3>🏋️ FITNESS COURSES</h3><p style="font-size:0.7rem; color:#666;">Join professional training.</p></a>
                     </div>
                 </div>
             </div>
@@ -120,41 +120,34 @@
     </div>
 
     <script>
-        // รวมฟังก์ชัน onload เป็นอันเดียวเพื่อป้องกันการเขียนทับ
         window.onload = function() {
             const user = JSON.parse(localStorage.getItem('user'));
             const token = localStorage.getItem('token');
 
-            // 1. เช็คความปลอดภัย (ถ้าไม่ล็อกอินให้เด้งออก)
+            // ✅ แก้จุดกระพริบ: ใส่ / นำหน้า auth.html เพื่อให้กลับไปจุดเริ่มของ Server
             if (!token || !user) { 
-                window.location.href = 'auth.html'; 
+                console.log("No session found, redirecting...");
+                window.location.href = '/auth.html'; 
                 return; 
             }
 
-            // 2. แสดงชื่อและ ID ของ User
             document.getElementById('uName').innerText = user.name.toUpperCase();
-            document.getElementById('uID').innerText = user.memberId;
+            document.getElementById('uID').innerText = user.memberId || user.id;
 
-            // 3. ตรวจสอบ Role เพื่อปรับหน้าตา UI
             const planDisplay = document.getElementById('uPlan');
-            const adminLink = document.getElementById('adminLink');
-
             if (user.role === 'admin') {
-                console.log("Status: System Administrator Mode");
                 planDisplay.innerText = "SYSTEM ADMIN";
-                planDisplay.style.color = "#ff4f4f"; // สีแดงสำหรับ Admin
-                adminLink.style.display = 'block';   // โชว์เมนู Admin
+                planDisplay.style.color = "#ff4f4f";
             } else {
-                console.log("Status: Elite Member Mode");
                 planDisplay.innerText = "ELITE MEMBER";
-                planDisplay.style.color = "var(--lime)"; // สีเขียวสำหรับ Member
-                adminLink.style.display = 'none';    // ซ่อนเมนู Admin
+                planDisplay.style.color = "var(--lime)";
             }
         };
 
         function logout() {
             localStorage.clear();
-            window.location.href = 'auth.html';
+            // ✅ ใส่ / นำหน้าเพื่อกลับหน้า Login หลัก
+            window.location.href = '/auth.html';
         }
     </script>
 </body>

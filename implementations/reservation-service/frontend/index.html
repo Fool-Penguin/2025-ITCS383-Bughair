@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FitCourt — Court Reservation System</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0d0d0d;--bg2:#111;--bg3:#181818;--bg4:#202020;--bg5:#282828;
+  --lime:#c8f53c;--lime2:#d9ff52;--lime-dim:rgba(200,245,60,0.08);
+  --border:#222;--border2:#2e2e2e;--border3:#383838;
+  --red:#ff4f4f;--green:#4fcc7a;--blue:#38bdf8;--orange:#f97316;
+  --text:#f2f2f0;--text2:#888;--text3:#484848;
+  --r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--bg5);}
+
+/* ── PAGES ── */
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
+
+/* ══════════════════════════════════
+   LOGIN PAGE
+══════════════════════════════════ */
+#loginPage{display:none;align-items:center;justify-content:center;min-height:100vh;position:relative;}
+#loginPage.active{display:flex;}
+.login-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(200,245,60,0.04) 0%,transparent 70%);}
+.login-grid-bg{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:.3;}
+.login-wrap{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;max-width:820px;width:100%;margin:20px;border:1px solid var(--border2);overflow:hidden;}
+.login-left{background:var(--bg3);border-right:1px solid var(--border2);padding:52px 44px;display:flex;flex-direction:column;justify-content:center;}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:4px;color:var(--lime);margin-bottom:32px;}
+.login-logo span{color:var(--text3);}
+.login-h{font-family:'Bebas Neue',sans-serif;font-size:3.4rem;line-height:.9;letter-spacing:2px;margin-bottom:18px;}
+.login-h em{color:var(--lime);font-style:normal;}
+.login-desc{font-size:.83rem;color:var(--text2);line-height:1.7;margin-bottom:28px;}
+.feat{display:flex;align-items:center;gap:9px;font-size:.75rem;font-weight:600;color:var(--text3);margin-bottom:9px;}
+.feat-dot{width:5px;height:5px;background:var(--lime);flex-shrink:0;}
+.login-right{background:var(--bg2);padding:44px 38px;display:flex;flex-direction:column;justify-content:center;}
+.login-right h2{font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.login-hint{font-size:.8rem;color:var(--text2);margin-bottom:24px;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Barlow',sans-serif;font-size:.9rem;padding:10px 13px;border-radius:var(--r);outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus{border-color:var(--lime);}
+.btn-lime{width:100%;background:var(--lime);color:#0d0d0d;font-family:'Barlow',sans-serif;font-size:.85rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:12px;border:none;border-radius:var(--r);cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn-lime:hover{background:var(--lime2);}
+.btn-lime:disabled{opacity:.4;cursor:not-allowed;}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--text3);font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border2);}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.demo-btn{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'Barlow',sans-serif;font-size:.74rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:9px;border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.demo-btn:hover{border-color:var(--lime);color:var(--lime);}
+.alert{padding:10px 13px;border-radius:var(--r);font-size:.8rem;font-weight:500;margin-top:8px;display:none;}
+.alert.show{display:block;}
+.alert-error{background:rgba(255,79,79,.08);border:1px solid rgba(255,79,79,.25);color:var(--red);}
+.alert-success{background:rgba(79,204,122,.08);border:1px solid rgba(79,204,122,.25);color:var(--green);}
+
+/* ══════════════════════════════════
+   MEMBER DASHBOARD
+══════════════════════════════════ */
+#memberPage{display:none;padding-top:64px;}
+#memberPage.active{display:block;}
+
+/* ══════════════════════════════════
+   ADMIN DASHBOARD
+══════════════════════════════════ */
+#adminPage{display:none;padding-top:64px;}
+#adminPage.active{display:block;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 36px;background:rgba(13,13,13,.96);border-bottom:1px solid var(--border2);backdrop-filter:blur(12px);}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;color:var(--lime);}
+.nav-logo span{color:var(--text3);}
+.nav-tabs{display:flex;gap:2px;}
+.nav-tab{background:none;border:none;color:var(--text2);font-family:'Barlow',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-radius:var(--r);transition:all .2s;}
+.nav-tab:hover{color:var(--text);background:var(--bg3);}
+.nav-tab.active{color:var(--lime);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-role{font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;border-radius:2px;}
+.nav-role.member{background:rgba(56,189,248,.1);color:var(--blue);border:1px solid rgba(56,189,248,.2);}
+.nav-role.admin{background:rgba(200,245,60,.1);color:var(--lime);border:1px solid rgba(200,245,60,.2);}
+.nav-user{font-size:.8rem;font-weight:600;color:var(--text2);}
+.btn-logout{background:none;border:1px solid var(--border2);color:var(--text2);font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+/* ── PAGE HEADER ── */
+.dash-header{border-bottom:1px solid var(--border);}
+.dash-header-inner{max-width:1160px;margin:0 auto;padding:28px 36px 0;}
+.dash-greeting{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;}
+.dash-greeting em{color:var(--lime);font-style:normal;}
+.dash-sub{font-size:.8rem;color:var(--text2);margin-top:3px;margin-bottom:20px;}
+.role-badge{display:inline-flex;align-items:center;gap:6px;font-size:.65rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;border-radius:2px;margin-bottom:12px;}
+.role-badge.member{background:rgba(56,189,248,.08);color:var(--blue);border:1px solid rgba(56,189,248,.18);}
+.role-badge.admin{background:rgba(200,245,60,.08);color:var(--lime);border:1px solid rgba(200,245,60,.18);}
+.page-tabs{display:flex;border-top:1px solid transparent;}
+.ptab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'Barlow',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:11px 20px;cursor:pointer;margin-bottom:-1px;transition:all .2s;}
+.ptab:hover{color:var(--text);}
+.ptab.active{color:var(--lime);border-bottom-color:var(--lime);}
+
+/* ── BODY ── */
+.dash-body{max-width:1160px;margin:0 auto;padding:28px 36px;}
+.panel{display:none;}
+.panel.active{display:block;animation:fadeUp .25s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border2);padding:18px 20px;border-radius:var(--r);}
+.stat-label{font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:7px;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:2px;}
+.stat-val.lime{color:var(--lime);}
+.stat-val.green{color:var(--green);}
+.stat-val.blue{color:var(--blue);}
+.stat-note{font-size:.68rem;color:var(--text3);margin-top:3px;}
+.stat-live{display:inline-flex;align-items:center;gap:5px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--green);margin-top:3px;}
+.stat-live::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+.cap-bar-wrap{height:4px;background:var(--bg4);border-radius:2px;margin-top:8px;overflow:hidden;}
+.cap-bar{height:100%;border-radius:2px;transition:width .6s;}
+
+/* ── SECTION HEADING ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;}
+.sec-title em{color:var(--lime);font-style:normal;}
+
+/* ── COURTS GRID ── */
+.courts-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.court-card{background:var(--bg2);border:2px solid var(--border2);border-radius:var(--r);padding:18px 12px;text-align:center;position:relative;transition:all .22s;}
+.court-card.available{cursor:pointer;}
+.court-card.available:hover{transform:translateY(-3px);border-color:rgba(79,204,122,.5);}
+.court-card.booked{opacity:.6;}
+.court-card.maintenance{opacity:.55;}
+.court-card.selected{border-color:var(--lime)!important;background:rgba(200,245,60,.04);}
+.court-icon{font-size:1.3rem;margin-bottom:4px;}
+.court-num{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;line-height:1;margin-bottom:4px;}
+.court-card.available .court-num{color:var(--green);}
+.court-card.booked .court-num{color:var(--red);}
+.court-card.maintenance .court-num{color:var(--orange);}
+.court-card.selected .court-num{color:var(--lime);}
+.court-sub{font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.badge{display:inline-block;font-size:.58rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:2px;}
+.b-available{background:rgba(79,204,122,.1);color:var(--green);border:1px solid rgba(79,204,122,.2);}
+.b-booked{background:rgba(255,79,79,.08);color:var(--red);border:1px solid rgba(255,79,79,.18);}
+.b-maintenance{background:rgba(249,115,22,.08);color:var(--orange);border:1px solid rgba(249,115,22,.18);}
+.b-active{background:rgba(79,204,122,.1);color:var(--green);border:1px solid rgba(79,204,122,.18);}
+.b-cancelled{background:rgba(255,79,79,.08);color:var(--red);border:1px solid rgba(255,79,79,.15);}
+.court-slots-info{margin-top:7px;font-size:.58rem;color:var(--text3);}
+
+/* ── DATE PICKER ── */
+.date-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.date-row label{font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);}
+.date-input{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Barlow',sans-serif;font-size:.85rem;padding:8px 12px;border-radius:var(--r);outline:none;cursor:pointer;transition:border-color .2s;}
+.date-input:focus{border-color:var(--lime);}
+.date-today-btn{background:none;border:1px solid var(--border2);color:var(--text2);font-family:'Barlow',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:7px 12px;border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.date-today-btn:hover{border-color:var(--lime);color:var(--lime);}
+
+/* ── SLOTS ── */
+.slots-section{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:18px;}
+.slots-title{font-size:.75rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:12px;}
+.slots-title em{color:var(--lime);font-style:normal;}
+.slots-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;}
+.slot{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 4px;text-align:center;cursor:pointer;transition:all .18s;font-size:.62rem;font-weight:700;color:var(--text2);}
+.slot:hover{border-color:var(--lime);color:var(--lime);}
+.slot.taken{background:rgba(255,79,79,.04);border-color:rgba(255,79,79,.12);color:var(--text3);cursor:not-allowed;text-decoration:line-through;}
+.slot.selected{background:var(--lime-dim);border-color:var(--lime);color:var(--lime);}
+.slot.maint{background:rgba(249,115,22,.04);border-color:rgba(249,115,22,.1);color:var(--text3);cursor:not-allowed;}
+.slot.past{opacity:.3;cursor:not-allowed;}
+
+/* ── BOOKING FORM ── */
+.booking-form{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:24px;}
+.bsum{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;}
+.brow{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;padding:5px 0;border-bottom:1px solid var(--border);}
+.brow:last-child{border-bottom:none;}
+.brow-label{color:var(--text2);}
+.conflict-warn{background:rgba(255,79,79,.07);border:1px solid rgba(255,79,79,.25);color:var(--red);padding:9px 13px;border-radius:var(--r);font-size:.78rem;margin-bottom:11px;display:none;}
+.conflict-warn.show{display:block;}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;margin-bottom:22px;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--bg3);border-bottom:1px solid var(--border2);padding:9px 14px;text-align:left;font-size:.63rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);}
+td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:.8rem;color:var(--text2);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg3);}
+td.bold{color:var(--text);font-weight:600;}
+td.lime{color:var(--lime);font-family:'Barlow Condensed',monospace;}
+td.green{color:var(--green);}
+td.blue{color:var(--blue);}
+.empty-row{text-align:center;color:var(--text3);padding:28px!important;}
+
+/* ── ATTENDANCE ── */
+.attend-hero{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:26px 30px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;}
+.attend-count{font-family:'Bebas Neue',sans-serif;font-size:5rem;letter-spacing:4px;line-height:1;color:var(--lime);}
+.attend-max{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--text3);padding-bottom:10px;}
+.attend-label{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;}
+.peak-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:2px;font-size:.66rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;}
+.peak-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite;}
+.peak-badge.peak{background:rgba(255,79,79,.08);color:var(--red);border:1px solid rgba(255,79,79,.18);}
+.peak-badge.off{background:rgba(79,204,122,.08);color:var(--green);border:1px solid rgba(79,204,122,.18);}
+.peak-chart{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:22px;}
+.chart-title{font-family:'Barlow Condensed',sans-serif;font-size:.88rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.chart-title em{color:var(--lime);font-style:normal;}
+.bars-wrap{display:flex;align-items:flex-end;gap:4px;height:72px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{width:100%;border-radius:2px 2px 0 0;min-height:2px;position:relative;}
+.bar.peak-bar{background:rgba(255,79,79,.5);}
+.bar.high-bar{background:rgba(249,115,22,.45);}
+.bar.norm-bar{background:rgba(200,245,60,.3);}
+.bar.low-bar{background:rgba(79,204,122,.25);}
+.bar-lbl{font-size:.52rem;font-weight:700;color:var(--text3);}
+.filter-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'Barlow',sans-serif;font-size:.76rem;padding:6px 10px;border-radius:var(--r);outline:none;cursor:pointer;}
+.filter-select:focus{border-color:var(--lime);}
+
+/* ── ADMIN PANELS ── */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+.admin-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:20px;}
+.admin-card-title{font-family:'Barlow Condensed',sans-serif;font-size:.88rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.admin-card-title em{color:var(--lime);font-style:normal;}
+.maint-item{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 13px;display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.maint-court-num{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--orange);min-width:24px;}
+.maint-info{flex:1;}
+.maint-info .mname{font-size:.76rem;font-weight:600;color:var(--text);}
+.maint-info .mdates{font-size:.66rem;color:var(--text3);margin-top:1px;}
+.btn-remove{background:none;border:1px solid rgba(255,79,79,.2);color:var(--red);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:2px;cursor:pointer;transition:all .2s;}
+.btn-remove:hover{background:rgba(255,79,79,.08);}
+.btn-add{background:rgba(200,245,60,.05);border:1px solid rgba(200,245,60,.18);color:var(--lime);font-family:'Barlow',sans-serif;font-size:.73rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-radius:var(--r);cursor:pointer;transition:all .2s;width:100%;margin-top:7px;}
+.btn-add:hover{background:rgba(200,245,60,.1);}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);margin-bottom:7px;}
+.srow-label{font-size:.76rem;color:var(--text2);}
+.srow-val{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:1px;}
+.btn-cancel-res{background:none;border:1px solid rgba(255,79,79,.2);color:var(--red);font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer;transition:all .2s;}
+.btn-cancel-res:hover{background:rgba(255,79,79,.07);}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);z-index:300;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;animation:fadeUp .2s ease;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:30px;max-width:420px;width:90%;position:relative;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;margin-bottom:3px;}
+.modal-sub{font-size:.78rem;color:var(--text2);margin-bottom:20px;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text3);font-size:1.1rem;cursor:pointer;transition:color .2s;}
+.modal-close:hover{color:var(--text);}
+.dbox{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;margin-bottom:14px;}
+.drow{display:flex;justify-content:space-between;font-size:.8rem;padding:5px 0;border-bottom:1px solid var(--border);}
+.drow:last-child{border-bottom:none;}
+.drow-label{color:var(--text2);}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px;}
+.btn-confirm{background:var(--lime);color:#0d0d0d;font-family:'Barlow',sans-serif;font-size:.83rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:11px;border:none;border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.btn-confirm:hover{background:var(--lime2);}
+.btn-confirm:disabled{opacity:.35;cursor:not-allowed;}
+.btn-cancel-m{background:transparent;color:var(--text2);font-family:'Barlow',sans-serif;font-size:.83rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:11px;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;transition:all .2s;}
+.btn-cancel-m:hover{border-color:var(--red);color:var(--red);}
+.confirm-success{text-align:center;padding:8px 0;}
+.confirm-icon{font-size:2.4rem;margin-bottom:10px;}
+.confirm-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:2px;color:var(--green);}
+.confirm-code{font-family:'Barlow Condensed',monospace;font-size:.78rem;color:var(--lime);letter-spacing:2px;background:var(--bg3);padding:6px 13px;border-radius:2px;display:inline-block;margin:9px 0;}
+.field-row2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+
+/* ── MISC ── */
+.loading{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text3);padding:18px;}
+.spinner{width:13px;height:13px;border:2px solid var(--border2);border-top-color:var(--lime);border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.err-msg{color:var(--red);font-size:.78rem;padding:14px;background:rgba(255,79,79,.04);border:1px solid rgba(255,79,79,.14);border-radius:var(--r);}
+.ticker-wrap{background:var(--lime);overflow:hidden;height:34px;display:flex;align-items:center;}
+.ticker{display:flex;animation:ticker 26s linear infinite;white-space:nowrap;}
+.ticker-item{font-family:'Barlow Condensed',sans-serif;font-size:.82rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#0d0d0d;padding:0 24px;display:flex;align-items:center;gap:12px;}
+.ticker-item::after{content:'◆';color:rgba(0,0,0,.2);}
+@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     NAV (hidden until logged in)
+════════════════════════════════ -->
+<nav id="mainNav" style="display:none;">
+  <a href="../../AuthMembership/frontend/Home.html" class="nav-logo" style="text-decoration: none;">FITNESS</a>
+  <div class="nav-tabs" id="navTabs"></div>
+  <div class="nav-right">
+    <span class="nav-role" id="navRole"></span>
+    <span class="nav-user" id="navUser"></span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════
+     MEMBER DASHBOARD
+════════════════════════════════ -->
+<div class="page" id="memberPage">
+  <div class="ticker-wrap"><div class="ticker">
+    <div class="ticker-item">Book Your Court</div><div class="ticker-item">Real-time Availability</div>
+    <div class="ticker-item">No Double Booking</div><div class="ticker-item">Track Attendance</div>
+    <div class="ticker-item">Book Your Court</div><div class="ticker-item">Real-time Availability</div>
+    <div class="ticker-item">No Double Booking</div><div class="ticker-item">Track Attendance</div>
+  </div></div>
+
+  <div class="dash-header">
+    <div class="dash-header-inner">
+      <div class="role-badge member">👤 Member</div>
+      <div class="dash-greeting">WELCOME, <em id="memberGreetName">—</em></div>
+      <div class="dash-sub">Book badminton courts and view your reservations.</div>
+      <div class="page-tabs">
+        <button class="ptab active" onclick="memberTab('booking')">🏸 Book a Court</button>
+        <button class="ptab" onclick="memberTab('myres')">📋 My Reservations</button>
+        <button class="ptab" onclick="memberTab('attendance')">📊 Attendance</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Members Inside</div><div class="stat-val lime" id="mStatCount">—</div><div class="stat-live">Live</div></div>
+      <div class="stat-card"><div class="stat-label">Courts Available</div><div class="stat-val green" id="mStatAvail">—</div><div class="stat-note">of 5 courts</div></div>
+      <div class="stat-card"><div class="stat-label">My Active Bookings</div><div class="stat-val blue" id="mStatMyBook">—</div><div class="stat-note">reservations</div></div>
+      <div class="stat-card"><div class="stat-label">Capacity</div><div class="stat-val" id="mStatCap">—</div><div class="cap-bar-wrap"><div class="cap-bar" id="mCapBar" style="width:0%;background:var(--green);"></div></div></div>
+    </div>
+
+    <!-- BOOKING PANEL -->
+    <div class="panel active" id="mPanelBooking">
+      <div class="sec-head">
+        <div class="sec-title">BADMINTON <em>COURTS</em></div>
+      </div>
+
+      <!-- Date Picker -->
+      <div class="date-row">
+        <label>Select Date</label>
+        <input type="date" class="date-input" id="bookingDate" onchange="onDateChange()"/>
+        <button class="date-today-btn" onclick="setToday()">Today</button>
+        <span style="font-size:.75rem;color:var(--text2);" id="selectedDateLabel"></span>
+      </div>
+
+      <div class="courts-grid" id="mCourtGrid"><div class="loading" style="grid-column:1/-1;"><div class="spinner"></div>Loading courts…</div></div>
+
+      <div class="slots-section" id="mSlotsSection" style="display:none;">
+        <div class="slots-title">TIME SLOTS — COURT <em id="mSlotCourtNum"></em> — <em id="mSlotDate"></em></div>
+        <div class="slots-grid" id="mSlotsGrid"></div>
+      </div>
+
+      <div class="booking-form" id="mBookingForm" style="display:none;">
+        <div class="sec-head" style="margin-bottom:12px;"><div class="sec-title">CONFIRM <em>BOOKING</em></div></div>
+        <div class="conflict-warn" id="mConflictWarn">⚠️ You already have a booking at this time slot.</div>
+        <div class="bsum">
+          <div class="brow"><span class="brow-label">Court</span><span id="mBCourt" class="bold">—</span></div>
+          <div class="brow"><span class="brow-label">Date</span><span id="mBDate">—</span></div>
+          <div class="brow"><span class="brow-label">Time Slot</span><span id="mBSlot" style="color:var(--lime);font-weight:700;">—</span></div>
+          <div class="brow"><span class="brow-label">Member</span><span id="mBMember">—</span></div>
+          <div class="brow"><span class="brow-label">Duration</span><span>1 Hour</span></div>
+        </div>
+        <button class="btn-lime" id="mBookBtn" onclick="openConfirmModal()">Book This Court</button>
+      </div>
+    </div>
+
+    <!-- MY RESERVATIONS PANEL -->
+    <div class="panel" id="mPanelMyres">
+      <div class="sec-head"><div class="sec-title">MY <em>RESERVATIONS</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Reservation ID</th><th>Court</th><th>Date</th><th>Time Slot</th><th>Status</th><th></th></tr></thead>
+        <tbody id="mMyResBody"><tr><td class="empty-row" colspan="6"><div class="loading"><div class="spinner"></div>Loading…</div></td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- ATTENDANCE PANEL (member view - read only) -->
+    <div class="panel" id="mPanelAttendance">
+      <div class="attend-hero">
+        <div>
+          <div class="attend-label">Members Currently Inside</div>
+          <div style="display:flex;align-items:flex-end;gap:9px;">
+            <div class="attend-count" id="mAttendCount">—</div>
+            <div class="attend-max">/ 100</div>
+          </div>
+          <div class="cap-bar-wrap" style="max-width:280px;margin-top:10px;"><div class="cap-bar" id="mAttendBar" style="width:0%;background:var(--green);"></div></div>
+          <div style="font-size:.66rem;color:var(--text3);margin-top:5px;" id="mAttendCapLabel">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="peak-badge off" id="mPeakBadge">—</div>
+          <div style="font-size:.68rem;color:var(--text3);margin-top:8px;">Peak hours: 18:00–20:00</div>
+        </div>
+      </div>
+      <div class="peak-chart">
+        <div class="chart-title">HOURLY USAGE — <em>TODAY</em></div>
+        <div class="bars-wrap" id="mBarsWrap"><div class="loading"><div class="spinner"></div></div></div>
+        <div style="display:flex;gap:4px;margin-top:5px;" id="mBarsLabels"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ADMIN DASHBOARD
+════════════════════════════════ -->
+<div class="page" id="adminPage">
+  <div class="ticker-wrap"><div class="ticker">
+    <div class="ticker-item">Admin Control Panel</div><div class="ticker-item">Manage All Courts</div>
+    <div class="ticker-item">Maintenance Scheduling</div><div class="ticker-item">Full Reservation View</div>
+    <div class="ticker-item">Admin Control Panel</div><div class="ticker-item">Manage All Courts</div>
+    <div class="ticker-item">Maintenance Scheduling</div><div class="ticker-item">Full Reservation View</div>
+  </div></div>
+
+  <div class="dash-header">
+    <div class="dash-header-inner">
+      <div class="role-badge admin">🔑 Admin</div>
+      <div class="dash-greeting">ADMIN PANEL — <em id="adminGreetName">—</em></div>
+      <div class="dash-sub">Manage courts, maintenance windows, reservations, and monitor attendance.</div>
+      <div class="page-tabs">
+        <button class="ptab active" onclick="adminTab('overview')">📊 Overview</button>
+        <button class="ptab" onclick="adminTab('courts')">🏸 Courts</button>
+        <button class="ptab" onclick="adminTab('reservations')">📋 Reservations</button>
+        <button class="ptab" onclick="adminTab('attendance')">🚪 Attendance</button>
+        <button class="ptab" onclick="adminTab('maintenance')">🔧 Maintenance</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Members Inside</div><div class="stat-val lime" id="aStatCount">—</div><div class="stat-live">Live</div></div>
+      <div class="stat-card"><div class="stat-label">Courts Available</div><div class="stat-val green" id="aStatAvail">—</div><div class="stat-note">of 5 courts</div></div>
+      <div class="stat-card"><div class="stat-label">Reservations Today</div><div class="stat-val blue" id="aStatRes">—</div><div class="stat-note">active bookings</div></div>
+      <div class="stat-card"><div class="stat-label">Capacity</div><div class="stat-val" id="aStatCap">—</div><div class="cap-bar-wrap"><div class="cap-bar" id="aCapBar" style="width:0%;background:var(--green);"></div></div></div>
+    </div>
+
+    <!-- OVERVIEW PANEL -->
+    <div class="panel active" id="aPanelOverview">
+      <div class="admin-grid">
+        <div class="admin-card">
+          <div class="admin-card-title">TODAY'S <em>SUMMARY</em></div>
+          <div id="aAdminSummary"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-title">COURT <em>STATUS</em></div>
+          <div id="aCourtStatus"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+        </div>
+      </div>
+      <div class="peak-chart">
+        <div class="chart-title">HOURLY USAGE — <em>TODAY</em></div>
+        <div class="bars-wrap" id="aBarsWrap"><div class="loading"><div class="spinner"></div></div></div>
+        <div style="display:flex;gap:4px;margin-top:5px;" id="aBarsLabels"></div>
+      </div>
+    </div>
+
+    <!-- COURTS PANEL (admin) -->
+    <div class="panel" id="aPanelCourts">
+      <div class="sec-head">
+        <div class="sec-title">ALL <em>COURTS</em></div>
+      </div>
+      <div class="date-row">
+        <label>Viewing Date</label>
+        <input type="date" class="date-input" id="adminBookingDate" onchange="onAdminDateChange()"/>
+        <button class="date-today-btn" onclick="setAdminToday()">Today</button>
+        <span style="font-size:.75rem;color:var(--text2);" id="adminSelectedDateLabel"></span>
+      </div>
+      <div class="courts-grid" id="aCourtGrid"><div class="loading" style="grid-column:1/-1;"><div class="spinner"></div>Loading…</div></div>
+      <div class="slots-section" id="aSlotsSection" style="display:none;">
+        <div class="slots-title">TIME SLOTS — COURT <em id="aSlotCourtNum"></em></div>
+        <div class="slots-grid" id="aSlotsGrid"></div>
+      </div>
+      <div class="booking-form" id="aBookingForm" style="display:none;">
+        <div class="sec-head" style="margin-bottom:12px;"><div class="sec-title">CONFIRM <em>BOOKING</em></div></div>
+        <div class="bsum">
+          <div class="brow"><span class="brow-label">Court</span><span id="aBCourt" class="bold">—</span></div>
+          <div class="brow"><span class="brow-label">Date</span><span id="aBDate">—</span></div>
+          <div class="brow"><span class="brow-label">Time Slot</span><span id="aBSlot" style="color:var(--lime);font-weight:700;">—</span></div>
+          <div class="brow"><span class="brow-label">Booked By</span><span id="aBMember">—</span></div>
+          <div class="brow"><span class="brow-label">Duration</span><span>1 Hour</span></div>
+        </div>
+        <button class="btn-lime" id="aBookBtn" onclick="openAdminConfirmModal()">Book This Court</button>
+      </div>
+    </div>
+
+    <!-- RESERVATIONS PANEL -->
+    <div class="panel" id="aPanelReservations">
+      <div class="sec-head"><div class="sec-title">ALL <em>RESERVATIONS</em></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Reservation ID</th><th>Member</th><th>Court</th><th>Date</th><th>Time Slot</th><th>Status</th><th></th></tr></thead>
+        <tbody id="aResBody"><tr><td class="empty-row" colspan="7"><div class="loading"><div class="spinner"></div>Loading…</div></td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- ATTENDANCE PANEL (admin) -->
+    <div class="panel" id="aPanelAttendance">
+      <div class="attend-hero">
+        <div>
+          <div class="attend-label">Members Currently Inside</div>
+          <div style="display:flex;align-items:flex-end;gap:9px;">
+            <div class="attend-count" id="aAttendCount">—</div>
+            <div class="attend-max">/ 100</div>
+          </div>
+          <div class="cap-bar-wrap" style="max-width:280px;margin-top:10px;"><div class="cap-bar" id="aAttendBar" style="width:0%;background:var(--green);"></div></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="peak-badge off" id="aPeakBadge">—</div>
+        </div>
+      </div>
+      <div class="sec-head">
+        <div class="sec-title">ATTENDANCE <em>LOG</em></div>
+        <select class="filter-select" id="aLogFilter" onchange="loadAdminAttendanceLogs()">
+          <option value="all">All Members</option>
+          <option value="in">Currently Inside</option>
+          <option value="out">Exited</option>
+        </select>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Member ID</th><th>Name</th><th>Entry Time</th><th>Exit Time</th><th>Duration</th><th>Status</th></tr></thead>
+        <tbody id="aAttendBody"><tr><td class="empty-row" colspan="6"><div class="loading"><div class="spinner"></div>Loading…</div></td></tr></tbody>
+      </table></div>
+    </div>
+
+    <!-- MAINTENANCE PANEL -->
+    <div class="panel" id="aPanelMaintenance">
+      <div class="sec-head">
+        <div class="sec-title">MAINTENANCE <em>WINDOWS</em></div>
+        <button class="btn-add" style="width:auto;" onclick="openMaintModal()">+ Schedule Window</button>
+      </div>
+      <div id="aMaintList"><div class="loading"><div class="spinner"></div>Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM BOOKING MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('confirmModal')">✕</button>
+    <div id="confirmModalBody">
+      <div class="modal-title">CONFIRM BOOKING</div>
+      <div class="modal-sub">Review your reservation before confirming.</div>
+      <div class="dbox">
+        <div class="drow"><span class="drow-label">Court</span><span id="moCourt">—</span></div>
+        <div class="drow"><span class="drow-label">Date</span><span id="moDate">—</span></div>
+        <div class="drow"><span class="drow-label">Time Slot</span><span id="moSlot" style="color:var(--lime);">—</span></div>
+        <div class="drow"><span class="drow-label">Duration</span><span>1 Hour</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-confirm" id="confirmBtn" onclick="confirmBooking()">Confirm</button>
+        <button class="btn-cancel-m" onclick="closeModal('confirmModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAINTENANCE MODAL -->
+<div class="modal-overlay" id="maintModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('maintModal')">✕</button>
+    <div class="modal-title">SCHEDULE MAINTENANCE</div>
+    <div class="modal-sub">Block a court during a maintenance period. No reservations can be made during this time.</div>
+    <div class="field"><label>Court</label>
+      <select id="mCourt2" style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Barlow',sans-serif;font-size:.9rem;padding:10px 13px;border-radius:var(--r);outline:none;">
+        <option value="1">Court 1</option><option value="2">Court 2</option><option value="3">Court 3</option><option value="4">Court 4</option><option value="5">Court 5</option>
+      </select>
+    </div>
+    <div class="field-row2">
+      <div class="field"><label>Start</label><input type="datetime-local" id="mStart" style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Barlow',sans-serif;font-size:.85rem;padding:10px 13px;border-radius:var(--r);outline:none;"/></div>
+      <div class="field"><label>End</label><input type="datetime-local" id="mEnd" style="width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:'Barlow',sans-serif;font-size:.85rem;padding:10px 13px;border-radius:var(--r);outline:none;"/></div>
+    </div>
+    <div id="maintAlert" class="alert"></div>
+    <div class="modal-actions">
+      <button class="btn-confirm" onclick="addMaintenance()">Schedule</button>
+      <button class="btn-cancel-m" onclick="closeModal('maintModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const API = "http://localhost:8080/api";
+const SLOTS = ["07:00–08:00","08:00–09:00","09:00–10:00","10:00–11:00","11:00–12:00","12:00–13:00","13:00–14:00","14:00–15:00","15:00–16:00","16:00–17:00","17:00–18:00","18:00–19:00","19:00–20:00","20:00–21:00","21:00–22:00","22:00–23:00"];
+
+let S = { user: null, courts: [], myRes: [], sel: { court: null, slot: null }, bookingDate: todayStr() };
+let AS = { courts: [], sel: { court: null, slot: null }, bookingDate: todayStr() };
+
+// ── UTILS ──
+function todayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function fmtDate(d) {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+}
+function fmtTime(dt) { if (!dt) return "—"; return new Date(dt).toTimeString().slice(0, 5); }
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = `alert alert-${type} show`;
+  setTimeout(() => el.classList.remove("show"), 4000);
+}
+async function api(method, path, body) {
+  try {
+    const r = await fetch(API + path, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+    return await r.json();
+  } catch (e) {
+    return { success: false, message: "⚠️ Cannot connect to backend. Make sure server.js is running on port 8080." };
+  }
+}
+
+// ── AUTH ──
+// ... (คงส่วนตัวแปร API และ SLOTS ไว้ด้านบนสุด) ...
+
+// ✅ แก้ไขระบบเช็ค Session อัตโนมัติเมื่อโหลดหน้า
+window.addEventListener("load", () => {
+  const userData = JSON.parse(localStorage.getItem('user'));
+  
+  if (userData) {
+    // เปลี่ยนจาก fitcourtEnter เป็น enterDash ให้ตรงกับชื่อฟังก์ชันที่มีอยู่
+    enterDash({ 
+      id: userData.memberId || userData.id, 
+      name: userData.name, 
+      email: userData.email,
+      role: userData.role 
+    });
+  } else {
+    // ถ้ายังไม่ได้ Login ให้เด้งกลับไปหน้าเข้าสู่ระบบหลัก
+    window.location.href = 'auth.html';
+  }
+});
+
+// ฟังก์ชันสำหรับเข้าสู่ Dashboard (คงเดิมไว้)
+function enterDash(user) {
+  S.user = user;
+  document.getElementById("mainNav").style.display = "flex";
+
+  const roleEl = document.getElementById("navRole");
+  roleEl.textContent = user.role === "admin" ? "🔑 Admin" : "👤 Member";
+  roleEl.className = "nav-role " + user.role;
+  document.getElementById("navUser").textContent = user.name;
+
+  if (user.role === "admin") {
+    document.getElementById("adminPage").classList.add("active");
+    document.getElementById("adminGreetName").textContent = user.name.toUpperCase();
+    document.getElementById("navTabs").innerHTML = `
+      <button class="nav-tab active" onclick="adminTab('overview')">Overview</button>
+      <button class="nav-tab" onclick="adminTab('courts')">Courts</button>
+      <button class="nav-tab" onclick="adminTab('reservations')">Reservations</button>
+      <button class="nav-tab" onclick="adminTab('attendance')">Attendance</button>
+      <button class="nav-tab" onclick="adminTab('maintenance')">Maintenance</button>`;
+    initAdminDate();
+    loadAdminAll();
+  } else {
+    document.getElementById("memberPage").classList.add("active");
+    document.getElementById("memberGreetName").textContent = user.name.toUpperCase();
+    document.getElementById("navTabs").innerHTML = `
+      <button class="nav-tab active" onclick="memberTab('booking')">Book a Court</button>
+      <button class="nav-tab" onclick="memberTab('myres')">My Reservations</button>
+      <button class="nav-tab" onclick="memberTab('attendance')">Attendance</button>`;
+    initMemberDate();
+    loadMemberAll();
+  }
+}
+
+function logout() {
+  // ล้างค่าตัวแปรในหน้าเว็บ
+  S = { user: null, courts: [], myRes: [], sel: { court: null, slot: null }, bookingDate: todayStr() };
+  AS = { courts: [], sel: { court: null, slot: null }, bookingDate: todayStr() };
+  
+  // ซ่อนหน้า Dashboard
+  ["memberPage", "adminPage"].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove("active");
+  });
+  document.getElementById("mainNav").style.display = "none";
+  
+  // ✅ ลบข้อมูล User ออกจากระบบหลัก
+  localStorage.removeItem("user");
+  
+  // ✅ ดีดกลับไปหน้า Login หลักของคุณ
+  window.location.href = "auth.html";
+}
+
+// ══════════════════════════════════
+// MEMBER FUNCTIONS
+// ══════════════════════════════════
+function initMemberDate() {
+  const input = document.getElementById("bookingDate");
+  input.value = todayStr();
+  input.min = todayStr();
+  S.bookingDate = todayStr();
+  updateMemberDateLabel();
+}
+function setToday() {
+  document.getElementById("bookingDate").value = todayStr();
+  S.bookingDate = todayStr();
+  updateMemberDateLabel();
+  onDateChange();
+}
+function updateMemberDateLabel() {
+  document.getElementById("selectedDateLabel").textContent = fmtDate(S.bookingDate);
+}
+function onDateChange() {
+  S.bookingDate = document.getElementById("bookingDate").value;
+  updateMemberDateLabel();
+  S.sel = { court: null, slot: null };
+  document.getElementById("mSlotsSection").style.display = "none";
+  document.getElementById("mBookingForm").style.display = "none";
+  loadMemberCourts();
+}
+
+async function loadMemberAll() {
+  await Promise.all([loadMemberStats(), loadMemberCourts(), loadMyRes(), loadMemberAttendance(), loadMemberPeakChart()]);
+}
+async function loadMemberStats() {
+  const [sr, ar] = await Promise.all([api("GET", "/dashboard/stats"), api("GET", "/attendance/current")]);
+  if (sr.success) document.getElementById("mStatAvail").textContent = sr.stats.courts_available;
+  if (ar.success) {
+    const cnt = ar.current_count, pct = Math.min(cnt, 100);
+    document.getElementById("mStatCount").textContent = cnt;
+    document.getElementById("mAttendCount").textContent = cnt;
+    document.getElementById("mStatCap").textContent = pct + "%";
+    const col = pct < 40 ? "var(--green)" : pct < 70 ? "var(--lime)" : pct < 90 ? "var(--orange)" : "var(--red)";
+    ["mCapBar", "mAttendBar"].forEach(id => { document.getElementById(id).style.cssText = `width:${pct}%;background:${col};`; });
+    document.getElementById("mAttendCapLabel").textContent = `Capacity ${pct}% — ${pct < 40 ? "Off-Peak" : pct < 70 ? "Moderate" : "Peak"}`;
+    const pb = document.getElementById("mPeakBadge"); pb.textContent = pct >= 70 ? "Peak Hours" : "Off-Peak"; pb.className = "peak-badge " + (pct >= 70 ? "peak" : "off");
+  }
+  if (S.user) {
+    const rr = await api("GET", `/courts/reservations?member_id=${S.user.id}`);
+    if (rr.success) document.getElementById("mStatMyBook").textContent = rr.reservations.filter(r => r.status === "active").length;
+  }
+}
+async function loadMemberCourts() {
+  const r = await api("GET", `/courts/available?date=${S.bookingDate}`);
+  const grid = document.getElementById("mCourtGrid");
+  if (!r.success) { grid.innerHTML = `<div class="err-msg" style="grid-column:1/-1;">${r.message}</div>`; return; }
+  S.courts = r.courts;
+  grid.innerHTML = r.courts.map(c => {
+    const labels = { available: "Available", booked: "Booked", maintenance: "Maintenance" };
+    const bc = { available: "b-available", booked: "b-booked", maintenance: "b-maintenance" };
+    const sel = S.sel.court === c.court_number ? " selected" : "";
+    const clickable = c.status === "available";
+    const slotsInfo = c.status === "available"
+      ? (c.booked_slots?.length ? `<div class="court-slots-info">${c.booked_slots.length} slot(s) booked</div>` : `<div class="court-slots-info" style="color:var(--green);">All slots open</div>`)
+      : "";
+    return `<div class="court-card ${c.status}${sel}" ${clickable ? `onclick="mSelectCourt(${c.court_number})"` : ""}>
+      <div class="court-icon">🏸</div>
+      <div class="court-num">${c.court_number}</div>
+      <div class="court-sub">Court ${c.court_number}</div>
+      <span class="badge ${bc[c.status]}">${labels[c.status]}</span>
+      ${slotsInfo}
+    </div>`;
+  }).join("");
+}
+function mSelectCourt(num) {
+  S.sel.court = num; S.sel.slot = null;
+  loadMemberCourts();
+  document.getElementById("mSlotCourtNum").textContent = num;
+  document.getElementById("mSlotDate").textContent = fmtDate(S.bookingDate);
+  document.getElementById("mSlotsSection").style.display = "block";
+  document.getElementById("mBookingForm").style.display = "none";
+  mRenderSlots(num);
+  document.getElementById("mSlotsSection").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function slotOverlapsMaintenance(court, date, slot) {
+  if (!court || !court.maintenance_start || !court.maintenance_end) return false;
+  const slotHour = parseInt(slot.split(":")[0]);
+  const ms = new Date(court.maintenance_start);
+  const me = new Date(court.maintenance_end);
+  const slotDate = new Date(`${date}T${String(slotHour).padStart(2,"0")}:00:00`);
+  return slotDate >= ms && slotDate < me;
+}
+function mRenderSlots(num) {
+  const court = S.courts.find(c => c.court_number === num);
+  const taken = court?.booked_slots || [];
+  const nowHour = new Date().getHours();
+  const isToday = S.bookingDate === todayStr();
+  document.getElementById("mSlotsGrid").innerHTML = SLOTS.map(s => {
+    const isTaken = taken.includes(s);
+    const slotHour = parseInt(s.split(":")[0]);
+    const isPast = isToday && slotHour <= nowHour;
+    const isMaint = slotOverlapsMaintenance(court, S.bookingDate, s);
+    const isSel = S.sel.slot === s;
+    const cls = isTaken ? "taken" : isPast ? "past" : isMaint ? "maint" : isSel ? "selected" : "";
+    const [from, to] = s.split("–");
+    const disabled = isTaken || isPast || isMaint;
+    const title = isTaken ? "Already booked" : isPast ? "Past slot" : isMaint ? "Under maintenance" : s;
+    return `<div class="slot ${cls}" ${disabled ? "" : `onclick="mPickSlot('${s}')"`} title="${title}">
+      ${from}<br><span style="font-size:.5rem;opacity:.6;">${to}</span>
+    </div>`;
+  }).join("");
+}
+function mPickSlot(slot) {
+  S.sel.slot = slot;
+  mRenderSlots(S.sel.court);
+  const conflict = S.myRes.some(r => r.member_id === S.user.id && r.date === S.bookingDate && r.time_slot === slot && r.status === "active");
+  document.getElementById("mBCourt").textContent = `Court ${S.sel.court}`;
+  document.getElementById("mBDate").textContent = fmtDate(S.bookingDate);
+  document.getElementById("mBSlot").textContent = slot;
+  document.getElementById("mBMember").textContent = `${S.user.name} (${S.user.id})`;
+  document.getElementById("mConflictWarn").classList.toggle("show", conflict);
+  document.getElementById("mBookBtn").disabled = conflict;
+  document.getElementById("mBookingForm").style.display = "block";
+  document.getElementById("mBookingForm").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+async function loadMyRes() {
+  const r = await api("GET", `/courts/reservations?member_id=${S.user.id}`);
+  if (!r.success) return;
+  S.myRes = r.reservations;
+  const tbody = document.getElementById("mMyResBody");
+  if (!r.reservations.length) { tbody.innerHTML = `<tr><td class="empty-row" colspan="6">No reservations yet — go to Book a Court to make one!</td></tr>`; return; }
+  tbody.innerHTML = r.reservations.map(res => `<tr>
+    <td class="lime">${res.reservation_id}</td>
+    <td class="bold">Court ${res.court_id}</td>
+    <td>${res.date}</td>
+    <td class="lime">${res.time_slot}</td>
+    <td><span class="badge b-${res.status}">${res.status}</span></td>
+    <td>${res.status === "active" ? `<button class="btn-cancel-res" onclick="mCancelRes('${res.reservation_id}')">Cancel</button>` : ""}</td>
+  </tr>`).join("");
+}
+async function mCancelRes(id) {
+  if (!confirm("Cancel this reservation?")) return;
+  const r = await api("DELETE", `/courts/reservations/${id}`);
+  if (r.success) { loadMyRes(); loadMemberCourts(); loadMemberStats(); }
+}
+async function loadMemberAttendance() {
+  // attendance stats loaded via loadMemberStats
+}
+async function loadMemberPeakChart() {
+  const r = await api("GET", "/reports/attendance");
+  if (!r.success) return;
+  renderChart(r.report.hourly_breakdown, "mBarsWrap", "mBarsLabels");
+}
+
+function openConfirmModal() {
+  document.getElementById("moCourt").textContent = `Court ${S.sel.court}`;
+  document.getElementById("moDate").textContent = fmtDate(S.bookingDate);
+  document.getElementById("moSlot").textContent = S.sel.slot;
+  document.getElementById("confirmModal").classList.add("show");
+}
+async function confirmBooking() {
+  const btn = document.getElementById("confirmBtn"); btn.disabled = true; btn.textContent = "Booking…";
+  const r = await api("POST", "/courts/book", { court_id: S.sel.court, member_id: S.user.id, member_name: S.user.name, date: S.bookingDate, time_slot: S.sel.slot });
+  btn.disabled = false; btn.textContent = "Confirm";
+  if (!r.success) {
+    document.getElementById("confirmModalBody").innerHTML = `<div class="modal-title" style="color:var(--red);">BOOKING FAILED</div><div class="modal-sub">${r.message}</div><button class="btn-confirm" onclick="closeModal('confirmModal')" style="width:100%;margin-top:8px;">OK</button>`;
+    return;
+  }
+  document.getElementById("confirmModalBody").innerHTML = `
+    <div class="confirm-success">
+      <div class="confirm-icon">✅</div>
+      <div class="confirm-title">BOOKING CONFIRMED</div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:7px;">Your court has been reserved.</div>
+      <div class="confirm-code">${r.reservation.reservation_id}</div>
+      <div style="font-size:.76rem;color:var(--text2);">Court ${r.reservation.court_id} · ${r.reservation.time_slot} · ${r.reservation.date}</div>
+      <button class="btn-lime" style="margin-top:16px;" onclick="closeModal('confirmModal');resetMemberBooking();">Done</button>
+    </div>`;
+  loadMemberCourts(); loadMyRes(); loadMemberStats();
+}
+function resetMemberBooking() {
+  S.sel = { court: null, slot: null };
+  document.getElementById("mSlotsSection").style.display = "none";
+  document.getElementById("mBookingForm").style.display = "none";
+  resetConfirmModal();
+}
+
+function memberTab(name) {
+  document.querySelectorAll("#memberPage .ptab, #navTabs .nav-tab").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("#memberPage .panel").forEach(p => p.classList.remove("active"));
+  const map = { booking: "mPanelBooking", myres: "mPanelMyres", attendance: "mPanelAttendance" };
+  document.getElementById(map[name])?.classList.add("active");
+  document.querySelectorAll(`[onclick="memberTab('${name}')"]`).forEach(b => b.classList.add("active"));
+  if (name === "myres") loadMyRes();
+  if (name === "attendance") { loadMemberStats(); loadMemberPeakChart(); }
+}
+
+// ══════════════════════════════════
+// ADMIN FUNCTIONS
+// ══════════════════════════════════
+function initAdminDate() {
+  const input = document.getElementById("adminBookingDate");
+  input.value = todayStr();
+  input.min = todayStr();
+  AS.bookingDate = todayStr();
+  updateAdminDateLabel();
+}
+function setAdminToday() {
+  document.getElementById("adminBookingDate").value = todayStr();
+  AS.bookingDate = todayStr();
+  updateAdminDateLabel();
+  onAdminDateChange();
+}
+function updateAdminDateLabel() {
+  document.getElementById("adminSelectedDateLabel").textContent = fmtDate(AS.bookingDate);
+}
+function onAdminDateChange() {
+  AS.bookingDate = document.getElementById("adminBookingDate").value;
+  updateAdminDateLabel();
+  AS.sel = { court: null, slot: null };
+  document.getElementById("aSlotsSection").style.display = "none";
+  document.getElementById("aBookingForm").style.display = "none";
+  loadAdminCourts();
+}
+
+async function loadAdminAll() {
+  await Promise.all([loadAdminStats(), loadAdminCourts(), loadAdminRes(), loadAdminAttendanceLogs(), loadAdminPeakChart(), loadMaintList()]);
+}
+async function loadAdminStats() {
+    const res = await api("GET", "/dashboard/stats");
+    if (res.success) {
+        const s = res.stats;
+        // อัปเดตตัวเลขบน Card
+        document.getElementById("aStatCount").textContent = s.members_inside;
+        document.getElementById("aStatAvail").textContent = s.courts_available;
+        document.getElementById("aStatRes").textContent = s.reservations_today;
+        
+        // อัปเดต Capacity Bar
+        const cap = Math.min(s.members_inside, 100);
+        document.getElementById("aStatCap").textContent = cap + "%";
+        document.getElementById("aCapBar").style.width = cap + "%";
+
+        // ✅ อัปเดตตาราง TODAY'S SUMMARY (รูปที่นายส่งมา)
+        document.getElementById("aAdminSummary").innerHTML = `
+            <div class="srow"><span class="srow-label">Members Inside Now</span><span class="srow-val" style="color:var(--lime);">${s.members_inside}</span></div>
+            <div class="srow"><span class="srow-label">Reservations Today</span><span class="srow-val" style="color:var(--blue);">${s.reservations_today}</span></div>
+            <div class="srow"><span class="srow-label">Courts Available</span><span class="srow-val" style="color:var(--green);">${s.courts_available}</span></div>
+            <div class="srow"><span class="srow-label">Courts Booked</span><span class="srow-val" style="color:var(--red);">${s.courts_booked}</span></div>
+            <div class="srow"><span class="srow-label">Under Maintenance</span><span class="srow-val" style="color:var(--orange);">${s.courts_maintenance}</span></div>
+        `;
+    }
+}
+async function loadAdminCourts() {
+    const r = await api("GET", `/courts/available?date=${AS.bookingDate}`);
+    if (r.success) {
+        AS.courts = r.courts;
+        // ✅ อัปเดตตาราง COURT STATUS (รูปที่นายส่งมา)
+        document.getElementById("aCourtStatus").innerHTML = r.courts.map(c => {
+            const statusClass = c.status === 'available' ? 'b-available' : (c.status === 'booked' ? 'b-booked' : 'b-maintenance');
+            return `
+                <div class="srow">
+                    <span class="srow-label">Court ${c.court_number}</span>
+                    <span class="badge ${statusClass}">${c.status.toUpperCase()}</span>
+                </div>
+            `;
+        }).join("");
+        
+        // อัปเดต Grid สนามด้านล่างด้วย (ถ้ามี)
+        renderAdminCourtGrid(r.courts);
+    }
+}
+function aSelectCourt(num) {
+  AS.sel.court = num; AS.sel.slot = null;
+  loadAdminCourts();
+  document.getElementById("aSlotCourtNum").textContent = num;
+  document.getElementById("aSlotsSection").style.display = "block";
+  document.getElementById("aBookingForm").style.display = "none";
+  aRenderSlots(num);
+  document.getElementById("aSlotsSection").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function aRenderSlots(num) {
+  const court = AS.courts.find(c => c.court_number === num);
+  const taken = court?.booked_slots || [];
+  document.getElementById("aSlotsGrid").innerHTML = SLOTS.map(s => {
+    const isTaken = taken.includes(s);
+    const isMaint = slotOverlapsMaintenance(court, AS.bookingDate, s);
+    const isSel = AS.sel.slot === s;
+    const cls = isTaken ? "taken" : isMaint ? "maint" : isSel ? "selected" : "";
+    const [from, to] = s.split("–");
+    const disabled = isTaken || isMaint;
+    const title = isTaken ? "Already booked" : isMaint ? "Under maintenance" : s;
+    return `<div class="slot ${cls}" ${disabled ? "" : `onclick="aPickSlot('${s}')"`} title="${title}">
+      ${from}<br><span style="font-size:.5rem;opacity:.6;">${to}</span>
+    </div>`;
+  }).join("");
+}
+function aPickSlot(slot) {
+  AS.sel.slot = slot;
+  aRenderSlots(AS.sel.court);
+  document.getElementById("aBCourt").textContent = `Court ${AS.sel.court}`;
+  document.getElementById("aBDate").textContent = fmtDate(AS.bookingDate);
+  document.getElementById("aBSlot").textContent = slot;
+  document.getElementById("aBMember").textContent = S.user.name + " (Admin)";
+  document.getElementById("aBookingForm").style.display = "block";
+  document.getElementById("aBookingForm").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function openAdminConfirmModal() {
+  document.getElementById("moCourt").textContent = `Court ${AS.sel.court}`;
+  document.getElementById("moDate").textContent = fmtDate(AS.bookingDate);
+  document.getElementById("moSlot").textContent = AS.sel.slot;
+  document.getElementById("confirmModal").classList.add("show");
+}
+async function confirmBooking() {
+  const isAdmin = S.user.role === "admin";
+  const selCourt = isAdmin ? AS.sel.court : S.sel.court;
+  const selSlot = isAdmin ? AS.sel.slot : S.sel.slot;
+  const selDate = isAdmin ? AS.bookingDate : S.bookingDate;
+  const btn = document.getElementById("confirmBtn"); btn.disabled = true; btn.textContent = "Booking…";
+  const r = await api("POST", "/courts/book", { court_id: selCourt, member_id: S.user.id, member_name: S.user.name, date: selDate, time_slot: selSlot });
+  btn.disabled = false; btn.textContent = "Confirm";
+  if (!r.success) {
+    document.getElementById("confirmModalBody").innerHTML = `<div class="modal-title" style="color:var(--red);">BOOKING FAILED</div><div class="modal-sub">${r.message}</div><button class="btn-confirm" onclick="closeModal('confirmModal')" style="width:100%;margin-top:8px;">OK</button>`;
+    return;
+  }
+  document.getElementById("confirmModalBody").innerHTML = `
+    <div class="confirm-success">
+      <div class="confirm-icon">✅</div>
+      <div class="confirm-title">BOOKING CONFIRMED</div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:7px;">Court has been reserved.</div>
+      <div class="confirm-code">${r.reservation.reservation_id}</div>
+      <div style="font-size:.76rem;color:var(--text2);">Court ${r.reservation.court_id} · ${r.reservation.time_slot} · ${r.reservation.date}</div>
+      <button class="btn-lime" style="margin-top:16px;" onclick="closeModal('confirmModal');resetConfirmModal();${isAdmin ? 'loadAdminCourts();loadAdminRes();loadAdminStats();' : 'resetMemberBooking();'}">Done</button>
+    </div>`;
+  if (!isAdmin) { loadMemberCourts(); loadMyRes(); loadMemberStats(); }
+  else { loadAdminCourts(); loadAdminRes(); loadAdminStats(); }
+}
+async function loadAdminRes() {
+  const r = await api("GET", "/courts/reservations");
+  if (!r.success) return;
+  const tbody = document.getElementById("aResBody");
+  if (!r.reservations.length) { tbody.innerHTML = `<tr><td class="empty-row" colspan="7">No reservations found.</td></tr>`; return; }
+  tbody.innerHTML = r.reservations.map(res => `<tr>
+    <td class="lime">${res.reservation_id}</td>
+    <td class="bold">${res.member_name}</td>
+    <td>Court ${res.court_id}</td>
+    <td>${res.date}</td>
+    <td class="lime">${res.time_slot}</td>
+    <td><span class="badge b-${res.status}">${res.status}</span></td>
+    <td>${res.status === "active" ? `<button class="btn-cancel-res" onclick="adminCancelRes('${res.reservation_id}')">Cancel</button>` : ""}</td>
+  </tr>`).join("");
+}
+async function adminCancelRes(id) {
+  if (!confirm("Cancel this reservation?")) return;
+  const r = await api("DELETE", `/courts/reservations/${id}`);
+  if (r.success) { loadAdminRes(); loadAdminCourts(); loadAdminStats(); }
+}
+async function loadAdminAttendanceLogs() {
+  const filter = document.getElementById("aLogFilter").value;
+  const r = await api("GET", `/attendance/logs?filter=${filter}`);
+  const tbody = document.getElementById("aAttendBody");
+  if (!r.success) { tbody.innerHTML = `<tr><td class="empty-row" colspan="6">${r.message}</td></tr>`; return; }
+  if (!r.logs.length) { tbody.innerHTML = `<tr><td class="empty-row" colspan="6">No records.</td></tr>`; return; }
+  tbody.innerHTML = r.logs.map(l => `<tr>
+    <td>${l.member_id}</td>
+    <td class="bold">${l.member_name}</td>
+    <td class="lime">${fmtTime(l.entry_time)}</td>
+    <td class="${l.exit_time ? "lime" : "green"}">${l.exit_time ? fmtTime(l.exit_time) : "—"}</td>
+    <td class="blue">${l.duration || "Active"}</td>
+    <td><span class="badge b-${l.exit_time ? "cancelled" : "active"}">${l.exit_time ? "Exited" : "Inside"}</span></td>
+  </tr>`).join("");
+}
+async function loadAdminPeakChart() {
+  const r = await api("GET", "/reports/attendance");
+  if (!r.success) return;
+  renderChart(r.report.hourly_breakdown, "aBarsWrap", "aBarsLabels");
+}
+async function loadMaintList() {
+  const r = await api("GET", `/courts/available?date=${todayStr()}`);
+  if (!r.success) return;
+  const courts = r.courts.filter(c => c.maintenance_start && c.maintenance_end);
+  const el = document.getElementById("aMaintList");
+  if (!courts.length) { el.innerHTML = `<div style="font-size:.8rem;color:var(--text3);padding:8px 0;">No maintenance windows currently scheduled.</div>`; return; }
+  el.innerHTML = courts.map(c => `<div class="maint-item">
+    <div class="maint-court-num">C${c.court_number}</div>
+    <div class="maint-info">
+      <div class="mname">Court ${c.court_number}</div>
+      <div class="mdates">${c.maintenance_start} → ${c.maintenance_end}</div>
+    </div>
+    <button class="btn-remove" onclick="removeMaint(${c.court_id})">Remove</button>
+  </div>`).join("");
+}
+function openMaintModal() { document.getElementById("maintModal").classList.add("show"); }
+async function addMaintenance() {
+  const courtId = parseInt(document.getElementById("mCourt2").value);
+  const start = document.getElementById("mStart").value.replace("T", " ");
+  const end = document.getElementById("mEnd").value.replace("T", " ");
+  if (!start || !end) { showAlert("maintAlert", "Please fill in both start and end times.", "error"); return; }
+  const r = await api("POST", `/courts/${courtId}/maintenance`, { maintenance_start: start, maintenance_end: end });
+  if (!r.success) { showAlert("maintAlert", r.message, "error"); return; }
+  closeModal("maintModal"); loadAdminCourts(); loadMaintList(); loadAdminStats();
+  // Also refresh overview chart and summary
+  loadAdminPeakChart();
+}
+async function removeMaint(courtId) {
+  if (!confirm("Remove maintenance window for this court?")) return;
+  const r = await api("DELETE", `/courts/${courtId}/maintenance`);
+  if (r.success) { loadAdminCourts(); loadMaintList(); loadAdminStats(); }
+}
+
+function renderAdminCourtGrid(courts) {
+  const grid = document.getElementById("aCourtGrid");
+  if (!grid) return;
+  const labels = { available: "Available", booked: "Booked", maintenance: "Maintenance" };
+  const bc = { available: "b-available", booked: "b-booked", maintenance: "b-maintenance" };
+  grid.innerHTML = courts.map(c => {
+    const sel = AS.sel.court === c.court_number ? " selected" : "";
+    const clickable = c.status === "available";
+    const slotsInfo = c.status === "available"
+      ? (c.booked_slots?.length ? `<div class="court-slots-info">${c.booked_slots.length} slot(s) booked</div>` : `<div class="court-slots-info" style="color:var(--green);">All slots open</div>`)
+      : "";
+    return `<div class="court-card ${c.status}${sel}" ${clickable ? `onclick="aSelectCourt(${c.court_number})"` : ""}>
+      <div class="court-icon">🏸</div>
+      <div class="court-num">${c.court_number}</div>
+      <div class="court-sub">Court ${c.court_number}</div>
+      <span class="badge ${bc[c.status]}">${labels[c.status]}</span>
+      ${slotsInfo}
+    </div>`;
+  }).join("");
+}
+
+function adminTab(name) {
+  document.querySelectorAll("#adminPage .ptab, #navTabs .nav-tab").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("#adminPage .panel").forEach(p => p.classList.remove("active"));
+  const map = { overview: "aPanelOverview", courts: "aPanelCourts", reservations: "aPanelReservations", attendance: "aPanelAttendance", maintenance: "aPanelMaintenance" };
+  document.getElementById(map[name])?.classList.add("active");
+  document.querySelectorAll(`[onclick="adminTab('${name}')"]`).forEach(b => b.classList.add("active"));
+  if (name === "attendance") { loadAdminAttendanceLogs(); loadAdminStats(); }
+  if (name === "reservations") loadAdminRes();
+  if (name === "maintenance") loadMaintList();
+  if (name === "courts") { initAdminDate(); loadAdminCourts(); }
+  if (name === "overview") { loadAdminStats(); loadAdminPeakChart(); loadAdminCourts(); }
+}
+
+// ── SHARED ──
+function renderChart(breakdown, wrapId, labelsId) {
+  const entries = Object.entries(breakdown || {});
+  const max = Math.max(...entries.map(e => e[1]), 1);
+  document.getElementById(wrapId).innerHTML = entries.map(([h, v]) => {
+    const ht = Math.round((v / max) * 68) + 4;
+    const cls = v >= max * .9 ? "peak-bar" : v >= max * .6 ? "high-bar" : v >= max * .3 ? "norm-bar" : "low-bar";
+    return `<div class="bar-col"><div class="bar ${cls}" style="height:${ht}px;" title="${h}: ${v} members"></div></div>`;
+  }).join("");
+  document.getElementById(labelsId).innerHTML = entries.map(([h]) => `<div class="bar-col bar-lbl">${h.slice(0, 2)}</div>`).join("");
+}
+function resetConfirmModal() {
+  document.getElementById("confirmModalBody").innerHTML = `
+    <div class="modal-title">CONFIRM BOOKING</div>
+    <div class="modal-sub">Review your reservation before confirming.</div>
+    <div class="dbox">
+      <div class="drow"><span class="drow-label">Court</span><span id="moCourt">—</span></div>
+      <div class="drow"><span class="drow-label">Date</span><span id="moDate">—</span></div>
+      <div class="drow"><span class="drow-label">Time Slot</span><span id="moSlot" style="color:var(--lime);">—</span></div>
+      <div class="drow"><span class="drow-label">Duration</span><span>1 Hour</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-confirm" id="confirmBtn" onclick="confirmBooking()">Confirm</button>
+      <button class="btn-cancel-m" onclick="closeModal('confirmModal')">Cancel</button>
+    </div>`;
+}
+function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+document.querySelectorAll(".modal-overlay").forEach(o => o.addEventListener("click", function (e) { if (e.target === this) this.classList.remove("show"); }));
+
+// กำหนดให้เป็นพอร์ต 8080 ตาม server.js ของเรา
+const API_BASE = "http://localhost:8080/api";
+</script>
+</body>
+</html>

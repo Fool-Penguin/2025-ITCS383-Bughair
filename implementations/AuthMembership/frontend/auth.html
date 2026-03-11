@@ -147,7 +147,7 @@
 <body>
 
 <nav>
-    <div class="nav-logo">FIT<span>PAY</span></div>
+    <div class="nav-logo">FITNESS</div>
 </nav>
 
 <div class="auth-container">
@@ -199,10 +199,11 @@
 <script>
     // ตรวจสอบ Token เมื่อโหลดหน้า
     window.onload = function() {
-        if (localStorage.getItem('token')) {
-            window.location.href = 'Home.html';
-        }
+    if (localStorage.getItem('token')) {
+        // ใช้ /home (ตัวเล็ก) ตามที่ตั้งไว้ใน server.js
+        window.location.href = '/home'; 
     }
+}
 
     let isLogin = true;
     let selectedRole = 'member'; // Default เป็น member
@@ -258,21 +259,24 @@
             const result = await response.json();
 
             if (response.ok) {
-                if (isLogin) {
-                    localStorage.setItem('token', result.token);
-                    localStorage.setItem('user', JSON.stringify({
-                        id: result.userId,
-                        memberId: result.memberId,
-                        name: result.full_name,
-                        role: result.role // เก็บ role ไว้ใช้งานหน้า Home
-                    }));
+    if (isLogin) {
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('user', JSON.stringify({
+            id: result.userId,
+            memberId: result.memberId,
+            name: result.full_name,
+            role: result.role
+        }));
 
-                    alert(`Login Successful! Welcome, ${result.role}.`);
-                    if (result.role === 'admin') {
-                    window.location.href = 'admin_select.html'; // ไปหน้าของเพื่อน (Member 4)
-                    } else {
-                    window.location.href = 'Home.html';  // ไปหน้า Dashboard ของคุณ
-                     }
+        alert(`Login Successful! Welcome, ${result.role}.`);
+        
+        if (result.role === 'admin') {
+            // ใส่ / นำหน้าเพื่อให้ Server หา Route เจอ
+            window.location.href = '/admin-select'; 
+        } else {
+            // ใส่ / home ตาม Route หลัก
+            window.location.href = '/home';  
+        }
 
                 } else {
                     alert("Registration Successful! Now you can Sign In.");

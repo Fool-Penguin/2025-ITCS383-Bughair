@@ -1,0 +1,13 @@
+{
+  "name": "fitcourt-reservation-service",
+  "version": "1.0.0",
+  "description": "Court Reservation & Attendance Tracking — ITCS383",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node src/tests/courts.test.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3"
+  }
+}
