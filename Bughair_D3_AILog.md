@@ -39,8 +39,7 @@ AI tools were used as development assistants for selected tasks. All AI-generate
 ## Log Entry 1 — Project Architecture and Service Structure
 
 **Task:** Define the overall architecture and folder structure for the Fitness Course Management System  
-**AI Tool:** Claude  
-**Date:** Week 1  
+**AI Tool:** Claude   
 
 **Prompt Used:**
 ```
@@ -72,7 +71,6 @@ Claude suggested separating the project into `implementations/course-service/` w
 
 **Task:** Implement backend API routes for course listing, enrollment, and admin operations  
 **AI Tool:** Claude  
-**Date:** Week 2–3  
 
 **Prompt Used:**
 ```
@@ -111,7 +109,6 @@ Claude generated route handler skeletons with JWT middleware (`verifyToken`, `re
 
 **Task:** Build the main course browsing and enrollment UI in a single HTML file  
 **AI Tool:** Claude + ChatGPT  
-**Date:** Week 3–4  
 
 **Prompt Used:**
 ```
@@ -146,8 +143,7 @@ Claude generated a complete `index.html` with inline CSS and JavaScript, a `rend
 ## Log Entry 4 — Frontend with API Integration (index_with_api.html)
 
 **Task:** Create a version of the frontend that connects to the live backend API  
-**AI Tool:** Claude  
-**Date:** Week 4  
+**AI Tool:** Claude   
 
 **Prompt Used:**
 ```
@@ -180,7 +176,6 @@ Claude produced `index_with_api.html` with `fetch()` calls, Bearer token injecti
 
 **Task:** Write Jest unit tests for the course service backend  
 **AI Tool:** Claude  
-**Date:** Week 5  
 
 **Prompt Used:**
 ```
@@ -215,8 +210,7 @@ Claude generated test scaffolding with `supertest`, `jest.fn()` mocks for `db.pr
 ## Log Entry 6 — GitHub Actions CI Pipeline
 
 **Task:** Set up GitHub Actions workflow to build, test, and run SonarQube analysis on each push  
-**AI Tool:** Claude  
-**Date:** Week 6  
+**AI Tool:** Claude   
 
 **Prompt Used:**
 ```
@@ -250,8 +244,7 @@ Claude generated a `.github/workflows/ci.yml` with `actions/checkout`, `actions/
 ## Log Entry 7 — README Documentation
 
 **Task:** Write the root `README.md` with setup, build, and run instructions  
-**AI Tool:** Claude  
-**Date:** Week 7  
+**AI Tool:** Claude   
 
 **Prompt Used:**
 ```

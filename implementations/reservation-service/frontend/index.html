@@ -702,22 +702,84 @@ async function loadMemberAll() {
   await Promise.all([loadMemberStats(), loadMemberCourts(), loadMyRes(), loadMemberAttendance(), loadMemberPeakChart()]);
 }
 async function loadMemberStats() {
-  const [sr, ar] = await Promise.all([api("GET", "/dashboard/stats"), api("GET", "/attendance/current")]);
-  if (sr.success) document.getElementById("mStatAvail").textContent = sr.stats.courts_available;
+  const [sr, ar] = await Promise.all([
+    api("GET", "/dashboard/stats"),
+    api("GET", "/attendance/current")
+  ]);
+
+  if (sr.success) {
+    updateAvailableCourts(sr.stats);
+  }
+
   if (ar.success) {
-    const cnt = ar.current_count, pct = Math.min(cnt, 100);
-    document.getElementById("mStatCount").textContent = cnt;
-    document.getElementById("mAttendCount").textContent = cnt;
-    document.getElementById("mStatCap").textContent = pct + "%";
-    const col = pct < 40 ? "var(--green)" : pct < 70 ? "var(--lime)" : pct < 90 ? "var(--orange)" : "var(--red)";
-    ["mCapBar", "mAttendBar"].forEach(id => { document.getElementById(id).style.cssText = `width:${pct}%;background:${col};`; });
-    document.getElementById("mAttendCapLabel").textContent = `Capacity ${pct}% — ${pct < 40 ? "Off-Peak" : pct < 70 ? "Moderate" : "Peak"}`;
-    const pb = document.getElementById("mPeakBadge"); pb.textContent = pct >= 70 ? "Peak Hours" : "Off-Peak"; pb.className = "peak-badge " + (pct >= 70 ? "peak" : "off");
+    updateAttendanceUI(ar.current_count);
   }
+
   if (S.user) {
-    const rr = await api("GET", `/courts/reservations?member_id=${S.user.id}`);
-    if (rr.success) document.getElementById("mStatMyBook").textContent = rr.reservations.filter(r => r.status === "active").length;
+    await updateMemberBookings(S.user.id);
   }
+}
+
+// ---------------- Helpers ----------------
+
+function updateAvailableCourts(stats) {
+  document.getElementById("mStatAvail").textContent = stats.courts_available;
+}
+
+function updateAttendanceUI(count) {
+  const pct = Math.min(count, 100);
+
+  document.getElementById("mStatCount").textContent = count;
+  document.getElementById("mAttendCount").textContent = count;
+  document.getElementById("mStatCap").textContent = pct + "%";
+
+  const color = getCapacityColor(pct);
+  updateBars(pct, color);
+  updateCapacityLabel(pct);
+  updatePeakBadge(pct);
+}
+
+function getCapacityColor(pct) {
+  if (pct < 40) return "var(--green)";
+  if (pct < 70) return "var(--lime)";
+  if (pct < 90) return "var(--orange)";
+  return "var(--red)";
+}
+
+function updateBars(pct, color) {
+  ["mCapBar", "mAttendBar"].forEach(id => {
+    document.getElementById(id).style.cssText =
+      `width:${pct}%;background:${color};`;
+  });
+}
+
+function updateCapacityLabel(pct) {
+  let label = "Peak";
+
+  if (pct < 40) label = "Off-Peak";
+  else if (pct < 70) label = "Moderate";
+
+  document.getElementById("mAttendCapLabel").textContent =
+    `Capacity ${pct}% — ${label}`;
+}
+
+function updatePeakBadge(pct) {
+  const badge = document.getElementById("mPeakBadge");
+
+  const isPeak = pct >= 70;
+
+  badge.textContent = isPeak ? "Peak Hours" : "Off-Peak";
+  badge.className = "peak-badge " + (isPeak ? "peak" : "off");
+}
+
+async function updateMemberBookings(memberId) {
+  const rr = await api("GET", `/courts/reservations?member_id=${memberId}`);
+
+  if (!rr.success) return;
+
+  const active = rr.reservations.filter(r => r.status === "active").length;
+
+  document.getElementById("mStatMyBook").textContent = active;
 }
 async function loadMemberCourts() {
   const r = await api("GET", `/courts/available?date=${S.bookingDate}`);
