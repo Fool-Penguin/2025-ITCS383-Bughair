@@ -1,4 +1,5 @@
 # 2025-ITCS383-Bughair
+
 **Fitness Course Management System**  
 ITCS383 Software Construction and Evolution — Phase 1  
 Mahidol University ICT
@@ -7,7 +8,7 @@ Mahidol University ICT
 
 ## About
 
-A web-based Fitness Management System consisting of multiple services: authentication & membership, course management, admin management, and payment. Built with Node.js/Express backends and HTML/JavaScript frontends.
+A web-based Fitness Management System consisting of multiple services: authentication & membership, course management, admin management, payment, and reservation. Built with Node.js/Express backends and HTML/JavaScript frontends.
 
 ---
 
@@ -15,36 +16,38 @@ A web-based Fitness Management System consisting of multiple services: authentic
 
 ```
 2025-ITCS383-Bughair/
-├── designs/                          # D1 — C4 diagrams and design rationale
+├── designs/                            # D1 — C4 diagrams and design rationale
 ├── implementations/
-│   ├── Admin/                        # Admin management service
-│   │   ├── backend/backend/          # Express.js backend
-│   │   ├── front/                    # Admin frontend
+│   ├── AuthMembership/                 # ⭐ Main entry point
+│   │   ├── backend-api_Module1/        # Express.js backend (run this)
+│   │   └── frontend/                   # Auth/membership frontend
+│   │
+│   ├── Admin/                          # Admin management service
+│   │   ├── backend/backend/            # Express.js backend
+│   │   ├── front/                      # Admin frontend
 │   │   ├── package.json
 │   │   └── package-lock.json
 │   │
-│   ├── AuthMembership/               # Authentication & membership service
-│   │   ├── backend-api_Module1/      # Express.js backend API
-│   │   └── frontend/                 # Auth/membership frontend
-│   │
-│   ├── course-service/               # Course management service
-│   │   ├── frontend/                 # Course frontend
-│   │   ├── src/                      # Backend source code
-│   │   ├── tests/                    # Jest unit tests
-│   │   ├── .env.example              # Environment variable template
+│   ├── course-service/                 # Course management service
+│   │   ├── frontend/                   # Course frontend
+│   │   ├── src/                        # Backend source code
+│   │   ├── tests/                      # Jest unit tests
+│   │   ├── .env.example                # Environment variable template
 │   │   └── package.json
 │   │
-│   ├── payment-service/              # Payment service
-│   │   ├── data/                     # Data files
-│   │   ├── src/                      # Backend source code
+│   ├── payment-service/                # Payment service
+│   │   ├── data/
+│   │   ├── src/
 │   │   └── fitness-payment-frontend.html
 │   │
-│   └── reservation-service/          # Reservation service
+│   └── reservation-service/            # Reservation service
+│       ├── backend/
+│       └── frontend/
 │
-├── .github/workflows/                # GitHub Actions CI pipeline
-├── Bughair_D3_AILog.md               # D3 — AI Usage Log
-├── Bughair_D4_QualityReport.md       # D4 — Quality Evidence Report
-├── sonar-project.properties          # SonarQube configuration
+├── .github/workflows/                  # GitHub Actions CI pipeline
+├── Bughair_D3_AILog.md                 # D3 — AI Usage Log
+├── Bughair_D4_QualityReport.md         # D4 — Quality Evidence Report
+├── sonar-project.properties            # SonarQube configuration
 └── README.md
 ```
 
@@ -64,103 +67,43 @@ npm --version
 
 ---
 
-## Services
+## Getting Started
 
-The system is composed of the following services. Each service runs independently.
+The main application entry point is the **AuthMembership** service. Start here to access the full system.
 
----
-
-### 1. AuthMembership Service
-
-Handles user authentication, registration, and membership management.
-
-**Setup & Run:**
+### Step 1 — Install dependencies
 
 ```bash
 cd implementations/AuthMembership/backend-api_Module1
 npm install
+```
+
+### Step 2 — Run the server
+
+```bash
 node server.js
 ```
 
-**Default URL:** `http://localhost:8080`
-
-**Frontend:**  
-Open `implementations/AuthMembership/frontend/` in your browser.
+The server will start on **port 8080**.  
+Open your browser and navigate to: `http://localhost:8080`
 
 ---
 
-### 2. Course Service
+## Services Overview
 
-Handles fitness course listings, enrollment, and schedule management.
-
-**Setup:**
-
-```bash
-cd implementations/course-service
-cp .env.example .env   # configure environment variables
-npm install
-```
-
-**Run:**
-
-```bash
-npm start
-```
-
-**Frontend:**  
-Open `implementations/course-service/frontend/` in your browser.
-
----
-
-### 3. Admin Service
-
-Handles administrative operations such as managing users and system settings.
-
-**Setup & Run:**
-
-```bash
-cd implementations/Admin
-npm install
-node backend/backend/server.js
-```
-
-**Frontend:**  
-Open `implementations/Admin/front/` in your browser.
-
----
-
-### 4. Payment Service
-
-Handles membership payment processing.
-
-**Setup & Run:**
-
-```bash
-cd implementations/payment-service
-npm install
-node src/server.js
-```
-
-**Frontend:**  
-Open `implementations/payment-service/fitness-payment-frontend.html` in your browser.
-
----
-
-### 5. Reservation Service
-
-Handles course slot reservations.
-
-```bash
-cd implementations/reservation-service
-npm install
-npm start
-```
+| Service | Location | Responsibility |
+|---------|----------|----------------|
+| **AuthMembership** | `implementations/AuthMembership/` | User authentication, registration, and membership |
+| **Course Service** | `implementations/course-service/` | Course listings, enrollment, and schedule management |
+| **Admin** | `implementations/Admin/` | Admin dashboard and system management |
+| **Payment Service** | `implementations/payment-service/` | Membership payment processing |
+| **Reservation Service** | `implementations/reservation-service/` | Course slot reservations |
 
 ---
 
 ## Running Tests
 
-Tests are located in the `course-service`:
+Tests are located in `course-service`:
 
 ```bash
 cd implementations/course-service
@@ -173,13 +116,11 @@ Tests are written with [Jest](https://jestjs.io/) and [Supertest](https://github
 
 ## Environment Variables
 
-The `course-service` uses a `.env` file. Copy the example file and fill in the values:
+The `course-service` uses a `.env` file. Copy the example file and configure it before running:
 
 ```bash
 cp implementations/course-service/.env.example implementations/course-service/.env
 ```
-
-Key variables:
 
 | Variable | Description |
 |----------|-------------|
