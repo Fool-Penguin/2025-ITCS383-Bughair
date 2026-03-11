@@ -523,6 +523,27 @@ function loadCourses(filterLevel = 'all') {
   renderCourses(allCourses);
 }
 
+function getEnrollButtonProps(c, isEnrolled, conflict, isFull) {
+  if (c.status === 'cancelled') return { txt: 'Cancelled', cls: 'enroll-btn', dis: true };
+  if (isEnrolled) return { txt: '✓ Enrolled — tap to cancel', cls: 'enroll-btn enrolled', dis: false };
+  if (conflict) return { txt: '⚠ Schedule Conflict', cls: 'enroll-btn conflict', dis: true };
+  if (isFull) return { txt: 'Class Full', cls: 'enroll-btn', dis: true };
+  return { txt: 'Enroll Now', cls: 'enroll-btn', dis: false };
+}
+
+function getAdminActionsHtml(c) {
+  const cancelOrUndo = c.status === 'cancelled'
+    ? `<button class="btn-undo-cancel" onclick="undoCancel(${c.id})">↩ Undo Cancel</button>`
+    : `<button class="btn-cancel-course" onclick="openCancelModal(${c.id})">✕ Cancel</button>`;
+
+  return `
+    <div class="admin-actions show">
+      <button class="btn-edit" onclick="openEditModal(${c.id})">✏ Edit</button>
+      ${cancelOrUndo}
+      <button class="btn-delete" onclick="deleteCourse(${c.id})">🗑 Delete</button>
+    </div>`;
+}
+
 function renderCourses(list) {
   const grid = document.getElementById('courses-grid');
   document.getElementById('course-count').textContent = `${list.length} courses`;
@@ -533,47 +554,33 @@ function renderCourses(list) {
   }
 
   grid.innerHTML = list.map(c => {
-    const pct    = Math.round((c.cur / c.max) * 100);
+    // 1. คำนวณค่าพื้นฐาน (ลด IF ซ้อน)
+    const pct = Math.round((c.cur / c.max) * 100);
     const isFull = c.cur >= c.max;
-    const fillCls= isFull ? 'full' : pct >= 80 ? 'warn' : '';
-    const d      = new Date(c.schedule);
-    const dateStr= d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    const timeStr= d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-
+    const fillCls = isFull ? 'full' : (pct >= 80 ? 'warn' : '');
+    const d = new Date(c.schedule);
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     const isEnrolled = enrolledSet.has(c.id);
-    const conflict   = (!isEnrolled && role==='customer') ? getConflict(c.id) : null;
 
-    // ─ Customer enroll button
-    let btnCls = 'enroll-btn', btnTxt = 'Enroll Now', btnDis = '';
-    if (c.status === 'cancelled')     { btnTxt = 'Cancelled';          btnDis = 'disabled'; }
-    else if (isEnrolled)              { btnCls += ' enrolled';          btnTxt = '✓ Enrolled — tap to cancel'; }
-    else if (conflict)                { btnCls += ' conflict';          btnTxt = '⚠ Schedule Conflict'; btnDis = 'disabled'; }
-    else if (isFull)                  { btnTxt = 'Class Full';          btnDis = 'disabled'; }
+    // 2. ใช้ Helper สร้างปุ่ม (จุดนี้แหละที่ลดความซับซ้อนได้เยอะ!)
+    let extraHtml = '';
+    if (role === 'customer') {
+      const conflict = !isEnrolled ? getConflict(c.id) : null;
+      const btn = getEnrollButtonProps(c, isEnrolled, conflict, isFull);
+      
+      const conflictHtml = `<div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>`;
+      const cancelReasonHtml = (c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box">${c.cancelReason}</div>` : '';
+      const enrollBtn = `<button class="${btn.cls}" ${btn.dis ? 'disabled' : ''} onclick="toggleEnroll(${c.id},this)">${btn.txt}</button>`;
+      
+      extraHtml = cancelReasonHtml + conflictHtml + enrollBtn;
+    } else if (role === 'admin') {
+      extraHtml = getAdminActionsHtml(c);
+    }
 
-    const conflictHtml = role === 'customer'
-      ? `<div class="conflict-warn${conflict?' show':''}" id="cw-${c.id}">⚠ Conflicts with <strong style="margin-left:3px">${conflict||''}</strong></div>`
-      : '';
-
-    const cancelReasonHtml = (role === 'customer' && c.status === 'cancelled' && c.cancelReason)
-      ? `<div class="cancel-reason-box"><span class="crb-label">Cancellation reason</span>${c.cancelReason}</div>`
-      : '';
-    const enrollBtn = role === 'customer'
-      ? `<button class="${btnCls}" ${btnDis} onclick="toggleEnroll(${c.id},this)">${btnTxt}</button>`
-      : '';
-
-    const cancelOrUndo = c.status === 'cancelled'
-      ? `<button class="btn-undo-cancel" onclick="undoCancel(${c.id})">↩ Undo Cancel</button>`
-      : `<button class="btn-cancel-course" onclick="openCancelModal(${c.id})">✕ Cancel</button>`;
-    const adminBtns = role === 'admin'
-      ? `<div class="admin-actions show">
-           <button class="btn-edit" onclick="openEditModal(${c.id})">✏ Edit</button>
-           ${cancelOrUndo}
-           <button class="btn-delete" onclick="deleteCourse(${c.id})">🗑 Delete</button>
-         </div>`
-      : '';
-
+    // 3. Return เป็น Template String (อ่านง่ายขึ้น)
     return `
-    <div class="course-card ${role==='admin'?'admin-hover':'customer-hover'}${c.status==='cancelled'?' is-cancelled':''}" id="card-${c.id}">
+    <div class="course-card ${role === 'admin' ? 'admin-hover' : 'customer-hover'}${c.status === 'cancelled' ? ' is-cancelled' : ''}" id="card-${c.id}">
       <div class="cancelled-overlay">CANCELLED</div>
       <div class="course-card-top">
         <span class="course-type-badge">${c.type}</span>
@@ -589,10 +596,7 @@ function renderCourses(list) {
         </div>
         <div class="capacity-bar"><div class="capacity-fill ${fillCls}" style="width:${pct}%"></div></div>
         <div class="capacity-text" id="cap-${c.id}">${c.cur} / ${c.max} spots filled</div>
-        ${cancelReasonHtml}
-        ${conflictHtml}
-        ${enrollBtn}
-        ${adminBtns}
+        ${extraHtml}
       </div>
     </div>`;
   }).join('');
