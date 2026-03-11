@@ -224,12 +224,12 @@
 <body>
 
 <nav>
-  <div class="nav-logo">FitZone</div>
+  <a href="/home" class="nav-logo" style="text-decoration: none;">FITNESS</a>
   <div class="nav-links">
-    <button class="nav-link" id="nav-dashboard">Dashboard</button>
-    <button class="nav-link" id="nav-courts">Courts</button>
+    <a href="/home" class="nav-link" style="text-decoration: none;">Dashboard</a>
+    <a href="/reservation-service/frontend/index.html" class="nav-link" style="text-decoration: none;">Courts</a>
     <button class="nav-link active" id="nav-courses" onclick="focusCourses()">Courses</button>
-    <button class="nav-link" id="nav-payments">Payments</button>
+    <a href="/payment-service/fitness-payment-frontend.html" class="nav-link" style="text-decoration: none;">Payments</a>
   </div>
   <div class="nav-user">
     <div class="nav-user-info">
@@ -433,7 +433,7 @@
 // ══════════════════════════════════════════════════════════
 // CONFIG — เปลี่ยน API_BASE ถ้า deploy ที่อื่น
 // ══════════════════════════════════════════════════════════
-const API_BASE = 'http://localhost:3003/api';
+const API_BASE = 'http://localhost:8080/api';
 let TOKEN = localStorage.getItem('fitzone_token') || null;
 
 // ══════════════════════════════════════════════════════════
@@ -559,6 +559,29 @@ async function loadCourses(filterLevel = 'all') {
   }
 }
 
+// Helper 1: คำนวณสถานะปุ่ม Enroll สำหรับ Customer
+function getEnrollButtonProps(c, isEnrolled, conflict, isFull) {
+  if (c.status === 'cancelled') return { txt: 'Cancelled', cls: 'enroll-btn', dis: 'disabled' };
+  if (isEnrolled) return { txt: '✓ Enrolled — tap to cancel', cls: 'enroll-btn enrolled', dis: '' };
+  if (conflict) return { txt: '⚠ Schedule Conflict', cls: 'enroll-btn conflict', dis: 'disabled' };
+  if (isFull) return { txt: 'Class Full', cls: 'enroll-btn', dis: 'disabled' };
+  return { txt: 'Enroll Now', cls: 'enroll-btn', dis: '' };
+}
+
+// Helper 2: สร้าง HTML ปุ่มสำหรับ Admin
+function renderAdminButtons(c) {
+  const cancelBtnHtml = c.status === 'cancelled'
+    ? `<button class="btn-undo-cancel" onclick="undoCancel(${c.id})">↩ Undo Cancel</button>`
+    : `<button class="btn-cancel-course" onclick="openCancelModal(${c.id})">✕ Cancel</button>`;
+
+  return `
+    <div class="admin-actions show">
+      <button class="btn-edit" onclick="openEditModal(${c.id})">✏ Edit</button>
+      ${cancelBtnHtml}
+      <button class="btn-delete" onclick="deleteCourse(${c.id})">🗑 Delete</button>
+    </div>`;
+}
+
 function renderCourses(list) {
   const grid = document.getElementById('courses-grid');
   document.getElementById('course-count').textContent = `${list.length} courses`;
@@ -566,41 +589,30 @@ function renderCourses(list) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted)">No courses found.</div>`;
     return;
   }
+
   grid.innerHTML = list.map(c => {
-    const pct    = Math.round((c.cur / c.max) * 100);
-    const isFull = c.cur >= c.max;
-    const fillCls= isFull ? 'full' : pct >= 80 ? 'warn' : '';
-    const d      = new Date(c.schedule);
-    const dateStr= d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    const timeStr= d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-
     const isEnrolled = enrolledSet.has(c.id);
-    const conflict   = (!isEnrolled && role==='customer') ? getConflict(c.id) : null;
+    const d = new Date(c.schedule);
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    let btnCls = 'enroll-btn', btnTxt = 'Enroll Now', btnDis = '';
-    if (c.status === 'cancelled')  { btnTxt = 'Cancelled'; btnDis = 'disabled'; }
-    else if (isEnrolled)           { btnCls += ' enrolled'; btnTxt = '✓ Enrolled — tap to cancel'; }
-    else if (conflict)             { btnCls += ' conflict'; btnTxt = '⚠ Schedule Conflict'; btnDis = 'disabled'; }
-    else if (isFull)               { btnTxt = 'Class Full'; btnDis = 'disabled'; }
+    let extraHtml = '';
+    if (role === 'customer') {
+      const conflict = !isEnrolled ? getConflict(c.id) : null;
+      const btn = getEnrollButtonProps(c, isEnrolled, conflict, c.cur >= c.max);
+      extraHtml = `
+        ${(c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box"><span class="crb-label">Reason</span>${c.cancelReason}</div>` : ''}
+        <div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>
+        <button class="${btn.cls}" ${btn.dis} onclick="toggleEnroll(${c.id},this)">${btn.txt}</button>`;
+    } else if (role === 'admin') {
+      extraHtml = renderAdminButtons(c);
+    }
 
-    const conflictHtml = role === 'customer'
-      ? `<div class="conflict-warn${conflict?' show':''}" id="cw-${c.id}">⚠ Conflicts with <strong style="margin-left:3px">${conflict||''}</strong></div>` : '';
-    const cancelReasonHtml = (role === 'customer' && c.status === 'cancelled' && c.cancelReason)
-      ? `<div class="cancel-reason-box"><span class="crb-label">Cancellation reason</span>${c.cancelReason}</div>` : '';
-    const enrollBtn = role === 'customer'
-      ? `<button class="${btnCls}" ${btnDis} onclick="toggleEnroll(${c.id},this)">${btnTxt}</button>` : '';
-    const cancelOrUndo = c.status === 'cancelled'
-      ? `<button class="btn-undo-cancel" onclick="undoCancel(${c.id})">↩ Undo Cancel</button>`
-      : `<button class="btn-cancel-course" onclick="openCancelModal(${c.id})">✕ Cancel</button>`;
-    const adminBtns = role === 'admin'
-      ? `<div class="admin-actions show">
-           <button class="btn-edit" onclick="openEditModal(${c.id})">✏ Edit</button>
-           ${cancelOrUndo}
-           <button class="btn-delete" onclick="deleteCourse(${c.id})">🗑 Delete</button>
-         </div>` : '';
+    const pct = Math.round((c.cur / c.max) * 100);
+    const fillCls = c.cur >= c.max ? 'full' : pct >= 80 ? 'warn' : '';
 
     return `
-    <div class="course-card ${role==='admin'?'admin-hover':'customer-hover'}${c.status==='cancelled'?' is-cancelled':''}" id="card-${c.id}">
+    <div class="course-card ${role === 'admin' ? 'admin-hover' : 'customer-hover'}${c.status === 'cancelled' ? ' is-cancelled' : ''}" id="card-${c.id}">
       <div class="cancelled-overlay">CANCELLED</div>
       <div class="course-card-top">
         <span class="course-type-badge">${c.type}</span>
@@ -610,16 +622,12 @@ function renderCourses(list) {
         <div class="course-name">${c.name}</div>
         <div class="course-instructor">with <strong>${c.instructor}</strong></div>
         <div class="course-meta">
-          <div class="meta-item">📅 ${dateStr}</div>
-          <div class="meta-item">🕐 ${timeStr}</div>
+          <div class="meta-item">📅 ${dateStr}</div> <div class="meta-item">🕐 ${timeStr}</div>
           <div class="meta-item"><span class="hours-badge">⏱ ${fmtDur(c.dur)}</span></div>
         </div>
         <div class="capacity-bar"><div class="capacity-fill ${fillCls}" style="width:${pct}%"></div></div>
         <div class="capacity-text" id="cap-${c.id}">${c.cur} / ${c.max} spots filled</div>
-        ${cancelReasonHtml}
-        ${conflictHtml}
-        ${enrollBtn}
-        ${adminBtns}
+        ${extraHtml}
       </div>
     </div>`;
   }).join('');
