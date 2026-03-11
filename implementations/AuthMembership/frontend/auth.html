@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FITPAY — Join the Gym</title>
+    <title>FITPAY — Join the Elite</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -33,13 +33,12 @@
             height: 64px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 0 40px;
             background: rgba(13,13,13,0.95);
             border-bottom: 1px solid var(--border);
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
         }
-        .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 3px; color: var(--lime); cursor: pointer; }
+        .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 3px; color: var(--lime); }
         .nav-logo span { color: var(--text); }
 
         /* AUTH SECTION */
@@ -62,10 +61,10 @@
             background: var(--bg2);
             border: 1px solid var(--border);
             margin: 20px;
-            min-height: 550px;
+            min-height: 580px;
         }
 
-        /* Left Side (Visual/Branding) */
+        /* Left Side */
         .auth-left {
             background: var(--bg3);
             padding: 60px 40px;
@@ -78,10 +77,41 @@
         .auth-headline span { color: var(--lime); }
         .auth-desc { color: var(--text2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 30px; }
 
-        /* Right Side (Form) */
+        /* Right Side */
         .auth-right { padding: 60px 50px; display: flex; flex-direction: column; justify-content: center; }
         .auth-right h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .auth-hint { color: var(--text2); font-size: 0.85rem; margin-bottom: 30px; }
+        .auth-hint { color: var(--text2); font-size: 0.85rem; margin-bottom: 25px; }
+
+        /* ROLE SELECTOR */
+        .role-label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text2); margin-bottom: 10px; }
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: var(--bg3);
+            padding: 5px;
+            border-radius: var(--r);
+            border: 1px solid var(--border);
+        }
+        .role-btn {
+            border: none;
+            background: none;
+            color: var(--text2);
+            padding: 10px;
+            font-family: 'Barlow', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 2px;
+        }
+        .role-btn.active {
+            background: var(--lime);
+            color: #0d0d0d;
+        }
 
         .field { margin-bottom: 18px; }
         .field label { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; }
@@ -106,7 +136,6 @@
         .toggle-link a { color: var(--lime); text-decoration: none; font-weight: 700; margin-left: 5px; }
         .toggle-link a:hover { text-decoration: underline; }
 
-        /* Elements to hide/show */
         .reg-only { display: none; }
 
         @media (max-width: 768px) {
@@ -128,13 +157,19 @@
     <div class="auth-card">
         <div class="auth-left">
             <div class="auth-headline" id="sideHeadline">JOIN THE<br><span>ELITE</span><br>COMMUNITY</div>
-            <p class="auth-desc" id="sideDesc">Create an account to manage your membership, access premium facilities, and track your fitness progress.</p>
-            <div style="font-size: 0.75rem; font-weight: 700; color: var(--lime);">● SYSTEM ONLINE / SANDBOX MODE</div>
+            <p class="auth-desc" id="sideDesc">Access premium facilities and manage your health with our professional ecosystem.</p>
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--lime);">● SYSTEM ONLINE</div>
         </div>
 
         <div class="auth-right">
             <h2 id="formTitle">Sign In</h2>
             <p class="auth-hint" id="formHint">Welcome back! Please enter your details.</p>
+
+            <span class="role-label">Identity</span>
+            <div class="role-selector">
+                <button class="role-btn active" onclick="setRole('member')" id="roleMember">Member</button>
+                <button class="role-btn" onclick="setRole('admin')" id="roleAdmin">Admin / Staff</button>
+            </div>
 
             <div class="field reg-only">
                 <label>Full Name</label>
@@ -162,89 +197,97 @@
 </div>
 
 <script>
-    // Check if user is already logged in before showing the form
+    // ตรวจสอบ Token เมื่อโหลดหน้า
     window.onload = function() {
         if (localStorage.getItem('token')) {
-            window.location.href = 'index.html'; // If token exists, skip login
+            window.location.href = 'Home.html';
         }
     }
+
     let isLogin = true;
+    let selectedRole = 'member'; // Default เป็น member
+
+    // ฟังก์ชันเปลี่ยน Role
+    function setRole(role) {
+        selectedRole = role;
+        document.getElementById('roleMember').classList.toggle('active', role === 'member');
+        document.getElementById('roleAdmin').classList.toggle('active', role === 'admin');
+    }
 
     function toggleMode() {
         isLogin = !isLogin;
         
-        // Update Form Texts
         document.getElementById('formTitle').textContent = isLogin ? 'Sign In' : 'Create Account';
         document.getElementById('formHint').textContent = isLogin ? 'Welcome back! Please enter your details.' : 'Start your journey with us today.';
         document.getElementById('authBtn').textContent = isLogin ? 'Sign In →' : 'Register Now →';
         document.getElementById('toggleText').textContent = isLogin ? "Don't have an account?" : "Already have an account?";
         document.getElementById('toggleLink').textContent = isLogin ? "Sign Up" : "Sign In";
 
-        // Update Side Headline
         document.getElementById('sideHeadline').innerHTML = isLogin ? 'BACK TO<br><span>GRIND</span><br>AGAIN' : 'JOIN THE<br><span>ELITE</span><br>COMMUNITY';
 
-        // Show/Hide Name Field
         const regFields = document.querySelectorAll('.reg-only');
         regFields.forEach(el => el.style.display = isLogin ? 'none' : 'block');
     }
 
-    // 1. ตั้งค่า URL ของ Backend (ตรวจสอบว่า Port ตรงกับ server.js หรือไม่)
-const API = 'http://localhost:8080/api';
+    const API = 'http://localhost:8080/api';
 
-async function submitAuth() {
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPass').value.trim();
-    const full_name = document.getElementById('regName').value.trim();
-    const btn = document.getElementById('authBtn');
+    async function submitAuth() {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPass').value.trim();
+        const full_name = document.getElementById('regName').value.trim();
+        const btn = document.getElementById('authBtn');
 
-    // ตรวจสอบค่าว่าง
-    if (!email || !password || (!isLogin && !full_name)) {
-        alert("Please fill in all required fields.");
-        return;
-    }
-
-    // แสดงสถานะการทำงานบนปุ่ม
-    btn.disabled = true;
-    btn.textContent = isLogin ? "SIGNING IN..." : "CREATING ACCOUNT...";
-
-    const endpoint = isLogin ? '/auth/login' : '/auth/register';
-
-    try {
-        // 2. ยิง API ไปหา Backend
-        const response = await fetch(`${API}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, full_name })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            if (isLogin) {
-                // 3. เก็บข้อมูลสำคัญลงเครื่อง (localStorage) เพื่อให้หน้าอื่นๆ นำไปใช้ต่อ
-                localStorage.setItem('token', result.token);
-                localStorage.setItem('user', JSON.stringify({
-                    id: result.userId,
-                    memberId: result.memberId,
-                    name: result.full_name
-                }));
-
-                alert("Login Successful! Welcome back.");
-                window.location.href = 'Home.html'; // ส่งผู้ใช้ไปหน้า Dashboard
-            } else {
-                alert("Registration Successful! Now you can Sign In.");
-                toggleMode(); // สลับกลับไปหน้า Login อัตโนมัติ
-            }
-        } else {
-            alert(result.message || result.error || "Authentication failed.");
+        if (!email || !password || (!isLogin && !full_name)) {
+            alert("Please fill in all required fields.");
+            return;
         }
-    } catch (error) {
-        alert("Cannot connect to server. Please check if your Backend is running.");
-    } finally {
-        btn.disabled = false;
-        btn.textContent = isLogin ? 'Sign In →' : 'Register Now →';
+
+        btn.disabled = true;
+        btn.textContent = isLogin ? "SIGNING IN..." : "CREATING ACCOUNT...";
+
+        const endpoint = isLogin ? '/auth/login' : '/auth/register';
+
+        try {
+            const response = await fetch(`${API}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // ✅ ส่ง role ไปที่ Backend ด้วย
+                body: JSON.stringify({ email, password, full_name, role: selectedRole })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                if (isLogin) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('user', JSON.stringify({
+                        id: result.userId,
+                        memberId: result.memberId,
+                        name: result.full_name,
+                        role: result.role // เก็บ role ไว้ใช้งานหน้า Home
+                    }));
+
+                    alert(`Login Successful! Welcome, ${result.role}.`);
+                    if (result.role === 'admin') {
+                    window.location.href = 'admin_select.html'; // ไปหน้าของเพื่อน (Member 4)
+                    } else {
+                    window.location.href = 'Home.html';  // ไปหน้า Dashboard ของคุณ
+                     }
+
+                } else {
+                    alert("Registration Successful! Now you can Sign In.");
+                    toggleMode();
+                }
+            } else {
+                alert(result.message || result.error || "Authentication failed.");
+            }
+        } catch (error) {
+            alert("Cannot connect to server. Please check if your Backend is running.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = isLogin ? 'Sign In →' : 'Register Now →';
+        }
     }
-}
 </script>
 
 </body>

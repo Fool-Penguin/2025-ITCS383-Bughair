@@ -120,13 +120,36 @@
     </div>
 
     <script>
+        // รวมฟังก์ชัน onload เป็นอันเดียวเพื่อป้องกันการเขียนทับ
         window.onload = function() {
             const user = JSON.parse(localStorage.getItem('user'));
             const token = localStorage.getItem('token');
-            if (!token || !user) { window.location.href = 'auth.html'; return; }
 
+            // 1. เช็คความปลอดภัย (ถ้าไม่ล็อกอินให้เด้งออก)
+            if (!token || !user) { 
+                window.location.href = 'auth.html'; 
+                return; 
+            }
+
+            // 2. แสดงชื่อและ ID ของ User
             document.getElementById('uName').innerText = user.name.toUpperCase();
             document.getElementById('uID').innerText = user.memberId;
+
+            // 3. ตรวจสอบ Role เพื่อปรับหน้าตา UI
+            const planDisplay = document.getElementById('uPlan');
+            const adminLink = document.getElementById('adminLink');
+
+            if (user.role === 'admin') {
+                console.log("Status: System Administrator Mode");
+                planDisplay.innerText = "SYSTEM ADMIN";
+                planDisplay.style.color = "#ff4f4f"; // สีแดงสำหรับ Admin
+                adminLink.style.display = 'block';   // โชว์เมนู Admin
+            } else {
+                console.log("Status: Elite Member Mode");
+                planDisplay.innerText = "ELITE MEMBER";
+                planDisplay.style.color = "var(--lime)"; // สีเขียวสำหรับ Member
+                adminLink.style.display = 'none';    // ซ่อนเมนู Admin
+            }
         };
 
         function logout() {
