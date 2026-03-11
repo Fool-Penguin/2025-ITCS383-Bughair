@@ -544,6 +544,27 @@ function getAdminActionsHtml(c) {
     </div>`;
 }
 
+// ฟังก์ชันสร้าง HTML ส่วนเพิ่มสำหรับ Customer (Complexity: 3)
+function getCustomerUI(c, isEnrolled, isFull) {
+  const conflict = !isEnrolled ? getConflict(c.id) : null;
+  const btn = getEnrollButtonProps(c, isEnrolled, conflict, isFull);
+  
+  const conflictHtml = `<div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>`;
+  const reasonHtml = (c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box">${c.cancelReason}</div>` : '';
+  const enrollBtn = `<button class="${btn.cls}" ${btn.dis ? 'disabled' : ''} onclick="toggleEnroll(${c.id},this)">${btn.txt}</button>`;
+  
+  return reasonHtml + conflictHtml + enrollBtn;
+}
+
+// ฟังก์ชันสร้าง String วันที่และเวลา (Complexity: 1)
+function getFormattedSchedule(schedule) {
+  const d = new Date(schedule);
+  return {
+    date: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+    time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  };
+}
+
 function renderCourses(list) {
   const grid = document.getElementById('courses-grid');
   document.getElementById('course-count').textContent = `${list.length} courses`;
@@ -554,31 +575,17 @@ function renderCourses(list) {
   }
 
   grid.innerHTML = list.map(c => {
-    // 1. คำนวณค่าพื้นฐาน (ลด IF ซ้อน)
-    const pct = Math.round((c.cur / c.max) * 100);
     const isFull = c.cur >= c.max;
+    const pct = Math.round((c.cur / c.max) * 100);
     const fillCls = isFull ? 'full' : (pct >= 80 ? 'warn' : '');
-    const d = new Date(c.schedule);
-    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     const isEnrolled = enrolledSet.has(c.id);
+    const sched = getFormattedSchedule(c.schedule);
 
-    // 2. ใช้ Helper สร้างปุ่ม (จุดนี้แหละที่ลดความซับซ้อนได้เยอะ!)
-    let extraHtml = '';
-    if (role === 'customer') {
-      const conflict = !isEnrolled ? getConflict(c.id) : null;
-      const btn = getEnrollButtonProps(c, isEnrolled, conflict, isFull);
-      
-      const conflictHtml = `<div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>`;
-      const cancelReasonHtml = (c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box">${c.cancelReason}</div>` : '';
-      const enrollBtn = `<button class="${btn.cls}" ${btn.dis ? 'disabled' : ''} onclick="toggleEnroll(${c.id},this)">${btn.txt}</button>`;
-      
-      extraHtml = cancelReasonHtml + conflictHtml + enrollBtn;
-    } else if (role === 'admin') {
-      extraHtml = getAdminActionsHtml(c);
-    }
+    // ลดความซับซ้อนด้วยการเลือก UI ตาม Role ล่วงหน้า
+    const extraHtml = (role === 'customer') 
+      ? getCustomerUI(c, isEnrolled, isFull)
+      : (role === 'admin' ? getAdminActionsHtml(c) : '');
 
-    // 3. Return เป็น Template String (อ่านง่ายขึ้น)
     return `
     <div class="course-card ${role === 'admin' ? 'admin-hover' : 'customer-hover'}${c.status === 'cancelled' ? ' is-cancelled' : ''}" id="card-${c.id}">
       <div class="cancelled-overlay">CANCELLED</div>
@@ -590,8 +597,8 @@ function renderCourses(list) {
         <div class="course-name">${c.name}</div>
         <div class="course-instructor">with <strong>${c.instructor}</strong></div>
         <div class="course-meta">
-          <div class="meta-item">📅 ${dateStr}</div>
-          <div class="meta-item">🕐 ${timeStr}</div>
+          <div class="meta-item">📅 ${sched.date}</div>
+          <div class="meta-item">🕐 ${sched.time}</div>
           <div class="meta-item"><span class="hours-badge">⏱ ${fmtDur(c.dur)}</span></div>
         </div>
         <div class="capacity-bar"><div class="capacity-fill ${fillCls}" style="width:${pct}%"></div></div>
