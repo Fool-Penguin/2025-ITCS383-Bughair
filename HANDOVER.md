@@ -94,80 +94,175 @@ The original design follows a three-tier C4 architecture:
 - **Level 2 (Container)**: Web Application (HTML/JS), API Application (Node.js/Express), Database (SQLite)
 - **Level 3 (Component)**: Web app components (Admin Dashboard, Course Editor, Report Generator, Public Content Manager) and API components (Membership Engine, Resource Conflict Checker, Attendance Service, Security Module)
 
-### Implementation Analysis
+### Consistency Summary
 
-#### Architectural Consistency
-**Consistent Aspects:**
-- The system uses Node.js/Express for backend API development as specified
-- SQLite database is used for data persistence
-- RESTful API design with JSON responses
-- JWT-based authentication and RBAC
-- Real-time features using Socket.io (mentioned in design)
+| Diagram | Score | Key Takeaway |
+|---------|-------|--------------|
+| Use Case Diagram | 🟢 ~75% | Core flows implemented; missing features are acceptable for prototype |
+| C4 Level 1 (Context) | 🟢 ~80% | Actors and systems correct; external integrations are mocked |
+| **C4 Level 2 (Container)** | 🔴 ~30% | **Biggest issue** — architecture deviated significantly from design |
+| C4 Level 3 (Components) | 🟡 ~55% | Components exist but are fragmented across services; auth is inconsistent |
+| UML Class Diagram | 🟢 ~80% | Most entities match; some improvements over original design |
 
-**Inconsistencies:**
-- **Microservices vs Monolithic**: The design specifies a single API Application container, but the implementation is split into 5 separate services:
-  - Admin service
-  - AuthMembership service
-  - course-service
-  - payment-service
-  - reservation-service
-- **Service Integration**: The AuthMembership service attempts to import and integrate other services, creating tight coupling rather than loose microservice architecture
-- **Database Distribution**: Each service maintains its own database logic, contrary to the single Database container in the design
+---
 
-#### Component-Level Verification
+### Use Case Diagram Verification
+
+**Implemented Use Cases:**
+- Customer registration & login (`POST /api/auth/register`, `POST /api/auth/login`)
+- Membership selection during registration (role selection in `auth.html`)
+- Course browsing & enrollment (`GET /api/courses`, `POST /api/courses/:id/enroll`)
+- Trainer viewing, filtering, and booking (`GET /api/trainers`, `TrainerBookings` table)
+- Badminton court reservation with double-booking prevention (`POST /api/courts/book`)
+- Admin: Manage courses, customers, promotions — across Admin + course-service
+- Payment processing with 3 methods — Credit Card, PayPal, TrueMoney stubs
+
+**Not Implemented / Partially Implemented:**
+
+| Use Case | Status | Note |
+|----------|--------|------|
+| Password reset | 🎓 Not implemented | Acceptable — low priority for prototype |
+| Profile update | ⚠️ GET-only | `GET /profile` exists but no `PUT/PATCH` to update |
+| Secure logout | 🎓 Client-side only | Clears localStorage; fine for prototype |
+| Auto-renewal via cron | 🎓 Not implemented | Production concern |
+| Admin: Manage trainers | ⚠️ Wrong service | Trainer CRUD is in course-service, not Admin service |
+| Report generation/export | ⚠️ Basic stats only | Dashboard shows numbers but no charts or export |
+
+---
+
+### C4 Level 1 — System Context Verification
+
+**Consistent:** Customer and Administrator actors interact with the web application correctly. Payment Gateway System and TrueMoney Wallet API have dedicated service modules (`creditCardService.js`, `paypalService.js`, `truemoneyService.js`).
+
+**Deviations:**
+
+| Element | Status | Note |
+|---------|--------|------|
+| Entrance Gate System | 🎓 Simulated | Manual API calls instead of hardware — expected for university |
+| HTTPS | 🎓 Not enforced | Plain HTTP on localhost — standard for development |
+| External payment APIs | 🎓 Mock/stub only | Services simulate responses — appropriate for prototype |
+
+---
+
+### C4 Level 2 — Container Diagram Verification
+
+> ⚠️ **This level has the most significant deviation from the design.**
+
+**Design:** 3 containers — single Web App, single API Application, single Database.
+
+**Actual:** Hybrid monolith-gateway pattern with fragmented services and multiple databases.
+
+| Container | Design | Actual | Severity |
+|-----------|--------|--------|----------|
+| Web Application | Single unified frontend | ⚠️ 13 separate HTML files across 5 directories, no shared framework | Medium |
+| API Application | Single centralised backend | ⚠️ 5 separate services, but AuthMembership imports routes from payment-service and reservation-service via `require('../../...')` — creating a hybrid gateway | **High** |
+| Database | Single SQLite file | ⚠️ **5+ separate DB files**: `fitness_payment.db` (Auth+Payment shared), `courses.db` (course-service), `fitcourt.db` (reservation), `promotion.db`, `course.db`, `admin_audit.db` (Admin) | **High** |
+| Socket.io | Real-time push to dashboard | 🎓 Not implemented — not in any `package.json` | Low |
+
+**Additional Issues:**
+
+| Issue | Details |
+|-------|---------|
+| Port conflict | AuthMembership, Admin, payment-service, and reservation-service all default to port 8080 |
+| Duplicate course management | Admin's `/api/courses` writes to `course.db`, while course-service's `/api/courses` writes to a different DB |
+| Cross-service code imports | AuthMembership directly `require()`s files from payment-service and reservation-service directories |
+
+**Updated C4 Level 2 Diagram (reflecting actual architecture):**
+
+```
+[Browser — 13 HTML files]
+    │
+    ▼
+[AuthMembership Gateway — Express v5, port 8080]
+  ├── Own routes: /api/auth, /api/membership
+  ├── Imports: payment-service routes → /api/payments
+  ├── Imports: reservation-service routes → /api/courts, /api/attendance
+  ├── Serves all frontends as static files
+  │
+  ├──→ fitness_payment.db (Users, Memberships, Payments, Plans)
+  └──→ fitcourt.db (Courts, Reservations, Attendance)
+
+[Course Service — Express v4, port 3003]  ← Runs independently
+  └──→ courses.db (Courses, Trainers, Enrollments, Bookings)
+
+[Admin Service — Express v5, port 8080]  ← Standalone
+  └──→ promotion.db, course.db, admin_audit.db
+```
+
+---
+
+### C4 Level 3 — Component Diagram Verification
 
 **Web Application Components:**
-- **Admin Dashboard**: Partially implemented in Admin/front/ with HTML files for course, customer, promotion, and report management
-- **Course Editor**: Basic HTML forms in Admin/front/course.html
-- **Report Generator**: Admin/front/report.html for basic reporting
-- **Public Content Manager**: Limited implementation across various HTML files
+
+| Component | Design | Actual |
+|-----------|--------|--------|
+| Admin Dashboard | Unified control panel with Socket.io | Basic stats via API; no real-time (🎓 acceptable) |
+| Course Editor | Admin course CRUD | ⚠️ **Duplicated** in `Admin/front/course.html` AND `course-service/frontend/index.html` |
+| Report Generator | Charts, export, analytics | ⚠️ `report.html` exists but minimal — no charts or export |
+| Public Content Manager | Promotions + public info | `promotion.html` has admin CRUD but no public viewing page |
 
 **API Application Components:**
-- **Membership & Subscription Engine**: Implemented in AuthMembership service with user registration, login, and membership management
-- **Resource Conflict Checker**: Partially implemented in course-service and reservation-service for enrollment/course conflicts
-- **Attendance & Monitoring Service**: Implemented in reservation-service with basic attendance tracking
-- **Security & Encryption Module**: JWT and bcrypt implemented across services
 
-#### Technology Stack Verification
-**Design Specifications:**
-- Node.js/Express for API
-- SQLite with better-sqlite3
-- HTML/JavaScript for frontend
-- JWT for authentication
-- bcrypt for password hashing
+| Component | Design | Actual |
+|-----------|--------|--------|
+| Membership & Subscription Engine | Full lifecycle + auto-renew | `subscribe` + `getStatus` only (🎓 auto-renew acceptable to skip) |
+| Resource Conflict Checker | Centralised for courts + courses | ⚠️ Split — court checking in reservation-service, course capacity in course-service |
+| Attendance & Monitoring | Real-time Socket.io push | Entry/exit API endpoints only (🎓 acceptable) |
+| Security & Encryption Module | Centralised JWT + bcrypt + RBAC | ⚠️ **Fragmented** across services — see table below |
 
-**Implementation Reality:**
-- Node.js/Express: ✓ Used
-- better-sqlite3: ✓ Used but compilation issues on Windows
-- HTML/JS frontend: ✓ Used
-- JWT/bcrypt: ✓ Implemented
-- Additional libraries: express-validator, helmet, cors, morgan for security and validation
+**Authentication Fragmentation:**
 
-#### Updated C4 Diagram
-Based on implementation analysis, the C4 Level 2 Container diagram should be updated as follows:
+| Service | Auth Method | RBAC | Issue |
+|---------|------------|------|-------|
+| AuthMembership | JWT (jsonwebtoken) | ✅ Role in payload | Issues tokens |
+| course-service | JWT (jsonwebtoken) | ✅ `requireAdmin` | Verifies tokens properly |
+| payment-service | **Mock base64** (not JWT) | ✅ `requireRole` | ⚠️ Different from other services |
+| Admin | **None** | ❌ Unprotected | ⚠️ All admin endpoints open |
+| reservation-service | **Plaintext password** in data.js | ❌ Basic login | ⚠️ No real auth |
 
-```
-[Customer] --> [Web Application (HTML/JS)]
-[Administrator] --> [Web Application (HTML/JS)]
+---
 
-[Web Application] --> [AuthMembership Service (Node.js)]
-[Web Application] --> [Course Service (Node.js)]
-[Web Application] --> [Payment Service (Node.js)]
-[Web Application] --> [Reservation Service (Node.js)]
-[Web Application] --> [Admin Service (Node.js)]
+### UML Class Diagram Verification
 
-[AuthMembership Service] --> [SQLite Database]
-[Course Service] --> [SQLite Database]
-[Payment Service] --> [SQLite Database]
-[Reservation Service] --> [SQLite Database]
-[Admin Service] --> [SQLite Database]
+**Matching Entities:**
 
-[Payment Service] --> [Payment Gateway System]
-[Payment Service] --> [TrueMoney Wallet API]
-[Reservation Service] --> [Entrance Gate System]
-```
+| Design Class | Implemented As | Location |
+|---|---|---|
+| Customer → User | `Users` table | `payment-service/src/config/database.js` |
+| Membership | `Memberships` table | `payment-service/src/config/database.js` |
+| Payment | `payment_transactions` table | `payment-service/src/config/database.js` |
+| Course | `Courses` table | `course-service/src/config/initDb.js` |
+| CourseEnrollment | `CourseEnrollments` table | `course-service/src/config/initDb.js` |
+| Trainer | `Trainers` table | `course-service/src/config/initDb.js` |
+| TrainingSession | `TrainerBookings` table | `course-service/src/config/initDb.js` |
+| BadmintonCourt | `courts` table | `reservation-service/src/db/database.js` |
+| CourtReservation | `court_reservations` table | `reservation-service/src/db/database.js` |
+| Attendance | `attendance_logs` table | `reservation-service/src/db/database.js` |
+| Promotion | `promotions` table | `Admin/backend/backend/databaseSetup.js` |
 
-This reflects the actual microservice architecture rather than the monolithic design.
+**Real Inconsistencies:**
+
+| Item | Design | Actual |
+|------|--------|--------|
+| Administrator class | Separate class | ⚠️ No separate table — stored in `Users` with `role = 'admin'` |
+| Trainer.availabilitySchedule | Single attribute | ✅ Better — normalised into `TrainerAvailability` table |
+| Court → Reservation composition | Cascading deletes | ⚠️ `foreign_keys = OFF` in reservation-service |
+| Cross-entity relationships | Customer aggregates all entities | ⚠️ Entities in separate databases — no FK across services |
+
+**Additional Entities (not in design but implemented):**
+- `membership_plans` — plan types with pricing (payment-service)
+- `payment_refunds` — refund tracking (payment-service)
+- `TrainerAvailability` — normalised trainer schedule (course-service, better than design)
+- `audit_logs` — admin activity logging (payment-service + Admin — duplicated)
+
+---
+
+### Top 3 Issues to Address for Maintenance
+
+1. **Architecture mismatch** — Container diagram needs redraw to reflect hybrid gateway pattern + multiple databases
+2. **Duplicate course management** — Admin and course-service both manage courses in separate databases
+3. **Inconsistent authentication** — 3 different auth strategies across services
 
 ## 3. Reflections on Receiving the Handover Project
 
