@@ -614,7 +614,7 @@ window.addEventListener("load", () => {
     });
   } else {
     // ถ้ายังไม่ได้ Login ให้เด้งกลับไปหน้าเข้าสู่ระบบหลัก
-    window.location.href = 'auth.html';
+    window.location.href = '/auth.html';
   }
 });
 
@@ -664,10 +664,10 @@ function logout() {
   document.getElementById("mainNav").style.display = "none";
   
   // ✅ ลบข้อมูล User ออกจากระบบหลัก
-  localStorage.removeItem("user");
+  localStorage.clear();
   
   // ✅ ดีดกลับไปหน้า Login หลักของคุณ
-  window.location.href = "auth.html";
+  window.location.href = "/auth.html";
 }
 
 // ══════════════════════════════════
