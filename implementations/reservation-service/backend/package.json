@@ -8,6 +8,6 @@
     "test": "node src/tests/courts.test.js"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3"
+    "better-sqlite3": "^12.8.0"
   }
 }
