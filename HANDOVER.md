@@ -365,18 +365,59 @@ To successfully handover this project, the following information is essential:
 9. **Known Issues**: Compilation issues with better-sqlite3 on certain platforms
 
 ### c. Code Quality of the Handover Project (SonarQube Analysis)
-Based on the SonarQube analysis provided in Bughair_D4_QualityReport.md:
 
-**Quality Metrics:**
-- The project has undergone static code analysis with SonarQube
-- Code coverage and quality metrics have been measured
-- Security vulnerabilities and code smells have been identified
+#### SonarQube Analysis Results
 
-**Key Findings:**
-- The implementation shows reasonable code quality.
-- Some areas for improvement in code maintainability and security
-- Test coverage exists but may need expansion
-- The microservice architecture introduces complexity that wasn't in the original design
+**Overall Project Status:**
+- Quality Gate: ✅ **Passed**
+- Total Lines of Code: 7.7K
+- Security Issues: 2 (Blocker severity)
+- Reliability Issues: 135 (Open issues)
+- Maintainability Issues: 120 (Open issues)
+- Code Coverage: 0.0% (No test coverage metrics)
+- Code Duplication: 13.2% (9.1K duplicated lines)
+
+**Breakdown by Category:**
+
+| Category | Severity | Count | Status |
+|----------|----------|-------|--------|
+| Security | Blocker | 2 | ⚠️ Critical - "Revoke and change compromised password" |
+| Reliability | High | - | 135 open issues |
+| Maintainability | High | 120 | Issues with cognitive complexity |
+| Coverage | - | 0.0% | ❌ No code coverage detected |
+| Duplications | - | 13.2% | ~9.1K lines duplicated |
+
+**Analysis Images:**
+
+#### 1. SonarQube Dashboard Overview
+*Figure 1: Overall project quality gate status showing Passed status with metrics across Security, Reliability, and Maintainability dimensions*
+
+#### 2. Security Issues Detected
+
+*Figure 2: Security hotspots identified - Blocker severity issues related to password management in course test file (lines 22-23)*
+
+#### 3. Maintainability Issues
+
+*Figure 3: High severity maintainability issues - Functions with excessive cognitive complexity requiring refactoring:*
+- *Courts.js: Reduce cognitive complexity from 20 to 15 allowed (Line 85 - 10min effort)*
+- *Index.html: Reduce cognitive complexity from 18 to 15 allowed (Line 829 - 8min effort)*
+
+**Action Items for Quality Improvement:**
+
+1. **Security (Priority: CRITICAL)**
+   - Address the 2 Blocker-severity security issues related to password validation
+   - Implement proper password complexity rules and validation
+   - Add secure password reset mechanism with verification tokens
+
+2. **Maintainability (Priority: HIGH)**
+   - Refactor functions in `implementations/reservation-service/backend/src/routes/courts.js` to reduce cognitive complexity
+   - Refactor HTML/JavaScript logic in `implementations/reservation-service/frontend/index.html` to reduce complexity
+   - Consider splitting complex functions into smaller, single-responsibility functions
+
+3. **Code Coverage (Priority: MEDIUM)**
+   - Expand test coverage from 0% to at least 60%+
+   - Add unit tests for critical business logic (payments, reservations, authentication)
+   - Add integration tests for API endpoints
 
 <!-- **Recommendations for Future Development:**
 - Resolve the better-sqlite3 compilation issues (consider using a pure JavaScript SQLite implementation)
