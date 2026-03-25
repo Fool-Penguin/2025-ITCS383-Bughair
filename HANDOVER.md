@@ -38,7 +38,8 @@ The Fitness Management System (FMS) is a comprehensive web-based application des
 ### User Management
 - Customer registration with membership type selection
 - Secure login/logout functionality
-- Password reset and profile management
+- Missing UI: There is no "Forgot Password" or "Reset Password" page on the frontend.
+- Missing Backend: While there is a /profile endpoint to fetch user data, there is no logic for updating profiles or resetting passwords securely.
 - Unique Member ID assignment
 
 ### Membership Management
