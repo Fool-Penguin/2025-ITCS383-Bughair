@@ -195,6 +195,30 @@ The original design follows a three-tier C4 architecture:
 
 ---
 
+### Updated C4 Level 3 — Component Diagram
+
+Since Level 2 revealed that the backend is fragmented, the Level 3 diagram must be split to show which runtime service holds which components:
+
+**[AuthMembership Gateway (Express v5) Components]**
+- **Membership Engine**: User Register, Login, Subscribe, Get Status
+- **Payment Processor**: Handles Stripe / TrueMoney logic (imported from `payment-service` folder)
+- **Reservation & Attendance Monitor**: Handles court bookings and entry APIs (imported from `reservation-service` folder)
+- **Token Issuer**: Generates JWTs for auth
+
+**[Course Service (Express v4) Components]**
+- **Course Manager**: Full CRUD for courses
+- **Trainer Manager**: Management of trainers and availability
+- **Enrollment Checker**: Validates capacities before course enrollment
+- **Token Verifier**: Asserts JWT authentication
+
+**[Admin Service (Express v5) Components]**
+- **Dashboard Stats Aggregator**: Pulls stats from multiple databases
+- **Promotion Manager**: CRUD for discount codes
+- **Duplicate Course Editor**: Independent course management logic writes directly to `course.db`
+- *Note: No Security/Auth Middleware is present in this container.*
+
+---
+
 ### C4 Level 3 — Component Diagram Verification
 
 **Web Application Components:**
