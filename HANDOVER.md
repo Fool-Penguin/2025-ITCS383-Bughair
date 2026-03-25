@@ -172,7 +172,8 @@ This reflects the actual microservice architecture rather than the monolithic de
 ## 3. Reflections on Receiving the Handover Project
 
 ### a. Technologies Used
-The project utilizes a modern JavaScript/Node.js stack:
+
+The project utilizes a modern JavaScript/Node.js stack across 5 microservices:
 - **Backend**: Node.js with Express.js framework
 - **Database**: SQLite with better-sqlite3 driver
 - **Authentication**: JWT (JSON Web Tokens) with bcrypt for password hashing
@@ -180,8 +181,76 @@ The project utilizes a modern JavaScript/Node.js stack:
 - **Validation**: express-validator for input validation
 - **Logging**: Morgan for HTTP request logging
 - **Frontend**: Vanilla HTML, CSS, and JavaScript
-- **Real-time**: Socket.io for real-time updates (mentioned in design)
-- **Development**: npm for package management, Jest for testing
+- **Testing**: Jest and Supertest for unit/integration testing
+- **DevOps**: SonarQube for static analysis, Docker DevContainer, npm for package management
+
+Below is a detailed breakdown verified against the actual codebase:
+
+#### Runtime & Language
+- **Node.js** v18+ — All 5 backend services
+- **JavaScript (ES6+)** — All backend and frontend code
+- **HTML5** — 13 frontend `.html` files across services
+- **CSS3** (inline `<style>` tags) — Embedded in all HTML files; no separate `.css` files exist
+
+#### Backend Frameworks
+
+| Service | Framework | Version | Location |
+|---------|-----------|---------|----------|
+| AuthMembership | Express.js | v5.2.1 | `implementations/AuthMembership/backend-api_Module1/package.json` |
+| Admin | Express.js | v5.2.1 | `implementations/Admin/package.json` |
+| course-service | Express.js | v4.18.2 | `implementations/course-service/package.json` |
+| payment-service | Express.js | v5.2.1 | `implementations/payment-service/package.json` |
+| reservation-service | Node.js http (raw) | built-in | `implementations/reservation-service/backend/server.js` |
+
+> **Note:** Mixed Express versions — `course-service` uses Express v4 while the others use v5. The `reservation-service` uses raw `http.createServer()` instead of Express.
+
+#### Database
+
+| Driver | Services | Location |
+|--------|----------|----------|
+| **better-sqlite3** | AuthMembership, course-service, payment-service, reservation-service | Each service's `package.json` |
+| **sqlite3** | Admin | `implementations/Admin/package.json` |
+| **mysql2** | AuthMembership (listed as dependency) | `implementations/AuthMembership/backend-api_Module1/package.json` |
+
+> **Note:** Mixed SQLite drivers — Admin uses `sqlite3` (async/callback-based) while the other services use `better-sqlite3` (synchronous). AuthMembership also lists `mysql2` as a dependency.
+
+#### Authentication & Security
+- **jsonwebtoken** (JWT) — Token-based authentication (AuthMembership, course-service)
+- **bcryptjs** — Password hashing (AuthMembership)
+- **helmet** — HTTP security headers (AuthMembership, payment-service)
+
+#### Middleware & Utilities
+- **cors** — Cross-Origin Resource Sharing (AuthMembership, Admin, course-service, payment-service)
+- **express-validator** — Request validation (AuthMembership, course-service, payment-service)
+- **morgan** — HTTP request logging (AuthMembership, payment-service)
+- **dotenv** — Environment variable loading (AuthMembership, course-service)
+- **uuid** — Unique ID generation (AuthMembership, payment-service)
+
+#### Frontend
+- **Vanilla HTML/CSS/JavaScript** — No frontend framework (React, Vue, etc.)
+- **Google Fonts** — Bebas Neue, Barlow, DM Sans, Space Mono (loaded via CDN)
+- **Fetch API** — Native browser `fetch()` for API calls
+- **LocalStorage** — Token and user session storage
+
+#### Testing
+
+| Technology | Version | Service |
+|------------|---------|---------|
+| **Jest** | v29.7.0 | course-service |
+| **Supertest** | v6.3.3 | course-service |
+| Custom test runner | — | reservation-service |
+
+> **Note:** Only course-service and reservation-service have tests. AuthMembership, Admin, and payment-service have no test setup.
+
+#### Development & DevOps
+- **nodemon** v3.0.1 — Auto-restart on file changes (course-service)
+- **SonarQube** — Static code analysis (`sonar-project.properties`, `sonar-scanner-cli-5.0.1.3006-linux.zip`)
+- **Docker** (DevContainer) — Development environment (`.devcontainer/Dockerfile`, `.devcontainer/devcontainer.json`)
+- **Ubuntu Jammy** — Base image for DevContainer
+- **Java 17 (OpenJDK)** — Required by SonarQube scanner (installed in DevContainer)
+- **GitHub Actions** — CI pipeline (referenced in README but `.github/workflows/` not found locally)
+- **Git** — Version control (`.gitignore`)
+- **npm** — Package management
 
 ### b. Required Information to Successfully Handover the Project
 To successfully handover this project, the following information is essential:
