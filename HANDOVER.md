@@ -170,6 +170,8 @@ The original design follows a three-tier C4 architecture:
 
 **Updated C4 Level 2 Diagram (reflecting actual architecture):**
 
+*Note: Because AuthMembership directly `require()`s the code from Payment and Reservation services, they run inside the same Node.js container at runtime. They are not independent running services.*
+
 ```
 [Customer] --> [Web Application (13 HTML files, no framework)]
 [Administrator] --> [Web Application (13 HTML files, no framework)]
@@ -178,9 +180,6 @@ The original design follows a three-tier C4 architecture:
 [Web Application] --> [Course Service (Express v4, port 3003)]
 [Web Application] --> [Admin Service (Express v5, port 8080)]
 
-[AuthMembership Gateway] --imports--> [Payment Service routes]
-[AuthMembership Gateway] --imports--> [Reservation Service routes]
-
 [AuthMembership Gateway] --> [fitness_payment.db (Users, Memberships, Payments, Plans)]
 [AuthMembership Gateway] --> [fitcourt.db (Courts, Reservations, Attendance)]
 [Course Service] --> [courses.db (Courses, Trainers, Enrollments, Bookings)]
@@ -188,9 +187,9 @@ The original design follows a three-tier C4 architecture:
 [Admin Service] --> [course.db]
 [Admin Service] --> [admin_audit.db]
 
-[Payment Service] --> [Payment Gateway System (mock)]
-[Payment Service] --> [TrueMoney Wallet API (mock)]
-[Reservation Service] --> [Entrance Gate System (simulated)]
+[AuthMembership Gateway] --> [Payment Gateway System (mock)]
+[AuthMembership Gateway] --> [TrueMoney Wallet API (mock)]
+[AuthMembership Gateway] --> [Entrance Gate System (simulated)]
 ```
 
 ---
