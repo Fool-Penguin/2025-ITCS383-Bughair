@@ -99,9 +99,9 @@ The original design follows a three-tier C4 architecture:
 
 | Diagram | Score | Key Takeaway |
 |---------|-------|--------------|
-| Use Case Diagram | 🟢 ~75% | Core flows implemented; missing features are acceptable for prototype |
+| Use Case Diagram | 🟢 ~75% | Core flows implemented; some features not built |
 | C4 Level 1 (Context) | 🟢 ~80% | Actors and systems correct; external integrations are mocked |
-| **C4 Level 2 (Container)** | 🔴 ~30% | **Biggest issue** — architecture deviated significantly from design |
+| **C4 Level 2 (Container)** | 🔴 **~30%** | **Biggest issue** — architecture deviated significantly from design |
 | C4 Level 3 (Components) | 🟡 ~55% | Components exist but are fragmented across services; auth is inconsistent |
 | UML Class Diagram | 🟢 ~80% | Most entities match; some improvements over original design |
 
@@ -122,12 +122,12 @@ The original design follows a three-tier C4 architecture:
 
 | Use Case | Status | Note |
 |----------|--------|------|
-| Password reset | 🎓 Not implemented | Acceptable — low priority for prototype |
-| Profile update | ⚠️ GET-only | `GET /profile` exists but no `PUT/PATCH` to update |
-| Secure logout | 🎓 Client-side only | Clears localStorage; fine for prototype |
-| Auto-renewal via cron | 🎓 Not implemented | Production concern |
-| Admin: Manage trainers | ⚠️ Wrong service | Trainer CRUD is in course-service, not Admin service |
-| Report generation/export | ⚠️ Basic stats only | Dashboard shows numbers but no charts or export |
+| Password reset | Not implemented | Not built in backend or frontend |
+| Profile update | GET-only | `GET /profile` exists but no `PUT/PATCH` to update |
+| Secure logout | Client-side only | Clears localStorage; no server-side token invalidation |
+| Auto-renewal via cron | Not implemented | No scheduled task or cron job exists |
+| Admin: Manage trainers | Wrong service | Trainer CRUD is in course-service, not Admin service |
+| Report generation/export | Basic stats only | Dashboard shows numbers but no charts or export |
 
 ---
 
@@ -139,15 +139,15 @@ The original design follows a three-tier C4 architecture:
 
 | Element | Status | Note |
 |---------|--------|------|
-| Entrance Gate System | 🎓 Simulated | Manual API calls instead of hardware — expected for university |
-| HTTPS | 🎓 Not enforced | Plain HTTP on localhost — standard for development |
-| External payment APIs | 🎓 Mock/stub only | Services simulate responses — appropriate for prototype |
+| Entrance Gate System | Simulated | Manual API calls instead of hardware integration |
+| HTTPS | Not enforced | Plain HTTP on localhost |
+| External payment APIs | Mock/stub only | Services simulate responses, no real API calls |
 
 ---
 
 ### C4 Level 2 — Container Diagram Verification
 
-> ⚠️ **This level has the most significant deviation from the design.**
+> **This level has the most significant deviation from the design.**
 
 **Design:** 3 containers — single Web App, single API Application, single Database.
 
@@ -155,10 +155,10 @@ The original design follows a three-tier C4 architecture:
 
 | Container | Design | Actual | Severity |
 |-----------|--------|--------|----------|
-| Web Application | Single unified frontend | ⚠️ 13 separate HTML files across 5 directories, no shared framework | Medium |
-| API Application | Single centralised backend | ⚠️ 5 separate services, but AuthMembership imports routes from payment-service and reservation-service via `require('../../...')` — creating a hybrid gateway | **High** |
-| Database | Single SQLite file | ⚠️ **5+ separate DB files**: `fitness_payment.db` (Auth+Payment shared), `courses.db` (course-service), `fitcourt.db` (reservation), `promotion.db`, `course.db`, `admin_audit.db` (Admin) | **High** |
-| Socket.io | Real-time push to dashboard | 🎓 Not implemented — not in any `package.json` | Low |
+| Web Application | Single unified frontend | 13 separate HTML files across 5 directories, no shared framework | Medium |
+| API Application | Single centralised backend | 5 separate services, but AuthMembership imports routes from payment-service and reservation-service via `require('../../...')` — creating a hybrid gateway | **High** |
+| Database | Single SQLite file | **5+ separate DB files**: `fitness_payment.db` (Auth+Payment shared), `courses.db` (course-service), `fitcourt.db` (reservation), `promotion.db`, `course.db`, `admin_audit.db` (Admin) | **High** |
+| Socket.io | Real-time push to dashboard | Not implemented — not in any `package.json` | Low |
 
 **Additional Issues:**
 
@@ -171,23 +171,26 @@ The original design follows a three-tier C4 architecture:
 **Updated C4 Level 2 Diagram (reflecting actual architecture):**
 
 ```
-[Browser — 13 HTML files]
-    │
-    ▼
-[AuthMembership Gateway — Express v5, port 8080]
-  ├── Own routes: /api/auth, /api/membership
-  ├── Imports: payment-service routes → /api/payments
-  ├── Imports: reservation-service routes → /api/courts, /api/attendance
-  ├── Serves all frontends as static files
-  │
-  ├──→ fitness_payment.db (Users, Memberships, Payments, Plans)
-  └──→ fitcourt.db (Courts, Reservations, Attendance)
+[Customer] --> [Web Application (13 HTML files, no framework)]
+[Administrator] --> [Web Application (13 HTML files, no framework)]
 
-[Course Service — Express v4, port 3003]  ← Runs independently
-  └──→ courses.db (Courses, Trainers, Enrollments, Bookings)
+[Web Application] --> [AuthMembership Gateway (Express v5, port 8080)]
+[Web Application] --> [Course Service (Express v4, port 3003)]
+[Web Application] --> [Admin Service (Express v5, port 8080)]
 
-[Admin Service — Express v5, port 8080]  ← Standalone
-  └──→ promotion.db, course.db, admin_audit.db
+[AuthMembership Gateway] --imports--> [Payment Service routes]
+[AuthMembership Gateway] --imports--> [Reservation Service routes]
+
+[AuthMembership Gateway] --> [fitness_payment.db (Users, Memberships, Payments, Plans)]
+[AuthMembership Gateway] --> [fitcourt.db (Courts, Reservations, Attendance)]
+[Course Service] --> [courses.db (Courses, Trainers, Enrollments, Bookings)]
+[Admin Service] --> [promotion.db]
+[Admin Service] --> [course.db]
+[Admin Service] --> [admin_audit.db]
+
+[Payment Service] --> [Payment Gateway System (mock)]
+[Payment Service] --> [TrueMoney Wallet API (mock)]
+[Reservation Service] --> [Entrance Gate System (simulated)]
 ```
 
 ---
@@ -198,29 +201,29 @@ The original design follows a three-tier C4 architecture:
 
 | Component | Design | Actual |
 |-----------|--------|--------|
-| Admin Dashboard | Unified control panel with Socket.io | Basic stats via API; no real-time (🎓 acceptable) |
-| Course Editor | Admin course CRUD | ⚠️ **Duplicated** in `Admin/front/course.html` AND `course-service/frontend/index.html` |
-| Report Generator | Charts, export, analytics | ⚠️ `report.html` exists but minimal — no charts or export |
+| Admin Dashboard | Unified control panel with Socket.io | Basic stats via API; no real-time updates |
+| Course Editor | Admin course CRUD | **Duplicated** in `Admin/front/course.html` AND `course-service/frontend/index.html` |
+| Report Generator | Charts, export, analytics | `report.html` exists but minimal — no charts or export |
 | Public Content Manager | Promotions + public info | `promotion.html` has admin CRUD but no public viewing page |
 
 **API Application Components:**
 
 | Component | Design | Actual |
 |-----------|--------|--------|
-| Membership & Subscription Engine | Full lifecycle + auto-renew | `subscribe` + `getStatus` only (🎓 auto-renew acceptable to skip) |
-| Resource Conflict Checker | Centralised for courts + courses | ⚠️ Split — court checking in reservation-service, course capacity in course-service |
-| Attendance & Monitoring | Real-time Socket.io push | Entry/exit API endpoints only (🎓 acceptable) |
-| Security & Encryption Module | Centralised JWT + bcrypt + RBAC | ⚠️ **Fragmented** across services — see table below |
+| Membership & Subscription Engine | Full lifecycle + auto-renew | `subscribe` + `getStatus` only; no auto-renew or upgrade |
+| Resource Conflict Checker | Centralised for courts + courses | Split — court checking in reservation-service, course capacity in course-service |
+| Attendance & Monitoring | Real-time Socket.io push | Entry/exit API endpoints only; no real-time push |
+| Security & Encryption Module | Centralised JWT + bcrypt + RBAC | **Fragmented** across services — see table below |
 
 **Authentication Fragmentation:**
 
 | Service | Auth Method | RBAC | Issue |
 |---------|------------|------|-------|
-| AuthMembership | JWT (jsonwebtoken) | ✅ Role in payload | Issues tokens |
-| course-service | JWT (jsonwebtoken) | ✅ `requireAdmin` | Verifies tokens properly |
-| payment-service | **Mock base64** (not JWT) | ✅ `requireRole` | ⚠️ Different from other services |
-| Admin | **None** | ❌ Unprotected | ⚠️ All admin endpoints open |
-| reservation-service | **Plaintext password** in data.js | ❌ Basic login | ⚠️ No real auth |
+| AuthMembership | JWT (jsonwebtoken) | Yes, role in payload | Issues tokens |
+| course-service | JWT (jsonwebtoken) | Yes, `requireAdmin` | Verifies tokens properly |
+| payment-service | **Mock base64** (not JWT) | Yes, `requireRole` | Different implementation from other services |
+| Admin | **None** | No | All admin endpoints are unprotected |
+| reservation-service | **Plaintext password** in data.js | No | No real auth middleware |
 
 ---
 
@@ -246,10 +249,10 @@ The original design follows a three-tier C4 architecture:
 
 | Item | Design | Actual |
 |------|--------|--------|
-| Administrator class | Separate class | ⚠️ No separate table — stored in `Users` with `role = 'admin'` |
-| Trainer.availabilitySchedule | Single attribute | ✅ Better — normalised into `TrainerAvailability` table |
-| Court → Reservation composition | Cascading deletes | ⚠️ `foreign_keys = OFF` in reservation-service |
-| Cross-entity relationships | Customer aggregates all entities | ⚠️ Entities in separate databases — no FK across services |
+| Administrator class | Separate class | No separate table — stored in `Users` with `role = 'admin'` |
+| Trainer.availabilitySchedule | Single attribute | Improved — normalised into separate `TrainerAvailability` table |
+| Court to Reservation composition | Cascading deletes | `foreign_keys = OFF` in reservation-service |
+| Cross-entity relationships | Customer aggregates all entities | Entities are in separate databases — no FK across services |
 
 **Additional Entities (not in design but implemented):**
 - `membership_plans` — plan types with pricing (payment-service)
