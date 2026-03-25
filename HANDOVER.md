@@ -191,6 +191,7 @@ The original design follows a three-tier C4 architecture:
 [AuthMembership Gateway] --> [TrueMoney Wallet API (mock)]
 [AuthMembership Gateway] --> [Entrance Gate System (simulated)]
 ```
+<img width="1468" height="765" alt="image" src="https://github.com/user-attachments/assets/730ddd9a-5616-4e9d-b7b5-4c9d24fc4eff" />
 
 ---
 
