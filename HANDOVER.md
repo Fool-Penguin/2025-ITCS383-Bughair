@@ -390,13 +390,17 @@ To successfully handover this project, the following information is essential:
 **Analysis Images:**
 
 #### 1. SonarQube Dashboard Overview
+<img width="1920" height="878" alt="image" src="https://github.com/user-attachments/assets/2b5882f4-fc99-4139-8378-5d12137672f9" />
+
 *Figure 1: Overall project quality gate status showing Passed status with metrics across Security, Reliability, and Maintainability dimensions*
 
 #### 2. Security Issues Detected
+<img width="1920" height="877" alt="image" src="https://github.com/user-attachments/assets/e0ff54d6-5c76-4071-b54d-0d2a19d644b9" />
 
 *Figure 2: Security hotspots identified - Blocker severity issues related to password management in course test file (lines 22-23)*
 
 #### 3. Maintainability Issues
+<img width="1920" height="921" alt="image" src="https://github.com/user-attachments/assets/c1f40f19-b123-4328-a3f6-e5e324a79786" />
 
 *Figure 3: High severity maintainability issues - Functions with excessive cognitive complexity requiring refactoring:*
 - *Courts.js: Reduce cognitive complexity from 20 to 15 allowed (Line 85 - 10min effort)*
