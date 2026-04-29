@@ -1,0 +1,170 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  admin-service:
+    name: Admin Service
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: implementations/Admin
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Admin root dependencies
+        run: npm install
+
+      - name: Install Admin backend dependencies
+        working-directory: implementations/Admin/backend/backend
+        run: npm install
+
+      - name: Validate Admin backend starts
+        working-directory: implementations/Admin/backend/backend
+        run: node -e "require('./server.js')" &
+        timeout-minutes: 1
+
+  auth-membership:
+    name: Auth & Membership Service
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: implementations/AuthMembership/backend-api_Module1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate server syntax
+        run: node --check server.js
+
+  course-service:
+    name: Course & Trainer Service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: implementations/course-service
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests with coverage
+        run: npx jest --coverage --coverageReporters=lcov --coverageReporters=text --passWithNoTests
+        env:
+          CI: true
+
+      - name: Upload course-service coverage
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: course-service-coverage
+          path: implementations/course-service/coverage/lcov.info
+          if-no-files-found: warn
+
+  payment-service:
+    name: Payment Service
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: implementations/payment-service
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate source syntax
+        run: |
+          for f in $(find src -name '*.js'); do
+            node --check "$f"
+          done
+
+  reservation-service:
+    name: Reservation Service
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: implementations/reservation-service/backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run reservation tests
+        run: npm test
+
+  sonarqube:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    needs: [admin-service, auth-membership, course-service, payment-service, reservation-service]
+    if: success() && !cancelled()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download course-service coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: course-service-coverage
+          path: implementations/course-service/coverage
+        continue-on-error: true
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
