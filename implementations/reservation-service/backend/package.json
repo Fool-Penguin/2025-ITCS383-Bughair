@@ -5,9 +5,20 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node src/tests/courts.test.js"
+    "test": "nyc node src/tests/courts.test.js"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0"
+  },
+  "devDependencies": {
+    "nyc": "^15.1.0"
+  },
+  "nyc": {
+    "reporter": ["lcov", "text"],
+    "all": true,
+    "include": ["src/**/*.js"],
+    "exclude": ["src/tests/**"],
+    "extension": [".js"],
+    "report-dir": "coverage"
   }
 }

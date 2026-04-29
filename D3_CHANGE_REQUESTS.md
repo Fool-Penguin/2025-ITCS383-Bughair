@@ -146,6 +146,18 @@ This document breaks down the required new features (Native Android App, Member 
 | **Time to Implement** | 0.5 person-weeks |
 | **Verification Method** | Database constraint testing and API tests ensuring duplicate submissions are rejected. |
 
+### CR-09: Fix Review UI
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Trainer Rating and Review System |
+| **Description** | "The user must be able to give review to the trainer." |
+| **Maintenance Type** | Corrective |
+| **Priority** | Medium |
+| **Severity** | Minor |
+| **Marketing Justification** | "Unable to review the trainer causes a drop in trustworthiness of the trainer and could cause user's disatisfaction." |
+| **Time to Implement** | 0.5 person-weeks |
+| **Verification Method** | UI testing with Database to ensure the logic works correctly. |
+
 ## 4. Preventive Maintenance
 
 ### CR-09: Review Submission Session Validation
