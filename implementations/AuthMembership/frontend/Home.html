@@ -88,7 +88,7 @@
         <div class="nav-links">
             <a href="/home" class="active">DASHBOARD</a>
             <a href="/reservation-service/frontend/index.html">COURTS</a>
-            <a href="/course-service/frontend/index_with_api.html">COURSES</a>
+            <a href="javascript:navigateToCourses()" style="cursor:pointer;">COURSES</a>
             <a href="/payment-service/fitness-payment-frontend.html">PAYMENTS</a>
         </div>
 
@@ -116,7 +116,7 @@
 
                     <div class="menu-grid">
                         <a href="courts.html" class="menu-item"><h3>🏸 COURT BOOKING</h3><p style="font-size:0.7rem; color:#666;">Reserve your court now.</p></a>
-                        <a href="../../course-service/frontend/index_with_api.html" class="menu-item"><h3>🏋️ FITNESS COURSES</h3><p style="font-size:0.7rem; color:#666;">Join professional training.</p></a>
+                        <a href="javascript:navigateToCourses()" class="menu-item" style="cursor:pointer;"><h3>🏋️ FITNESS COURSES</h3><p style="font-size:0.7rem; color:#666;">Join professional training.</p></a>
                     </div>
                 </div>
             </div>
@@ -211,6 +211,27 @@
             localStorage.clear();
             // ✅ ใส่ / นำหน้าเพื่อกลับหน้า Login หลัก
             window.location.href = '/auth.html';
+        }
+
+        function navigateToCourses() {
+            const token = localStorage.getItem('token') || localStorage.getItem('fitzone_token');
+            const user = localStorage.getItem('user');
+            
+            if (!token || !user) {
+                alert('Session expired. Please sign in again.');
+                window.location.href = '/auth.html';
+                return;
+            }
+
+            // Build URL with token and user as parameters for cross-domain access
+            const courseUrl = '/course-service/frontend/index_with_api.html?' +
+                new URLSearchParams({
+                    token: token,
+                    user: user
+                }).toString();
+            
+            console.log('🚀 Navigating to courses with token:', token ? '✅ Present' : '❌ Missing');
+            window.location.href = courseUrl;
         }
 
         function openProfileModal() {

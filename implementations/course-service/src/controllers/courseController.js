@@ -228,7 +228,8 @@ const cancelEnrollment = (req, res) => {
 const getMyEnrollments = (req, res) => {
   try {
     const rows = db.prepare(`
-      SELECT ce.*, c.courseName, c.schedule, c.instructor, c.courseType, c.fitnessLevel
+      SELECT ce.*, c.courseID, c.courseName, c.schedule, c.instructor, c.courseType, 
+             c.fitnessLevel, c.description, c.maxAttendees, c.currentAttendees, c.status
       FROM CourseEnrollments ce
       JOIN Courses c ON ce.courseID = c.courseID
       WHERE ce.memberID = ?

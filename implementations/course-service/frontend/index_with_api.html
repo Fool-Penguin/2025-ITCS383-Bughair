@@ -504,7 +504,29 @@
 // CONFIG — เปลี่ยน API_BASE ถ้า deploy ที่อื่น
 // ══════════════════════════════════════════════════════════
 const API_BASE = 'http://localhost:3003/api';
-let TOKEN = localStorage.getItem('fitzone_token') || null;
+
+// Try to get token from URL parameter (for cross-domain navigation)
+const urlParams = new URLSearchParams(window.location.search);
+const urlToken = urlParams.get('token');
+
+// Use token from URL if provided, otherwise get from localStorage
+let TOKEN = urlToken || localStorage.getItem('fitzone_token') || null;
+
+// Store the token in localStorage if it came from URL
+if (urlToken && !localStorage.getItem('fitzone_token')) {
+  localStorage.setItem('fitzone_token', urlToken);
+}
+
+// Also try to get user from URL
+const urlUser = urlParams.get('user');
+if (urlUser) {
+  try {
+    const userObj = JSON.parse(decodeURIComponent(urlUser));
+    localStorage.setItem('user', JSON.stringify(userObj));
+  } catch (e) {
+    console.warn('Failed to parse user from URL:', e);
+  }
+}
 
 // ══════════════════════════════════════════════════════════
 // STATE
@@ -605,14 +627,25 @@ function setRole(r) {
 // PAGE NAV
 // ══════════════════════════════════════════════════════════
 function showPage(page, btn, pswID) {
+  const pageEl = document.getElementById('page-' + page);
+  if (!pageEl) {
+    console.error('❌ Page not found: page-' + page);
+    return;
+  }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
+  pageEl.classList.add('active');
   document.querySelectorAll('.page-switch-btn').forEach(b => b.classList.remove('active'));
-  if (pswID) document.getElementById(pswID).classList.add('active');
-  else btn.classList.add('active');
+  if (pswID) {
+    const pswEl = document.getElementById(pswID);
+    if (pswEl) pswEl.classList.add('active');
+  } else if (btn) {
+    btn.classList.add('active');
+  }
   // Update nav links
-  document.getElementById('nav-courses').classList.toggle('active', page === 'courses');
-  document.getElementById('nav-mybookings').classList.toggle('active', page === 'mybookings');
+  const coursesBtn = document.getElementById('nav-courses');
+  const bookingsBtn = document.getElementById('nav-mybookings');
+  if (coursesBtn) coursesBtn.classList.toggle('active', page === 'courses');
+  if (bookingsBtn) bookingsBtn.classList.toggle('active', page === 'mybookings');
 }
 function forceLogout(message) {
   localStorage.removeItem('token');
@@ -627,9 +660,24 @@ function logout() {
 }
 function focusCourses() { showPage('courses', null, 'psw-courses'); }
 function focusMyBookings() { 
-  document.getElementById('nav-courses').classList.remove('active');
-  document.getElementById('nav-mybookings').classList.add('active');
-  showPage('mybookings'); 
+  // Safely hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  
+  // Show My Bookings page
+  const mybookingsPage = document.getElementById('page-mybookings');
+  if (mybookingsPage) {
+    mybookingsPage.classList.add('active');
+  } else {
+    console.error('❌ My Bookings page not found');
+    return;
+  }
+  
+  // Update nav buttons
+  const coursesBtn = document.getElementById('nav-courses');
+  const bookingsBtn = document.getElementById('nav-mybookings');
+  if (coursesBtn) coursesBtn.classList.remove('active');
+  if (bookingsBtn) bookingsBtn.classList.add('active');
+  
   loadMyBookings(); 
 }
 
@@ -667,35 +715,39 @@ async function loadMyBookings() {
       }).join('');
     }
 
-    // Load trainer bookings
-    const bookingsJson = await api('GET', '/trainers/my-bookings');
+    // Load trainer bookings (optional - handle 404 gracefully)
     const bookingsList = document.getElementById('bookings-list');
-    const bookings = bookingsJson.data || [];
-    
-    if (!bookings.length) {
-      bookingsList.innerHTML = '<div style="color: var(--muted); padding: 2rem; text-align: center;">No trainer sessions booked yet.</div>';
-    } else {
-      bookingsList.innerHTML = bookings.map(b => {
-        const isCompleted = b.status === 'completed';
-        return `
-          <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-              <div>
-                <div style="font-family: 'Bebas Neue', cursive; font-size: 1.2rem;">${b.trainerName}</div>
-                <div style="font-size: 0.8rem; color: var(--lime);">${b.expertise}</div>
+    try {
+      const bookingsJson = await api('GET', '/trainers/my-bookings');
+      const bookings = bookingsJson.data || [];
+      
+      if (!bookings.length) {
+        bookingsList.innerHTML = '<div style="color: var(--muted); padding: 2rem; text-align: center;">No trainer sessions booked yet.</div>';
+      } else {
+        bookingsList.innerHTML = bookings.map(b => {
+          const isCompleted = b.status === 'completed';
+          return `
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                <div>
+                  <div style="font-family: 'Bebas Neue', cursive; font-size: 1.2rem;">${b.trainerName}</div>
+                  <div style="font-size: 0.8rem; color: var(--lime);">${b.expertise}</div>
+                </div>
+                <span class="course-type-badge">${b.status}</span>
               </div>
-              <span class="course-type-badge">${b.status}</span>
+              <div style="font-size: 0.85rem; color: var(--muted); display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+                <span>📅 ${b.sessionDate}</span>
+                <span>🕐 ${b.sessionTime}</span>
+                <span>⏱ ${b.durationMinutes} min</span>
+              </div>
+              ${b.notes ? `<div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;">📝 ${b.notes}</div>` : ''}
+              ${isCompleted ? `<button class="review-btn" onclick="openReviewModalDirect(${b.trainerID}, ${b.bookingID})" style="width: 100%;">⭐ Leave Review</button>` : ''}
             </div>
-            <div style="font-size: 0.85rem; color: var(--muted); display: flex; gap: 1rem; margin-bottom: 0.75rem;">
-              <span>📅 ${b.sessionDate}</span>
-              <span>🕐 ${b.sessionTime}</span>
-              <span>⏱ ${b.durationMinutes} min</span>
-            </div>
-            ${b.notes ? `<div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;">📝 ${b.notes}</div>` : ''}
-            ${isCompleted ? `<button class="review-btn" onclick="openReviewModalDirect(${b.trainerID}, ${b.bookingID})" style="width: 100%;">⭐ Leave Review</button>` : ''}
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
+      }
+    } catch (bookingErr) {
+      bookingsList.innerHTML = '<div style="color: var(--muted); padding: 2rem; text-align: center;">Trainer bookings feature coming soon.</div>';
     }
   } catch (err) {
     showToast('Failed to load bookings: ' + err.message, 'error');
@@ -856,10 +908,17 @@ async function toggleEnroll(cid, btn) {
       btn.textContent = '✓ Enrolled — tap to cancel'; btn.className = 'enroll-btn enrolled';
       showToast('Successfully enrolled!');
       updateCapacityUI(c); refreshAllConflicts();
-      if (document.getElementById('page-mybookings').classList.contains('active')) {
-        loadMyBookings();
+      // Navigate to My Bookings after successful enrollment
+      focusMyBookings();
+    } catch (err) {
+      // Handle "already enrolled" case by navigating to My Bookings
+      if (String(err.message || '').includes('Already enrolled')) {
+        showToast('Already enrolled in this course. Showing your bookings.', 'info');
+        focusMyBookings();
+      } else {
+        showToast(err.message, 'error');
       }
-    } catch (err) { showToast(err.message, 'error'); }
+    }
   }
 }
 
