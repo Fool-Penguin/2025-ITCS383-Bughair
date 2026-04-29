@@ -62,6 +62,20 @@ const initSchema = () => {
       createdAt       TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (trainerID) REFERENCES Trainers(trainerID) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS TrainerReviews (
+      reviewID    INTEGER PRIMARY KEY AUTOINCREMENT,
+      trainerID   INTEGER NOT NULL,
+      bookingID   INTEGER NOT NULL UNIQUE,
+      memberID    INTEGER NOT NULL,
+      rating      INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+      reviewText  TEXT,
+      status      TEXT DEFAULT 'approved' CHECK(status IN ('approved','hidden')),
+      createdAt   TEXT DEFAULT (datetime('now')),
+      updatedAt   TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (trainerID) REFERENCES Trainers(trainerID) ON DELETE CASCADE,
+      FOREIGN KEY (bookingID) REFERENCES TrainerBookings(bookingID) ON DELETE CASCADE
+    );
   `);
 
   // Seed sample data only if tables are empty

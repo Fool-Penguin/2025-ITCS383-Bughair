@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "start:dev": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "mysql2": "^3.19.1",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "nodemailer": "^6.9.4"
   }
 }

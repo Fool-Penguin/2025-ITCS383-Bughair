@@ -136,6 +136,35 @@
         .toggle-link a { color: var(--lime); text-decoration: none; font-weight: 700; margin-left: 5px; }
         .toggle-link a:hover { text-decoration: underline; }
 
+        .forgot-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--lime);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .secondary-action {
+            margin-top: 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--r);
+            cursor: pointer;
+        }
+
+        .reset-panel {
+            display: none;
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        .reset-panel.show { display: block; }
+
         .reg-only { display: none; }
 
         @media (max-width: 768px) {
@@ -176,6 +205,16 @@
                 <input type="text" id="regName" placeholder="Your Name">
             </div>
 
+            <div class="field reg-only">
+                <label>Phone Number</label>
+                <input type="tel" id="regPhone" placeholder="081-234-5678">
+            </div>
+
+            <div class="field reg-only">
+                <label>Profile Image URL</label>
+                <input type="url" id="regImage" placeholder="https://example.com/photo.jpg">
+            </div>
+
             <div class="field">
                 <label>Email Address</label>
                 <input type="email" id="authEmail" placeholder="name@example.com">
@@ -186,27 +225,69 @@
                 <input type="password" id="authPass" placeholder="••••••••">
             </div>
 
+            <a href="javascript:void(0)" class="forgot-link" id="forgotLink" onclick="openForgotPassword()">Forgot password?</a>
+
             <button class="btn-auth" id="authBtn" onclick="submitAuth()">Sign In →</button>
 
             <div class="toggle-link">
                 <span id="toggleText">Don't have an account?</span>
                 <a href="javascript:void(0)" onclick="toggleMode()" id="toggleLink">Sign Up</a>
             </div>
+
+            <div class="reset-panel" id="resetPanel">
+                <h2 id="resetTitle">Reset Password</h2>
+                <p class="auth-hint" id="resetHint">Create a new password using the secure reset token.</p>
+                <div class="field">
+                    <label>Email Address</label>
+                    <input type="email" id="resetEmail" placeholder="name@example.com">
+                </div>
+                <div class="field">
+                    <label>New Password</label>
+                    <input type="password" id="resetNewPass" placeholder="••••••••">
+                </div>
+                <div class="field">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="resetConfirmPass" placeholder="••••••••">
+                </div>
+                <button class="btn-auth" onclick="submitPasswordReset()">Update Password →</button>
+                <button class="secondary-action" onclick="exitResetMode()">Back to Sign In</button>
+            </div>
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="forgot-modal" style="display:none;">
+    <div class="modal" style="max-width: 460px; width: calc(100% - 32px); padding: 28px; background: var(--bg2); border: 1px solid var(--border);">
+        <div class="modal-header" style="margin-bottom: 12px;">
+            <div class="modal-title" style="font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem; letter-spacing: 1px; text-transform: uppercase;">Forgot Password</div>
+            <button class="modal-close" onclick="closeForgotPassword()">✕</button>
+        </div>
+        <p class="auth-hint">Enter your email and we’ll generate a secure reset link.</p>
+        <div class="field">
+            <label>Email Address</label>
+            <input type="email" id="forgotEmail" placeholder="name@example.com">
+        </div>
+        <button class="btn-auth" onclick="submitForgotPassword()">Send Reset Link</button>
     </div>
 </div>
 
 <script>
     // ตรวจสอบ Token เมื่อโหลดหน้า
     window.onload = function() {
-    if (localStorage.getItem('token')) {
-        // ใช้ /home (ตัวเล็ก) ตามที่ตั้งไว้ใน server.js
+    const params = new URLSearchParams(window.location.search);
+    const resetToken = params.get('resetToken');
+    const resetEmail = params.get('email');
+
+    if (resetToken) {
+        enterResetMode(resetToken, resetEmail || '');
+    } else if (localStorage.getItem('token') || localStorage.getItem('fitzone_token')) {
         window.location.href = '/home'; 
     }
 }
 
     let isLogin = true;
     let selectedRole = 'member'; // Default เป็น member
+    let activeResetToken = '';
 
     // ฟังก์ชันเปลี่ยน Role
     function setRole(role) {
@@ -223,11 +304,44 @@
         document.getElementById('authBtn').textContent = isLogin ? 'Sign In →' : 'Register Now →';
         document.getElementById('toggleText').textContent = isLogin ? "Don't have an account?" : "Already have an account?";
         document.getElementById('toggleLink').textContent = isLogin ? "Sign Up" : "Sign In";
+        document.getElementById('forgotLink').style.display = isLogin ? 'inline-block' : 'none';
 
         document.getElementById('sideHeadline').innerHTML = isLogin ? 'BACK TO<br><span>GRIND</span><br>AGAIN' : 'JOIN THE<br><span>ELITE</span><br>COMMUNITY';
 
         const regFields = document.querySelectorAll('.reg-only');
         regFields.forEach(el => el.style.display = isLogin ? 'none' : 'block');
+    }
+
+    function enterResetMode(token, email) {
+        activeResetToken = token;
+        document.querySelector('.role-selector').style.display = 'none';
+        document.querySelectorAll('.reg-only').forEach(el => el.style.display = 'none');
+        document.getElementById('authEmail').closest('.field').style.display = 'none';
+        document.getElementById('authPass').closest('.field').style.display = 'none';
+        document.getElementById('authBtn').style.display = 'none';
+        document.getElementById('toggleText').style.display = 'none';
+        document.getElementById('toggleLink').style.display = 'none';
+        document.getElementById('forgotLink').style.display = 'none';
+        document.getElementById('resetPanel').classList.add('show');
+        document.getElementById('resetEmail').value = email;
+        document.getElementById('formTitle').textContent = 'Reset Password';
+        document.getElementById('formHint').textContent = 'Use the secure link from your email to create a new password.';
+    }
+
+    function exitResetMode() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('resetToken');
+        url.searchParams.delete('email');
+        window.location.href = url.pathname;
+    }
+
+    function openForgotPassword() {
+        document.getElementById('forgotEmail').value = document.getElementById('authEmail').value.trim();
+        document.getElementById('forgot-modal').style.display = 'flex';
+    }
+
+    function closeForgotPassword() {
+        document.getElementById('forgot-modal').style.display = 'none';
     }
 
     const API = 'http://localhost:8080/api';
@@ -236,6 +350,8 @@
         const email = document.getElementById('authEmail').value.trim();
         const password = document.getElementById('authPass').value.trim();
         const full_name = document.getElementById('regName').value.trim();
+        const phone = document.getElementById('regPhone').value.trim();
+        const profile_image = document.getElementById('regImage').value.trim();
         const btn = document.getElementById('authBtn');
 
         if (!email || !password || (!isLogin && !full_name)) {
@@ -253,7 +369,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 // ✅ ส่ง role ไปที่ Backend ด้วย
-                body: JSON.stringify({ email, password, full_name, role: selectedRole })
+                body: JSON.stringify({ email, password, full_name, phone, profile_image, role: selectedRole })
             });
 
             const result = await response.json();
@@ -261,10 +377,13 @@
             if (response.ok) {
     if (isLogin) {
         localStorage.setItem('token', result.token);
+        localStorage.setItem('fitzone_token', result.token);
         localStorage.setItem('user', JSON.stringify({
             id: result.userId,
             memberId: result.memberId,
             name: result.full_name,
+            phone: result.phone || '',
+            profile_image: result.profile_image || '',
             role: result.role
         }));
 
@@ -290,6 +409,65 @@
         } finally {
             btn.disabled = false;
             btn.textContent = isLogin ? 'Sign In →' : 'Register Now →';
+        }
+    }
+
+    async function submitForgotPassword() {
+        const email = document.getElementById('forgotEmail').value.trim();
+        if (!email) {
+            alert('Please enter your email address.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API}/auth/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const result = await response.json();
+            if (response.ok) {
+                closeForgotPassword();
+                alert(result.resetLink ? `Reset link: ${result.resetLink}` : (result.message || 'Reset link generated.'));
+            } else {
+                alert(result.message || result.error || 'Unable to create reset link.');
+            }
+        } catch (error) {
+            alert('Cannot connect to server. Please check if your Backend is running.');
+        }
+    }
+
+    async function submitPasswordReset() {
+        const email = document.getElementById('resetEmail').value.trim();
+        const newPassword = document.getElementById('resetNewPass').value.trim();
+        const confirmPassword = document.getElementById('resetConfirmPass').value.trim();
+
+        if (!email || !newPassword || !confirmPassword) {
+            alert('Please fill in all reset password fields.');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            alert('Passwords do not match.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API}/auth/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, token: activeResetToken, newPassword })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message || 'Password updated successfully.');
+                window.location.href = '/auth.html';
+            } else {
+                alert(result.message || result.error || 'Unable to update password.');
+            }
+        } catch (error) {
+            alert('Cannot connect to server. Please check if your Backend is running.');
         }
     }
 </script>

@@ -85,6 +85,20 @@ const cancelCourse = (req, res) => {
   }
 };
 
+// ─── ADMIN: Undo Cancel Course ───────────────────────────────────────────────
+const undoCancelCourse = (req, res) => {
+  try {
+    const { id } = req.params;
+    const course = db.prepare('SELECT * FROM Courses WHERE courseID = ?').get(id);
+    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+
+    db.prepare("UPDATE Courses SET status='published', cancelReason=NULL, updatedAt=datetime('now') WHERE courseID=?").run(id);
+    res.json({ success: true, message: 'Course restored' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+
 // ─── PUBLIC: Get All Published Courses ───────────────────────────────────────
 const getAllCourses = (req, res) => {
   try {
@@ -93,6 +107,25 @@ const getAllCourses = (req, res) => {
     const params = [];
     if (fitnessLevel) { query += ' AND fitnessLevel = ?'; params.push(fitnessLevel); }
     if (courseType)   { query += ' AND courseType = ?';   params.push(courseType); }
+    query += ' ORDER BY schedule ASC';
+    const rows = db.prepare(query).all(...params);
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+
+// ─── ADMIN: Get All Courses ──────────────────────────────────────────────────
+const getAllCoursesAdmin = (req, res) => {
+  try {
+    const { fitnessLevel, courseType, status } = req.query;
+    let query = 'SELECT * FROM Courses WHERE 1=1';
+    const params = [];
+
+    if (fitnessLevel) { query += ' AND fitnessLevel = ?'; params.push(fitnessLevel); }
+    if (courseType) { query += ' AND courseType = ?'; params.push(courseType); }
+    if (status) { query += ' AND status = ?'; params.push(status); }
+
     query += ' ORDER BY schedule ASC';
     const rows = db.prepare(query).all(...params);
     res.json({ success: true, data: rows });
@@ -161,6 +194,36 @@ const enrollCourse = (req, res) => {
   }
 };
 
+// ─── MEMBER: Cancel Enrollment ───────────────────────────────────────────────
+const cancelEnrollment = (req, res) => {
+  try {
+    const { courseID } = req.body;
+    const memberID = req.user.id;
+
+    if (!courseID) {
+      return res.status(400).json({ success: false, message: 'courseID is required' });
+    }
+
+    const enrollment = db.prepare(
+      "SELECT * FROM CourseEnrollments WHERE courseID = ? AND memberID = ? AND attendanceStatus != 'cancelled'"
+    ).get(courseID, memberID);
+
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: 'Enrollment not found' });
+    }
+
+    const cancel = db.transaction(() => {
+      db.prepare("UPDATE CourseEnrollments SET attendanceStatus = 'cancelled' WHERE enrollmentID = ?").run(enrollment.enrollmentID);
+      db.prepare('UPDATE Courses SET currentAttendees = CASE WHEN currentAttendees > 0 THEN currentAttendees - 1 ELSE 0 END WHERE courseID = ?').run(courseID);
+    });
+    cancel();
+
+    res.json({ success: true, message: 'Enrollment cancelled' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+
 // ─── MEMBER: My Enrollments ───────────────────────────────────────────────────
 const getMyEnrollments = (req, res) => {
   try {
@@ -191,5 +254,7 @@ const getCourseAttendance = (req, res) => {
 
 module.exports = {
   createCourse, updateCourse, deleteCourse, publishCourse, cancelCourse,
-  getAllCourses, getCourseById, enrollCourse, getMyEnrollments, getCourseAttendance
+  getAllCoursesAdmin,
+  getAllCourses, getCourseById, enrollCourse, cancelEnrollment, getMyEnrollments, getCourseAttendance
+  , undoCancelCourse
 };

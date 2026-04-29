@@ -3,7 +3,9 @@ const router  = express.Router();
 const {
   createTrainer, updateTrainer, deleteTrainer,
   getAllTrainers, getAllTrainersAdmin, getTrainerById,
-  bookTrainer, getMyBookings
+  bookTrainer, getMyBookings, completeTrainerBooking,
+  submitTrainerReview, getTrainerReviewList, moderateTrainerReview,
+  deleteTrainerReview
 } = require('../controllers/trainerController');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 
@@ -14,6 +16,13 @@ router.get('/admin/all',    authenticate, requireAdmin, getAllTrainersAdmin);
 
 // ── Member ────────────────────────────────────────────────
 router.post('/book', authenticate, bookTrainer);
+router.patch('/bookings/:bookingID/complete', authenticate, requireAdmin, completeTrainerBooking);
+
+// ── Reviews ───────────────────────────────────────────────
+router.get('/:id/reviews', getTrainerReviewList);
+router.post('/:id/reviews', authenticate, submitTrainerReview);
+router.patch('/reviews/:reviewID/moderate', authenticate, requireAdmin, moderateTrainerReview);
+router.delete('/reviews/:reviewID', authenticate, requireAdmin, deleteTrainerReview);
 
 // ── Admin ─────────────────────────────────────────────────
 router.post('/',     authenticate, requireAdmin, createTrainer);

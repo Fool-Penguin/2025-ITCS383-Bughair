@@ -55,6 +55,25 @@
         .btn { display: inline-block; width: 100%; padding: 18px; background: var(--lime); color: #000; text-align: center; text-decoration: none; font-weight: 900; border-radius: 10px; margin-top: 25px; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
         .btn:hover { transform: scale(1.02); filter: brightness(1.1); box-shadow: 0 0 30px rgba(200, 245, 60, 0.3); }
 
+        .btn-secondary { display: inline-block; width: 100%; padding: 18px; background: transparent; color: #fff; text-align: center; text-decoration: none; font-weight: 900; border-radius: 10px; margin-top: 12px; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--lime); color: var(--lime); }
+
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .profile-item { background: rgba(0,0,0,0.3); padding: 16px; border-radius: 12px; }
+        .profile-item span { display: block; color: #888; font-size: 0.72rem; text-transform: uppercase; margin-bottom: 5px; }
+        .profile-item strong { font-size: 0.95rem; }
+
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); align-items:center; justify-content:center; z-index:200; padding:20px; }
+        .modal-overlay.open { display:flex; }
+        .modal-box { width:min(520px, 100%); background:#101010; border:1px solid var(--border); border-radius:18px; padding:28px; }
+        .modal-title { font-family:'Bebas Neue'; font-size:2rem; letter-spacing:2px; margin-bottom: 8px; }
+        .field { margin-top: 14px; }
+        .field label { display:block; color:#888; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+        .field input { width:100%; background:#0b0b0b; color:#fff; border:1px solid var(--border); border-radius:10px; padding:12px 14px; outline:none; }
+        .field input:focus { border-color: var(--lime); }
+        .modal-actions { display:flex; gap:12px; margin-top: 18px; }
+        .modal-actions .btn { margin-top:0; }
+
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
         .menu-item { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; text-decoration: none; color: #fff; border: 1px solid transparent; transition: 0.3s; }
         .menu-item:hover { border-color: var(--lime); background: rgba(200,245,60,0.05); }
@@ -115,6 +134,42 @@
                     <p style="font-size: 0.8rem; color: #888;">Renew membership or pay court fees instantly.</p>
                     <a href="/payment-service/fitness-payment-frontend.html" class="btn">GO TO WALLET</a>
                 </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h2 style="font-family: 'Bebas Neue'; margin-bottom: 15px;">PROFILE</h2>
+                    <div class="profile-grid">
+                        <div class="profile-item"><span>Name</span><strong id="profileName">-</strong></div>
+                        <div class="profile-item"><span>Phone</span><strong id="profilePhone">-</strong></div>
+                        <div class="profile-item"><span>Email</span><strong id="profileEmail">-</strong></div>
+                        <div class="profile-item"><span>Picture</span><strong id="profilePicture">-</strong></div>
+                    </div>
+                    <button class="btn-secondary" onclick="openProfileModal()">Edit Profile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px;">
+                <div class="modal-title">Edit Profile</div>
+                <button onclick="closeProfileModal()" style="background:none; border:1px solid #333; color:#888; border-radius:8px; width:32px; height:32px; cursor:pointer;">✕</button>
+            </div>
+            <div class="field">
+                <label>Full Name</label>
+                <input type="text" id="editFullName" placeholder="Your name">
+            </div>
+            <div class="field">
+                <label>Phone Number</label>
+                <input type="tel" id="editPhone" placeholder="081-234-5678">
+            </div>
+            <div class="field">
+                <label>Profile Picture URL</label>
+                <input type="url" id="editProfileImage" placeholder="https://example.com/photo.jpg">
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="saveProfile()">Save Changes</button>
+                <button class="btn-secondary" onclick="closeProfileModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -122,7 +177,7 @@
     <script>
         window.onload = function() {
             const user = JSON.parse(localStorage.getItem('user'));
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || localStorage.getItem('fitzone_token');
 
             // ✅ แก้จุดกระพริบ: ใส่ / นำหน้า auth.html เพื่อให้กลับไปจุดเริ่มของ Server
             if (!token || !user) { 
@@ -131,8 +186,16 @@
                 return; 
             }
 
-            document.getElementById('uName').innerText = user.name.toUpperCase();
+            document.getElementById('uName').innerText = (user.name || '').toUpperCase();
             document.getElementById('uID').innerText = user.memberId || user.id;
+            document.getElementById('profileName').innerText = user.name || '-';
+            document.getElementById('profilePhone').innerText = user.phone || '-';
+            document.getElementById('profileEmail').innerText = user.email || '-';
+            document.getElementById('profilePicture').innerText = user.profile_image ? 'Set' : 'Not set';
+
+            document.getElementById('editFullName').value = user.name || '';
+            document.getElementById('editPhone').value = user.phone || '';
+            document.getElementById('editProfileImage').value = user.profile_image || '';
 
             const planDisplay = document.getElementById('uPlan');
             if (user.role === 'admin') {
@@ -148,6 +211,65 @@
             localStorage.clear();
             // ✅ ใส่ / นำหน้าเพื่อกลับหน้า Login หลัก
             window.location.href = '/auth.html';
+        }
+
+        function openProfileModal() {
+            document.getElementById('profileModal').classList.add('open');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('open');
+        }
+
+        async function saveProfile() {
+            const token = localStorage.getItem('token') || localStorage.getItem('fitzone_token');
+            const full_name = document.getElementById('editFullName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const profile_image = document.getElementById('editProfileImage').value.trim();
+
+            if (!token) {
+                alert('Please sign in again.');
+                window.location.href = '/auth.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/me', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ full_name, phone, profile_image })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    alert(result.message || result.error || 'Unable to update profile.');
+                    return;
+                }
+
+                const updated = result.data;
+                localStorage.setItem('user', JSON.stringify({
+                    ...JSON.parse(localStorage.getItem('user') || '{}'),
+                    id: updated.id,
+                    memberId: updated.memberId,
+                    name: updated.full_name,
+                    phone: updated.phone,
+                    profile_image: updated.profile_image,
+                    role: updated.role,
+                    email: updated.email
+                }));
+
+                document.getElementById('uName').innerText = updated.full_name.toUpperCase();
+                document.getElementById('profileName').innerText = updated.full_name;
+                document.getElementById('profilePhone').innerText = updated.phone || '-';
+                document.getElementById('profilePicture').innerText = updated.profile_image ? 'Set' : 'Not set';
+                closeProfileModal();
+                alert('Profile updated successfully.');
+            } catch (error) {
+                alert('Cannot connect to server. Please check if your Backend is running.');
+            }
         }
     </script>
 </body>
