@@ -240,6 +240,7 @@
     <a href="/home" class="nav-link" style="text-decoration: none;">Dashboard</a>
     <a href="/reservation-service/frontend/index.html" class="nav-link" style="text-decoration: none;">Courts</a>
     <button class="nav-link active" id="nav-courses" onclick="focusCourses()">Courses</button>
+    <button class="nav-link" id="nav-mybookings" onclick="focusMyBookings()">My Bookings</button>
     <a href="/payment-service/fitness-payment-frontend.html" class="nav-link" style="text-decoration: none;">Payments</a>
   </div>
   <div class="nav-user">
@@ -311,6 +312,25 @@
       <div class="section-count" id="trainer-count"></div>
     </div>
     <div class="trainers-grid" id="trainers-grid"></div>
+  </div>
+</div>
+
+<!-- MY BOOKINGS PAGE -->
+<div id="page-mybookings" class="page">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-title">MY SESSIONS & BOOKINGS</div>
+    </div>
+    
+    <div style="margin-bottom: 2.5rem;">
+      <div style="font-family: 'Bebas Neue', cursive; font-size: 1.6rem; letter-spacing: 1px; margin-bottom: 1rem;">📚 ENROLLED COURSES</div>
+      <div id="enrollments-list" style="display: grid; gap: 0.9rem;"></div>
+    </div>
+
+    <div>
+      <div style="font-family: 'Bebas Neue', cursive; font-size: 1.6rem; letter-spacing: 1px; margin-bottom: 1rem;">🏋️ TRAINER SESSIONS</div>
+      <div id="bookings-list" style="display: grid; gap: 0.9rem;"></div>
+    </div>
   </div>
 </div>
 
@@ -570,10 +590,87 @@ function showPage(page, btn, pswID) {
   document.querySelectorAll('.page-switch-btn').forEach(b => b.classList.remove('active'));
   if (pswID) document.getElementById(pswID).classList.add('active');
   else btn.classList.add('active');
+  // Update nav links
+  document.getElementById('nav-courses').classList.toggle('active', page === 'courses');
+  document.getElementById('nav-mybookings').classList.toggle('active', page === 'mybookings');
 }
 function focusCourses() { showPage('courses', null, 'psw-courses'); }
+function focusMyBookings() { 
+  document.getElementById('nav-courses').classList.remove('active');
+  document.getElementById('nav-mybookings').classList.add('active');
+  showPage('mybookings'); 
+  loadMyBookings(); 
+}
 
-// ══════════════════════════════════════════════════════════
+async function loadMyBookings() {
+  try {
+    // Load enrolled courses
+    const enrolledList = document.getElementById('enrollments-list');
+    if (enrolledSet.size === 0) {
+      enrolledList.innerHTML = '<div style="color: var(--muted); padding: 2rem; text-align: center;">No courses enrolled yet.</div>';
+    } else {
+      const enrolled = allCourses.filter(c => enrolledSet.has(c.id));
+      enrolledList.innerHTML = enrolled.map(c => {
+        const d = new Date(c.schedule);
+        const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+              <div>
+                <div style="font-family: 'Bebas Neue', cursive; font-size: 1.2rem;">${c.name}</div>
+                <div style="font-size: 0.8rem; color: var(--muted);">with <strong>${c.instructor}</strong></div>
+              </div>
+              <span class="course-type-badge">${c.type}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--muted); display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+              <span>📅 ${dateStr}</span>
+              <span>🕐 ${timeStr}</span>
+              <span>⏱ ${fmtDur(c.dur)}</span>
+            </div>
+            <button class="enroll-btn enrolled" onclick="toggleEnroll(${c.id}, this)" style="width: 100%;">✓ Enrolled — Tap to cancel</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Load trainer bookings
+    const bookingsJson = await api('GET', '/trainers/my-bookings');
+    const bookingsList = document.getElementById('bookings-list');
+    const bookings = bookingsJson.data || [];
+    
+    if (!bookings.length) {
+      bookingsList.innerHTML = '<div style="color: var(--muted); padding: 2rem; text-align: center;">No trainer sessions booked yet.</div>';
+    } else {
+      bookingsList.innerHTML = bookings.map(b => {
+        const isCompleted = b.status === 'completed';
+        return `
+          <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+              <div>
+                <div style="font-family: 'Bebas Neue', cursive; font-size: 1.2rem;">${b.trainerName}</div>
+                <div style="font-size: 0.8rem; color: var(--lime);">${b.expertise}</div>
+              </div>
+              <span class="course-type-badge">${b.status}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--muted); display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+              <span>📅 ${b.sessionDate}</span>
+              <span>🕐 ${b.sessionTime}</span>
+              <span>⏱ ${b.durationMinutes} min</span>
+            </div>
+            ${b.notes ? `<div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;">📝 ${b.notes}</div>` : ''}
+            ${isCompleted ? `<button class="review-btn" onclick="openReviewModalDirect(${b.trainerID}, ${b.bookingID})" style="width: 100%;">⭐ Leave Review</button>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    showToast('Failed to load bookings: ' + err.message, 'error');
+    document.getElementById('enrollments-list').innerHTML = '<div style="color: var(--danger); padding: 2rem;">Error loading enrollments.</div>';
+    document.getElementById('bookings-list').innerHTML = '<div style="color: var(--danger); padding: 2rem;">Error loading bookings.</div>';
+  }
+}
+
 // HELPERS
 // ══════════════════════════════════════════════════════════
 function fmtDur(h) {
@@ -997,11 +1094,27 @@ async function openReviewModal(tid) {
   }
 }
 
+async function openReviewModalDirect(tid, selectedBookingID) {
+  try {
+    const json = await api('GET', `/trainers/${tid}`);
+    selectedTrainer = mapTrainer(json.data);
+    document.getElementById('review-trainer-name').textContent = selectedTrainer.name;
+    document.getElementById('review-trainer-expertise').textContent = selectedTrainer.expertise;
+    document.getElementById('review-trainer-rating').textContent = `${Number(selectedTrainer.averageRating || 0).toFixed(1)} / 5 (${selectedTrainer.reviewCount || 0} reviews)`;
+    await loadReviewBookings(tid);
+    document.getElementById('review-booking-id').value = selectedBookingID;
+    renderTrainerReviews(selectedTrainer.reviews || []);
+    openModal('review-modal');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
 async function loadReviewBookings(tid) {
   const select = document.getElementById('review-booking-id');
   select.innerHTML = '<option value="">Loading completed sessions...</option>';
   try {
-    const json = await api('GET', '/trainers/my/bookings?status=completed');
+    const json = await api('GET', '/trainers/my-bookings?status=completed');
     const bookings = (json.data || []).filter(b => Number(b.trainerID) === Number(tid));
     if (!bookings.length) {
       select.innerHTML = '<option value="">No completed bookings found</option>';
