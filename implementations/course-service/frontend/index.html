@@ -236,10 +236,10 @@
 </div>
   <div class="nav-user">
     <div class="nav-user-info">
-      <div class="nav-user-name">Chayocha Thongprasert</div>
-      <div class="nav-user-id">MEM495252</div>
+      <div class="nav-user-name" id="current-user-name">MEMBER</div>
+      <div class="nav-user-id" id="current-user-id">MEM-000000</div>
     </div>
-    <button class="btn-logout" onclick="showToast('Logged out.', 'info')">Logout</button>
+    <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </nav>
 
@@ -442,6 +442,36 @@ let allTrainers = [];
 let selectedTrainer = null;
 const enrolledSet   = new Set();
 const enrolledTimes = new Map(); // courseID -> { start: Date, end: Date }
+
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function renderUserHeader() {
+  const user = getStoredUser();
+  const nameEl = document.getElementById('current-user-name');
+  const idEl = document.getElementById('current-user-id');
+
+  if (nameEl) nameEl.textContent = user?.name || user?.full_name || 'MEMBER';
+  if (idEl) idEl.textContent = user?.memberId || user?.member_id || 'MEM-000000';
+}
+
+function forceLogout(message) {
+  localStorage.removeItem('token');
+  localStorage.removeItem('fitzone_token');
+  localStorage.removeItem('user');
+  TOKEN = null;
+  if (message) showToast(message, 'info');
+  setTimeout(() => { window.location.href = '/auth.html'; }, 500);
+}
+
+function logout() {
+  forceLogout('Logged out.');
+}
 
 let COURSES = [
   { id:1, name:'Morning Yoga Flow',  type:'Yoga',     level:'beginner',     instructor:'Alex Johnson', schedule:'2026-04-05T07:00', dur:1,   max:15, cur:9,  desc:'Energizing morning yoga', status:'published' },
@@ -923,6 +953,7 @@ function showToast(msg, type = '') {
 }
 
 // INIT
+renderUserHeader();
 loadCourses();
 loadTrainers();
 </script>

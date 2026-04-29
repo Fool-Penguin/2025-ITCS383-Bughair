@@ -9,7 +9,7 @@ function authenticate(req, res, next) {
     }
 
     try {
-        req.user = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        req.user = jwt.verify(token, process.env.JWT_SECRET || 'fitness_secret_key');
         next();
     } catch (error) {
         return res.status(403).json({ success: false, message: 'Invalid or expired token' });

@@ -64,7 +64,7 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ success: false, message: "Invalid credentials" });
 
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET || 'fitness_secret_key', { expiresIn: '1d' });
 
         // ✅ ส่งข้อมูลกลับไปให้ครบเพื่อให้ Frontend เก็บลง localStorage ได้ถูกต้อง
         res.json({ 

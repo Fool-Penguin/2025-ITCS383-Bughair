@@ -245,10 +245,10 @@
   </div>
   <div class="nav-user">
     <div class="nav-user-info">
-      <div class="nav-user-name">Chayocha Thongprasert</div>
-      <div class="nav-user-id">MEM495252</div>
+      <div class="nav-user-name" id="current-user-name">MEMBER</div>
+      <div class="nav-user-id" id="current-user-id">MEM-000000</div>
     </div>
-    <button class="btn-logout" onclick="showToast('Logged out.', 'info')">Logout</button>
+    <button class="btn-logout" onclick="logout()">Logout</button>
   </div>
 </nav>
 
@@ -503,7 +503,7 @@
 // ══════════════════════════════════════════════════════════
 // CONFIG — เปลี่ยน API_BASE ถ้า deploy ที่อื่น
 // ══════════════════════════════════════════════════════════
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'http://localhost:3003/api';
 let TOKEN = localStorage.getItem('fitzone_token') || null;
 
 // ══════════════════════════════════════════════════════════
@@ -518,6 +518,23 @@ let currentFilterExp   = 'all';
 const enrolledSet   = new Set();
 const enrolledTimes = new Map();
 
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function renderUserHeader() {
+  const user = getStoredUser();
+  const nameEl = document.getElementById('current-user-name');
+  const idEl = document.getElementById('current-user-id');
+
+  if (nameEl) nameEl.textContent = user?.name || user?.full_name || 'MEMBER';
+  if (idEl) idEl.textContent = user?.memberId || user?.member_id || 'MEM-000000';
+}
+
 // ══════════════════════════════════════════════════════════
 // API HELPER
 // ══════════════════════════════════════════════════════════
@@ -529,6 +546,9 @@ async function api(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   const res  = await fetch(API_BASE + path, opts);
   const json = await res.json().catch(() => ({}));
+  if (res.status === 403) {
+    forceLogout('Your session expired. Please sign in again.');
+  }
   if (!res.ok) throw new Error(json.message || `HTTP ${res.status}`);
   return json;
 }
@@ -594,6 +614,17 @@ function showPage(page, btn, pswID) {
   document.getElementById('nav-courses').classList.toggle('active', page === 'courses');
   document.getElementById('nav-mybookings').classList.toggle('active', page === 'mybookings');
 }
+function forceLogout(message) {
+  localStorage.removeItem('token');
+  localStorage.removeItem('fitzone_token');
+  localStorage.removeItem('user');
+  TOKEN = null;
+  if (message) showToast(message, 'error');
+  setTimeout(() => { window.location.href = '/auth.html'; }, 500);
+}
+function logout() {
+  forceLogout('Logged out.');
+}
 function focusCourses() { showPage('courses', null, 'psw-courses'); }
 function focusMyBookings() { 
   document.getElementById('nav-courses').classList.remove('active');
@@ -606,29 +637,31 @@ async function loadMyBookings() {
   try {
     // Load enrolled courses
     const enrolledList = document.getElementById('enrollments-list');
-    if (enrolledSet.size === 0) {
+    const enrollmentsJson = await api('GET', '/courses/my/enrollments');
+    const enrollments = enrollmentsJson.data || [];
+
+    if (!enrollments.length) {
       enrolledList.innerHTML = '<div style="color: var(--muted); padding: 2rem; text-align: center;">No courses enrolled yet.</div>';
     } else {
-      const enrolled = allCourses.filter(c => enrolledSet.has(c.id));
-      enrolledList.innerHTML = enrolled.map(c => {
-        const d = new Date(c.schedule);
+      enrolledList.innerHTML = enrollments.map(enrollment => {
+        const d = new Date(enrollment.schedule);
         const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         return `
           <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
               <div>
-                <div style="font-family: 'Bebas Neue', cursive; font-size: 1.2rem;">${c.name}</div>
-                <div style="font-size: 0.8rem; color: var(--muted);">with <strong>${c.instructor}</strong></div>
+                <div style="font-family: 'Bebas Neue', cursive; font-size: 1.2rem;">${enrollment.courseName}</div>
+                <div style="font-size: 0.8rem; color: var(--muted);">with <strong>${enrollment.instructor}</strong></div>
               </div>
-              <span class="course-type-badge">${c.type}</span>
+              <span class="course-type-badge">${enrollment.courseType}</span>
             </div>
             <div style="font-size: 0.85rem; color: var(--muted); display: flex; gap: 1rem; margin-bottom: 0.75rem;">
               <span>📅 ${dateStr}</span>
               <span>🕐 ${timeStr}</span>
-              <span>⏱ ${fmtDur(c.dur)}</span>
+              <span>⏱ ${fmtDur(Number(enrollment.durationHours || 1))}</span>
             </div>
-            <button class="enroll-btn enrolled" onclick="toggleEnroll(${c.id}, this)" style="width: 100%;">✓ Enrolled — Tap to cancel</button>
+            <button class="enroll-btn enrolled" onclick="toggleEnroll(${enrollment.courseID}, this)" style="width: 100%;">✓ Enrolled — Tap to cancel</button>
           </div>
         `;
       }).join('');
@@ -805,6 +838,9 @@ async function toggleEnroll(cid, btn) {
       btn.textContent = 'Enroll Now'; btn.className = 'enroll-btn'; btn.disabled = false;
       showToast('Enrollment cancelled.');
       updateCapacityUI(c); refreshAllConflicts();
+      if (document.getElementById('page-mybookings').classList.contains('active')) {
+        loadMyBookings();
+      }
     } catch (err) { showToast(err.message, 'error'); }
   } else {
     if (c.cur >= c.max) return;
@@ -820,6 +856,9 @@ async function toggleEnroll(cid, btn) {
       btn.textContent = '✓ Enrolled — tap to cancel'; btn.className = 'enroll-btn enrolled';
       showToast('Successfully enrolled!');
       updateCapacityUI(c); refreshAllConflicts();
+      if (document.getElementById('page-mybookings').classList.contains('active')) {
+        loadMyBookings();
+      }
     } catch (err) { showToast(err.message, 'error'); }
   }
 }
@@ -1201,6 +1240,7 @@ function showToast(msg, type = '') {
 }
 
 // INIT
+renderUserHeader();
 loadCourses();
 loadTrainers();
 </script>
