@@ -55,7 +55,37 @@ const getAllTrainers = (req, res) => {
     query += ' ORDER BY name ASC';
     const trainers = db.prepare(query).all(...params);
 
-    // Attach availability to each trainer
+    // Attach availability and average rating to each trainer
+    const avail = db.prepare('SELECT * FROM TrainerAvailability WHERE trainerID = ?');
+    const ratingQuery = db.prepare(`
+      SELECT ROUND(AVG(rating), 1) as avgRating, COUNT(*) as reviewCount 
+      FROM TrainerReviews WHERE trainerID = ? AND status = 'visible'
+    `);
+    const result = trainers.map(t => {
+      const stats = ratingQuery.get(t.trainerID);
+      return { 
+        ...t, 
+        availability: avail.all(t.trainerID),
+        avgRating: stats.avgRating || 0,
+        reviewCount: stats.reviewCount || 0
+      };
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+
+// ─── ADMIN: Get All Trainers (including inactive) ────────────────────────────
+const getAllTrainersAdmin = (req, res) => {
+  try {
+    const { expertise } = req.query;
+    let query = 'SELECT * FROM Trainers WHERE 1=1';
+    const params = [];
+    if (expertise) { query += ' AND expertise LIKE ?'; params.push(`%${expertise}%`); }
+    query += ' ORDER BY name ASC';
+    const trainers = db.prepare(query).all(...params);
+
     const avail = db.prepare('SELECT * FROM TrainerAvailability WHERE trainerID = ?');
     const result = trainers.map(t => ({ ...t, availability: avail.all(t.trainerID) }));
     res.json({ success: true, data: result });
@@ -70,7 +100,16 @@ const getTrainerById = (req, res) => {
     const trainer = db.prepare('SELECT * FROM Trainers WHERE trainerID = ?').get(req.params.id);
     if (!trainer) return res.status(404).json({ success: false, message: 'Trainer not found' });
     const availability = db.prepare('SELECT * FROM TrainerAvailability WHERE trainerID = ?').all(req.params.id);
-    res.json({ success: true, data: { ...trainer, availability } });
+    const stats = db.prepare(`
+      SELECT ROUND(AVG(rating), 1) as avgRating, COUNT(*) as reviewCount 
+      FROM TrainerReviews WHERE trainerID = ? AND status = 'visible'
+    `).get(req.params.id);
+    res.json({ success: true, data: { 
+      ...trainer, 
+      availability,
+      avgRating: stats.avgRating || 0,
+      reviewCount: stats.reviewCount || 0
+    }});
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
@@ -164,6 +203,6 @@ const updateTrainerSchedule = (req, res) => {
 
 module.exports = {
   createTrainer, updateTrainer, deleteTrainer,
-  getAllTrainers, getTrainerById,
+  getAllTrainers, getAllTrainersAdmin, getTrainerById,
   bookTrainer, getMyBookings, updateTrainerSchedule
 };

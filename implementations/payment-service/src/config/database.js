@@ -25,10 +25,34 @@ function initializeDatabase() {
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       full_name TEXT NOT NULL,
+      phone TEXT,
+      profile_picture TEXT,
       role TEXT DEFAULT 'member',
       created_at TEXT DEFAULT (datetime('now'))
     );
 
+    -- Password Reset Tokens Table
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token TEXT UNIQUE NOT NULL,
+      expires_at TEXT NOT NULL,
+      used INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+    );
+  `);
+
+  // Migration: Add new columns to existing Users table (safe — ignores if already exists)
+  const userColumns = db.pragma('table_info(Users)').map(c => c.name);
+  if (!userColumns.includes('phone')) {
+    db.exec("ALTER TABLE Users ADD COLUMN phone TEXT");
+  }
+  if (!userColumns.includes('profile_picture')) {
+    db.exec("ALTER TABLE Users ADD COLUMN profile_picture TEXT");
+  }
+
+  db.exec(`
     --Membership Subscriptions Table
     CREATE TABLE IF NOT EXISTS Memberships (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -4,6 +4,7 @@ const cors = require('cors');
 const initDb = require('./config/initDb');
 const courseRoutes = require('./routes/courseRoutes');
 const trainerRoutes = require('./routes/trainerRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -20,6 +21,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/courses', courseRoutes);
 app.use('/api/trainers', trainerRoutes);
+app.use('/api/trainers', reviewRoutes);
 
 app.use((req, res) => res.status(404).json({ success: false, message: 'Route not found' }));
 

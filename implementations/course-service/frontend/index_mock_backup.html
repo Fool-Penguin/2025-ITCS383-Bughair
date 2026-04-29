@@ -224,19 +224,22 @@
 <body>
 
 <nav>
-  <a href="/home" class="nav-logo" style="text-decoration: none;">FITNESS</a>
+  <a href="http://localhost:8080/home" class="nav-logo" style="text-decoration: none;">FITNESS</a>
   <div class="nav-links">
-    <a href="/home" class="nav-link" style="text-decoration: none;">Dashboard</a>
-    <a href="/reservation-service/frontend/index.html" class="nav-link" style="text-decoration: none;">Courts</a>
+    <a href="http://localhost:8080/home" class="nav-link" style="text-decoration: none;">Dashboard</a>
+
+    <a href="../../reservation-service/frontend/index.html" class="nav-link" style="text-decoration: none;">Courts</a>
+
     <button class="nav-link active" id="nav-courses" onclick="focusCourses()">Courses</button>
-    <a href="/payment-service/fitness-payment-frontend.html" class="nav-link" style="text-decoration: none;">Payments</a>
-  </div>
+
+    <a href="../../payment-service/fitness-payment-frontend.html" class="nav-link" style="text-decoration: none;">Payments</a>
+</div>
   <div class="nav-user">
     <div class="nav-user-info">
-      <div class="nav-user-name" id="nav-user-name">LOADING...</div>
-      <div class="nav-user-id" id="nav-user-id">MEM-000000</div>
+      <div class="nav-user-name">Chayocha Thongprasert</div>
+      <div class="nav-user-id">MEM495252</div>
     </div>
-    <button class="btn-logout" onclick="doLogout()">Logout</button>
+    <button class="btn-logout" onclick="showToast('Logged out.', 'info')">Logout</button>
   </div>
 </nav>
 
@@ -431,67 +434,30 @@
 
 <script>
 // ══════════════════════════════════════════════════════════
-// CONFIG — เปลี่ยน API_BASE ถ้า deploy ที่อื่น
-// ══════════════════════════════════════════════════════════
-const API_BASE = 'http://localhost:3003/api';
-let TOKEN = localStorage.getItem('token') || null;
-
-// ══════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════
 let role        = 'customer';
 let allCourses  = [];
 let allTrainers = [];
-let selectedTrainer   = null;
-let currentFilterLevel = 'all';
-let currentFilterExp   = 'all';
+let selectedTrainer = null;
 const enrolledSet   = new Set();
-const enrolledTimes = new Map();
+const enrolledTimes = new Map(); // courseID -> { start: Date, end: Date }
 
-// ══════════════════════════════════════════════════════════
-// API HELPER
-// ══════════════════════════════════════════════════════════
-async function api(method, path, body) {
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: `Bearer ${TOKEN}` } : {}) }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  const res  = await fetch(API_BASE + path, opts);
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json.message || `HTTP ${res.status}`);
-  return json;
-}
+let COURSES = [
+  { id:1, name:'Morning Yoga Flow',  type:'Yoga',     level:'beginner',     instructor:'Alex Johnson', schedule:'2026-04-05T07:00', dur:1,   max:15, cur:9,  desc:'Energizing morning yoga', status:'published' },
+  { id:2, name:'CrossFit HIIT',      type:'CrossFit', level:'advanced',     instructor:'Maria Santos', schedule:'2026-04-06T18:00', dur:1,   max:12, cur:11, desc:'High-intensity interval training', status:'published' },
+  { id:3, name:'Badminton Basics',   type:'Badminton',level:'beginner',     instructor:'Tom Chen',    schedule:'2026-04-07T10:00', dur:1.5, max:10, cur:3,  desc:'Fundamental badminton techniques', status:'published' },
+  { id:4, name:'Power Lifting 101',  type:'Strength', level:'intermediate', instructor:'Maria Santos', schedule:'2026-04-08T16:00', dur:2,   max:8,  cur:5,  desc:'Barbell strength fundamentals', status:'published' },
+  { id:5, name:'Pilates Core',       type:'Pilates',  level:'intermediate', instructor:'Alex Johnson', schedule:'2026-04-09T09:00', dur:1,   max:12, cur:7,  desc:'Deep core stability', status:'published' },
+];
+let nextID = 6;
 
-// map backend field names → frontend
-function mapCourse(c) {
-  return {
-    id:           c.courseID,
-    name:         c.courseName,
-    type:         c.courseType,
-    level:        c.fitnessLevel,
-    instructor:   c.instructor,
-    schedule:     c.schedule,
-    dur:          c.durationHours   || 1,
-    max:          c.maxAttendees,
-    cur:          c.currentAttendees || 0,
-    desc:         c.description,
-    status:       c.status,
-    cancelReason: c.cancelReason || null
-  };
-}
-function mapTrainer(t) {
-  return {
-    id:        t.trainerID,
-    name:      t.name,
-    expertise: t.expertise,
-    bio:       t.bio       || '',
-    phone:     t.phone     || '',
-    email:     t.email     || '',
-    avail:     t.avail     || '',
-    status:    t.status    || 'active'
-  };
-}
+let TRAINERS = [
+  { id:1, name:'Alex Johnson', expertise:'Yoga, Pilates',      bio:'Certified yoga instructor with 8 years experience.',     phone:'081-000-0001', email:'alex@gym.com',   avail:'Monday|08:00|17:00,Wednesday|08:00|17:00,Friday|08:00|17:00',   status:'active' },
+  { id:2, name:'Maria Santos', expertise:'CrossFit, Strength', bio:'CrossFit Level 2 coach, former national athlete.',       phone:'081-000-0002', email:'maria@gym.com',  avail:'Tuesday|09:00|18:00,Thursday|09:00|18:00,Saturday|09:00|14:00', status:'active' },
+  { id:3, name:'Tom Chen',     expertise:'Badminton, Cardio',  bio:'Professional badminton trainer with national experience.',phone:'081-000-0003', email:'tom@gym.com',    avail:'Monday|10:00|19:00,Wednesday|10:00|19:00,Saturday|08:00|16:00', status:'active' },
+];
+let nextTrainerID = 4;
 
 // ══════════════════════════════════════════════════════════
 // ROLE
@@ -503,8 +469,8 @@ function setRole(r) {
   document.getElementById('admin-banner').classList.toggle('show', r==='admin');
   document.getElementById('admin-toolbar').classList.toggle('show', r==='admin');
   document.getElementById('admin-toolbar-trainers').classList.toggle('show', r==='admin');
-  loadCourses(currentFilterLevel);
-  loadTrainers(currentFilterExp);
+  renderCourses(allCourses);
+  loadTrainers();
   showToast(r === 'admin' ? '⚡ Admin mode' : '👤 Customer mode', 'info');
 }
 
@@ -514,11 +480,15 @@ function setRole(r) {
 function showPage(page, btn, pswID) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
+  // Update page-switcher buttons
   document.querySelectorAll('.page-switch-btn').forEach(b => b.classList.remove('active'));
   if (pswID) document.getElementById(pswID).classList.add('active');
   else btn.classList.add('active');
 }
-function focusCourses() { showPage('courses', null, 'psw-courses'); }
+
+function focusCourses() {
+  showPage('courses', null, 'psw-courses');
+}
 
 // ══════════════════════════════════════════════════════════
 // HELPERS
@@ -529,14 +499,15 @@ function fmtDur(h) {
   if (Number.isInteger(h)) return `${h} hrs`;
   return `${Math.floor(h)} hr ${Math.round((h%1)*60)} min`;
 }
+
 function getConflict(courseID) {
-  const c = allCourses.find(x => x.id === courseID);
+  const c = COURSES.find(x => x.id === courseID);
   if (!c) return null;
   const cS = new Date(c.schedule), cE = new Date(cS.getTime() + c.dur * 3600000);
   for (const [eid, t] of enrolledTimes) {
     if (eid === courseID) continue;
     if (cS < t.end && cE > t.start) {
-      const other = allCourses.find(x => x.id === eid);
+      const other = COURSES.find(x => x.id === eid);
       return other ? other.name : 'another course';
     }
   }
@@ -544,72 +515,76 @@ function getConflict(courseID) {
 }
 
 // ══════════════════════════════════════════════════════════
-// COURSES — LOAD & RENDER
+// COURSES — RENDER
 // ══════════════════════════════════════════════════════════
-async function loadCourses(filterLevel = 'all') {
-  currentFilterLevel = filterLevel;
-  try {
-    const endpoint = role === 'admin' ? '/courses/admin/all' : '/courses';
-    const params   = filterLevel !== 'all' ? `?fitnessLevel=${filterLevel}` : '';
-    const json     = await api('GET', endpoint + params);
-    allCourses     = json.data.map(mapCourse);
-    renderCourses(allCourses);
-  } catch (err) {
-    showToast('Failed to load courses: ' + err.message, 'error');
-  }
+function loadCourses(filterLevel = 'all') {
+  const base = role === 'admin' ? COURSES : COURSES.filter(c => c.status === 'published');
+  allCourses = filterLevel === 'all' ? base : base.filter(c => c.level === filterLevel);
+  renderCourses(allCourses);
 }
 
-// Helper 1: คำนวณสถานะปุ่ม Enroll สำหรับ Customer
 function getEnrollButtonProps(c, isEnrolled, conflict, isFull) {
-  if (c.status === 'cancelled') return { txt: 'Cancelled', cls: 'enroll-btn', dis: 'disabled' };
-  if (isEnrolled) return { txt: '✓ Enrolled — tap to cancel', cls: 'enroll-btn enrolled', dis: '' };
-  if (conflict) return { txt: '⚠ Schedule Conflict', cls: 'enroll-btn conflict', dis: 'disabled' };
-  if (isFull) return { txt: 'Class Full', cls: 'enroll-btn', dis: 'disabled' };
-  return { txt: 'Enroll Now', cls: 'enroll-btn', dis: '' };
+  if (c.status === 'cancelled') return { txt: 'Cancelled', cls: 'enroll-btn', dis: true };
+  if (isEnrolled) return { txt: '✓ Enrolled — tap to cancel', cls: 'enroll-btn enrolled', dis: false };
+  if (conflict) return { txt: '⚠ Schedule Conflict', cls: 'enroll-btn conflict', dis: true };
+  if (isFull) return { txt: 'Class Full', cls: 'enroll-btn', dis: true };
+  return { txt: 'Enroll Now', cls: 'enroll-btn', dis: false };
 }
 
-// Helper 2: สร้าง HTML ปุ่มสำหรับ Admin
-function renderAdminButtons(c) {
-  const cancelBtnHtml = c.status === 'cancelled'
+function getAdminActionsHtml(c) {
+  const cancelOrUndo = c.status === 'cancelled'
     ? `<button class="btn-undo-cancel" onclick="undoCancel(${c.id})">↩ Undo Cancel</button>`
     : `<button class="btn-cancel-course" onclick="openCancelModal(${c.id})">✕ Cancel</button>`;
 
   return `
     <div class="admin-actions show">
       <button class="btn-edit" onclick="openEditModal(${c.id})">✏ Edit</button>
-      ${cancelBtnHtml}
+      ${cancelOrUndo}
       <button class="btn-delete" onclick="deleteCourse(${c.id})">🗑 Delete</button>
     </div>`;
+}
+
+// ฟังก์ชันสร้าง HTML ส่วนเพิ่มสำหรับ Customer (Complexity: 3)
+function getCustomerUI(c, isEnrolled, isFull) {
+  const conflict = !isEnrolled ? getConflict(c.id) : null;
+  const btn = getEnrollButtonProps(c, isEnrolled, conflict, isFull);
+  
+  const conflictHtml = `<div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>`;
+  const reasonHtml = (c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box">${c.cancelReason}</div>` : '';
+  const enrollBtn = `<button class="${btn.cls}" ${btn.dis ? 'disabled' : ''} onclick="toggleEnroll(${c.id},this)">${btn.txt}</button>`;
+  
+  return reasonHtml + conflictHtml + enrollBtn;
+}
+
+// ฟังก์ชันสร้าง String วันที่และเวลา (Complexity: 1)
+function getFormattedSchedule(schedule) {
+  const d = new Date(schedule);
+  return {
+    date: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+    time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  };
 }
 
 function renderCourses(list) {
   const grid = document.getElementById('courses-grid');
   document.getElementById('course-count').textContent = `${list.length} courses`;
+
   if (!list.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--muted)">No courses found.</div>`;
     return;
   }
 
   grid.innerHTML = list.map(c => {
-    const isEnrolled = enrolledSet.has(c.id);
-    const d = new Date(c.schedule);
-    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-    let extraHtml = '';
-    if (role === 'customer') {
-      const conflict = !isEnrolled ? getConflict(c.id) : null;
-      const btn = getEnrollButtonProps(c, isEnrolled, conflict, c.cur >= c.max);
-      extraHtml = `
-        ${(c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box"><span class="crb-label">Reason</span>${c.cancelReason}</div>` : ''}
-        <div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>
-        <button class="${btn.cls}" ${btn.dis} onclick="toggleEnroll(${c.id},this)">${btn.txt}</button>`;
-    } else if (role === 'admin') {
-      extraHtml = renderAdminButtons(c);
-    }
-
+    const isFull = c.cur >= c.max;
     const pct = Math.round((c.cur / c.max) * 100);
-    const fillCls = c.cur >= c.max ? 'full' : pct >= 80 ? 'warn' : '';
+    const fillCls = isFull ? 'full' : (pct >= 80 ? 'warn' : '');
+    const isEnrolled = enrolledSet.has(c.id);
+    const sched = getFormattedSchedule(c.schedule);
+
+    // ลดความซับซ้อนด้วยการเลือก UI ตาม Role ล่วงหน้า
+    const extraHtml = (role === 'customer') 
+      ? getCustomerUI(c, isEnrolled, isFull)
+      : (role === 'admin' ? getAdminActionsHtml(c) : '');
 
     return `
     <div class="course-card ${role === 'admin' ? 'admin-hover' : 'customer-hover'}${c.status === 'cancelled' ? ' is-cancelled' : ''}" id="card-${c.id}">
@@ -622,7 +597,8 @@ function renderCourses(list) {
         <div class="course-name">${c.name}</div>
         <div class="course-instructor">with <strong>${c.instructor}</strong></div>
         <div class="course-meta">
-          <div class="meta-item">📅 ${dateStr}</div> <div class="meta-item">🕐 ${timeStr}</div>
+          <div class="meta-item">📅 ${sched.date}</div>
+          <div class="meta-item">🕐 ${sched.time}</div>
           <div class="meta-item"><span class="hours-badge">⏱ ${fmtDur(c.dur)}</span></div>
         </div>
         <div class="capacity-bar"><div class="capacity-fill ${fillCls}" style="width:${pct}%"></div></div>
@@ -640,48 +616,52 @@ function filterCourses(level, btn) {
 }
 
 // ══════════════════════════════════════════════════════════
-// CUSTOMER: ENROLL / CANCEL
+// CUSTOMER: ENROLL / CANCEL + CONFLICT CHECK
 // ══════════════════════════════════════════════════════════
-async function toggleEnroll(cid, btn) {
-  const c = allCourses.find(x => x.id === cid);
+function toggleEnroll(cid, btn) {
+  const c = COURSES.find(x => x.id === cid);
   if (!c || c.status === 'cancelled') return;
 
   if (enrolledSet.has(cid)) {
-    // CANCEL enrollment
-    try {
-      await api('POST', '/courses/enroll/cancel', { courseID: cid });
-      enrolledSet.delete(cid); enrolledTimes.delete(cid);
-      c.cur = Math.max(0, c.cur - 1);
-      btn.textContent = 'Enroll Now'; btn.className = 'enroll-btn'; btn.disabled = false;
-      showToast('Enrollment cancelled.');
-      updateCapacityUI(c); refreshAllConflicts();
-    } catch (err) { showToast(err.message, 'error'); }
+    // CANCEL
+    enrolledSet.delete(cid);
+    enrolledTimes.delete(cid);
+    c.cur = Math.max(0, c.cur - 1);
+    btn.textContent = 'Enroll Now';
+    btn.className   = 'enroll-btn';
+    btn.disabled    = false;
+    showToast('Enrollment cancelled.');
   } else {
+    // CHECK CONFLICT first
     if (c.cur >= c.max) return;
     const conflict = getConflict(cid);
     if (conflict) { showToast(`⚠ Conflicts with "${conflict}"`, 'error'); return; }
+
     // ENROLL
-    try {
-      await api('POST', '/courses/enroll', { courseID: cid });
-      enrolledSet.add(cid);
-      const s = new Date(c.schedule);
-      enrolledTimes.set(cid, { start: s, end: new Date(s.getTime() + c.dur * 3600000) });
-      c.cur++;
-      btn.textContent = '✓ Enrolled — tap to cancel'; btn.className = 'enroll-btn enrolled';
-      showToast('Successfully enrolled!');
-      updateCapacityUI(c); refreshAllConflicts();
-    } catch (err) { showToast(err.message, 'error'); }
+    enrolledSet.add(cid);
+    const s = new Date(c.schedule);
+    enrolledTimes.set(cid, { start: s, end: new Date(s.getTime() + c.dur * 3600000) });
+    c.cur++;
+    btn.textContent = '✓ Enrolled — tap to cancel';
+    btn.className   = 'enroll-btn enrolled';
+    showToast('Successfully enrolled!');
   }
+
+  // Update capacity display inline
+  updateCapacityUI(c);
+  refreshAllConflicts();
 }
 
 function updateCapacityUI(c) {
-  const cap = document.getElementById('cap-' + c.id);
-  const bar = document.querySelector(`#card-${c.id} .capacity-fill`);
+  const cap  = document.getElementById('cap-' + c.id);
+  const bar  = document.querySelector(`#card-${c.id} .capacity-fill`);
   if (!cap || !bar) return;
-  const pct = Math.round((c.cur / c.max) * 100), isFull = c.cur >= c.max;
-  cap.textContent = `${c.cur} / ${c.max} spots filled`;
-  bar.style.width = pct + '%';
-  bar.className   = 'capacity-fill' + (isFull ? ' full' : pct >= 80 ? ' warn' : '');
+  const pct    = Math.round((c.cur / c.max) * 100);
+  const isFull = c.cur >= c.max;
+  cap.textContent  = `${c.cur} / ${c.max} spots filled`;
+  bar.style.width  = pct + '%';
+  bar.className    = 'capacity-fill' + (isFull ? ' full' : pct >= 80 ? ' warn' : '');
+  // If now full and not enrolled, disable button
   if (isFull && !enrolledSet.has(c.id)) {
     const btn = document.querySelector(`#card-${c.id} .enroll-btn`);
     if (btn) { btn.textContent = 'Class Full'; btn.disabled = true; btn.className = 'enroll-btn'; }
@@ -689,12 +669,15 @@ function updateCapacityUI(c) {
 }
 
 function refreshAllConflicts() {
-  allCourses.filter(c => c.status === 'published').forEach(c => {
+  COURSES.filter(c => c.status === 'published').forEach(c => {
     if (enrolledSet.has(c.id)) return;
     const cw  = document.getElementById('cw-' + c.id);
     const btn = document.querySelector(`#card-${c.id} .enroll-btn`);
-    if (!cw || !btn) return;
-    const conflict = getConflict(c.id), isFull = c.cur >= c.max;
+    if (!cw || !btn || btn.disabled && !btn.classList.contains('conflict')) return;
+
+    const conflict = getConflict(c.id);
+    const isFull   = c.cur >= c.max;
+
     if (conflict) {
       cw.innerHTML = `⚠ Conflicts with <strong style="margin-left:3px">${conflict}</strong>`;
       cw.classList.add('show');
@@ -707,12 +690,12 @@ function refreshAllConflicts() {
 }
 
 // ══════════════════════════════════════════════════════════
-// ADMIN: CREATE / EDIT COURSE
+// ADMIN: CREATE / EDIT
 // ══════════════════════════════════════════════════════════
 function openCreateModal() {
   document.getElementById('form-modal-title').textContent = 'CREATE COURSE';
   document.getElementById('edit-id').value = '';
-  ['f-name','f-type','f-instructor','f-desc'].forEach(id => document.getElementById(id).value = '');
+  ['f-name','f-type','f-instructor','f-desc'].forEach(id => document.getElementById(id).value='');
   document.getElementById('f-level').value = 'beginner';
   document.getElementById('f-duration').value = '1';
   document.getElementById('f-max').value = '';
@@ -721,21 +704,21 @@ function openCreateModal() {
 }
 
 function openEditModal(cid) {
-  const c = allCourses.find(x => x.id === cid); if (!c) return;
+  const c = COURSES.find(x => x.id === cid); if (!c) return;
   document.getElementById('form-modal-title').textContent = 'EDIT COURSE';
-  document.getElementById('edit-id').value       = cid;
-  document.getElementById('f-name').value        = c.name;
-  document.getElementById('f-type').value        = c.type;
-  document.getElementById('f-instructor').value  = c.instructor;
-  document.getElementById('f-level').value       = c.level;
-  document.getElementById('f-schedule').value    = c.schedule.replace(' ', 'T').slice(0,16);
-  document.getElementById('f-duration').value    = c.dur;
-  document.getElementById('f-max').value         = c.max;
-  document.getElementById('f-desc').value        = c.desc || '';
+  document.getElementById('edit-id').value        = cid;
+  document.getElementById('f-name').value         = c.name;
+  document.getElementById('f-type').value         = c.type;
+  document.getElementById('f-instructor').value   = c.instructor;
+  document.getElementById('f-level').value        = c.level;
+  document.getElementById('f-schedule').value     = c.schedule;
+  document.getElementById('f-duration').value     = c.dur;
+  document.getElementById('f-max').value          = c.max;
+  document.getElementById('f-desc').value         = c.desc || '';
   openModal('course-form-modal');
 }
 
-async function submitCourseForm() {
+function submitCourseForm() {
   const name  = document.getElementById('f-name').value.trim();
   const type  = document.getElementById('f-type').value.trim();
   const instr = document.getElementById('f-instructor').value.trim();
@@ -747,78 +730,74 @@ async function submitCourseForm() {
   const eid   = document.getElementById('edit-id').value;
   if (!name || !type || !instr || !sched || !max) { showToast('Please fill all required fields.', 'error'); return; }
 
-  const body = { courseName: name, courseType: type, instructor: instr,
-                 fitnessLevel: level, schedule: sched, durationHours: dur,
-                 maxAttendees: max, description: desc };
-  try {
-    if (eid) { await api('PUT',  `/courses/${eid}`, body); showToast('Course updated.', 'info'); }
-    else     { await api('POST', '/courses', body);        showToast('Course created!', 'info'); }
-    closeModal('course-form-modal');
-    await loadCourses(currentFilterLevel);
-  } catch (err) { showToast(err.message, 'error'); }
+  if (eid) {
+    const idx = COURSES.findIndex(c => c.id === parseInt(eid));
+    if (idx >= 0) { COURSES[idx] = { ...COURSES[idx], name, type, instructor:instr, level, schedule:sched, dur, max, desc }; }
+    showToast('Course updated.', 'info');
+  } else {
+    COURSES.push({ id:nextID++, name, type, instructor:instr, level, schedule:sched, dur, max, cur:0, desc, status:'published' });
+    showToast('Course created!', 'info');
+  }
+  closeModal('course-form-modal');
+  loadCourses();
 }
 
 // ══════════════════════════════════════════════════════════
-// ADMIN: CANCEL / UNDO / DELETE COURSE
+// ADMIN: CANCEL (reason required — req 1.6.6)
 // ══════════════════════════════════════════════════════════
 function openCancelModal(cid) {
-  document.getElementById('cancel-id').value    = cid;
+  document.getElementById('cancel-id').value = cid;
   document.getElementById('cancel-reason').value = '';
   openModal('cancel-modal');
 }
 
-async function confirmCancel() {
-  const cid    = document.getElementById('cancel-id').value;
+function confirmCancel() {
+  const cid    = parseInt(document.getElementById('cancel-id').value);
   const reason = document.getElementById('cancel-reason').value.trim();
   if (!reason) { showToast('Cancellation reason required.', 'error'); return; }
-  try {
-    await api('PATCH', `/courses/${cid}/cancel`, { cancelReason: reason });
-    closeModal('cancel-modal');
-    await loadCourses(currentFilterLevel);
-    showToast('Course cancelled.', 'info');
-  } catch (err) { showToast(err.message, 'error'); }
+  const c = COURSES.find(x => x.id === cid);
+  if (c) { c.status = 'cancelled'; c.cancelReason = reason; }
+  closeModal('cancel-modal');
+  loadCourses();
+  showToast('Course cancelled.', 'info');
 }
 
-async function undoCancel(cid) {
-  try {
-    await api('PATCH', `/courses/${cid}/undo-cancel`);
-    await loadCourses(currentFilterLevel);
-    showToast('Cancellation reversed — course is published again.', 'info');
-  } catch (err) { showToast(err.message, 'error'); }
-}
-
-async function deleteCourse(cid) {
-  try {
-    await api('DELETE', `/courses/${cid}`);
-    enrolledSet.delete(cid); enrolledTimes.delete(cid);
-    await loadCourses(currentFilterLevel);
-    showToast('Course deleted.', 'info');
-  } catch (err) { showToast(err.message, 'error'); }
+function undoCancel(cid) {
+  const c = COURSES.find(x => x.id === cid);
+  if (!c) return;
+  c.status = 'published';
+  delete c.cancelReason;
+  loadCourses();
+  showToast('Cancellation reversed — course is published again.', 'info');
 }
 
 // ══════════════════════════════════════════════════════════
-// TRAINERS — LOAD & RENDER
+// ADMIN: DELETE
 // ══════════════════════════════════════════════════════════
-async function loadTrainers(filterExp = 'all') {
-  currentFilterExp = filterExp;
-  try {
-    const endpoint = role === 'admin' ? '/trainers/admin/all' : '/trainers';
-    const params   = filterExp !== 'all' ? `?expertise=${filterExp}` : '';
-    const json     = await api('GET', endpoint + params);
-    const list     = json.data.map(mapTrainer);
-    renderTrainers(list);
-  } catch (err) {
-    showToast('Failed to load trainers: ' + err.message, 'error');
-  }
+function deleteCourse(cid) {
+  COURSES = COURSES.filter(c => c.id !== cid);
+  enrolledSet.delete(cid); enrolledTimes.delete(cid);
+  loadCourses();
+  showToast('Course deleted.', 'info');
+}
+
+// ══════════════════════════════════════════════════════════
+// TRAINERS
+// ══════════════════════════════════════════════════════════
+function loadTrainers(filterExp = 'all') {
+  const base = role === 'admin' ? TRAINERS : TRAINERS.filter(t => t.status === 'active');
+  const list = filterExp === 'all' ? base : base.filter(t => t.expertise.toLowerCase().includes(filterExp.toLowerCase()));
+  renderTrainers(list);
 }
 
 function renderTrainers(list) {
   document.getElementById('trainer-count').textContent = `${list.length} trainers`;
   document.getElementById('trainers-grid').innerHTML = list.map(t => {
-    const ini   = t.name.split(' ').map(n => n[0]).join('');
+    const ini = t.name.split(' ').map(n => n[0]).join('');
     const chips = (t.avail||'').split(',').map(a => `<span class="avail-chip">${a.split('|')[0].slice(0,3).toUpperCase()}</span>`).join('');
     const statusBadge = role === 'admin'
-      ? `<span class="trainer-status-badge ${t.status}">${t.status}</span>` : '';
+      ? `<span class="trainer-status-badge ${t.status}">${t.status}</span>`
+      : '';
     const bookOrAdmin = role === 'customer'
       ? `<button class="book-btn" onclick="openBookModal(${t.id})">Book Private Session</button>`
       : `<div class="trainer-admin-actions show">
@@ -826,7 +805,7 @@ function renderTrainers(list) {
            <button class="btn-delete" onclick="deleteTrainer(${t.id})">🗑 Delete</button>
          </div>`;
     return `
-    <div class="trainer-card" id="tcard-${t.id}">
+    <div class="trainer-card">
       <div class="trainer-avatar"><div class="avatar-initials">${ini}</div></div>
       <div class="trainer-body">
         ${statusBadge}
@@ -846,9 +825,7 @@ function filterTrainers(exp, btn) {
   loadTrainers(exp);
 }
 
-// ══════════════════════════════════════════════════════════
-// ADMIN: CREATE / EDIT TRAINER
-// ══════════════════════════════════════════════════════════
+// ── ADMIN: Add Trainer ────────────────────────────────────
 function openCreateTrainerModal() {
   document.getElementById('trainer-modal-title').textContent = 'ADD TRAINER';
   document.getElementById('edit-trainer-id').value = '';
@@ -858,26 +835,20 @@ function openCreateTrainerModal() {
 }
 
 function openEditTrainerModal(tid) {
-  // find from rendered list via DOM data or re-fetch — use stored list via allTrainers
-  const card = document.getElementById('tcard-' + tid);
-  if (!card) return;
-  // re-open modal prefilled from current trainer data stored as data attrs or just re-fetch
+  const t = TRAINERS.find(x => x.id === tid); if (!t) return;
+  document.getElementById('trainer-modal-title').textContent = 'EDIT TRAINER';
+  document.getElementById('edit-trainer-id').value = tid;
+  document.getElementById('tf-name').value      = t.name;
+  document.getElementById('tf-expertise').value = t.expertise;
+  document.getElementById('tf-bio').value       = t.bio || '';
+  document.getElementById('tf-phone').value     = t.phone || '';
+  document.getElementById('tf-email').value     = t.email || '';
+  document.getElementById('tf-avail').value     = t.avail || '';
+  document.getElementById('tf-status').value    = t.status || 'active';
   openModal('trainer-form-modal');
-  api('GET', `/trainers/${tid}`).then(json => {
-    const t = mapTrainer(json.data);
-    document.getElementById('trainer-modal-title').textContent = 'EDIT TRAINER';
-    document.getElementById('edit-trainer-id').value = tid;
-    document.getElementById('tf-name').value      = t.name;
-    document.getElementById('tf-expertise').value = t.expertise;
-    document.getElementById('tf-bio').value       = t.bio;
-    document.getElementById('tf-phone').value     = t.phone;
-    document.getElementById('tf-email').value     = t.email;
-    document.getElementById('tf-avail').value     = t.avail;
-    document.getElementById('tf-status').value    = t.status;
-  }).catch(err => { closeModal('trainer-form-modal'); showToast(err.message, 'error'); });
 }
 
-async function submitTrainerForm() {
+function submitTrainerForm() {
   const name      = document.getElementById('tf-name').value.trim();
   const expertise = document.getElementById('tf-expertise').value.trim();
   const bio       = document.getElementById('tf-bio').value.trim();
@@ -888,51 +859,44 @@ async function submitTrainerForm() {
   const eid       = document.getElementById('edit-trainer-id').value;
   if (!name || !expertise) { showToast('Name and expertise are required.', 'error'); return; }
 
-  const body = { name, expertise, bio, phone, email, avail, status };
-  try {
-    if (eid) { await api('PUT',  `/trainers/${eid}`, body); showToast('Trainer updated.', 'info'); }
-    else     { await api('POST', '/trainers', body);        showToast('Trainer added!',   'info'); }
-    closeModal('trainer-form-modal');
-    await loadTrainers(currentFilterExp);
-  } catch (err) { showToast(err.message, 'error'); }
+  if (eid) {
+    const idx = TRAINERS.findIndex(t => t.id === parseInt(eid));
+    if (idx >= 0) TRAINERS[idx] = { ...TRAINERS[idx], name, expertise, bio, phone, email, avail, status };
+    showToast('Trainer updated.', 'info');
+  } else {
+    TRAINERS.push({ id: nextTrainerID++, name, expertise, bio, phone, email, avail, status });
+    showToast('Trainer added!', 'info');
+  }
+  closeModal('trainer-form-modal');
+  loadTrainers();
 }
 
-async function deleteTrainer(tid) {
-  try {
-    await api('DELETE', `/trainers/${tid}`);
-    await loadTrainers(currentFilterExp);
-    showToast('Trainer deleted.', 'info');
-  } catch (err) { showToast(err.message, 'error'); }
+function deleteTrainer(tid) {
+  TRAINERS = TRAINERS.filter(t => t.id !== tid);
+  loadTrainers();
+  showToast('Trainer deleted.', 'info');
 }
 
 // ══════════════════════════════════════════════════════════
 // BOOK TRAINER
 // ══════════════════════════════════════════════════════════
 function openBookModal(tid) {
-  api('GET', `/trainers/${tid}`).then(json => {
-    selectedTrainer = mapTrainer(json.data);
-    document.getElementById('modal-trainer-name').textContent      = selectedTrainer.name;
-    document.getElementById('modal-trainer-expertise').textContent = selectedTrainer.expertise;
-    document.getElementById('session-date').min   = new Date().toISOString().split('T')[0];
-    document.getElementById('session-date').value = '';
-    document.getElementById('session-time').value = '';
-    openModal('book-modal');
-  }).catch(err => showToast(err.message, 'error'));
+  selectedTrainer = TRAINERS.find(t => t.id === tid); if (!selectedTrainer) return;
+  document.getElementById('modal-trainer-name').textContent      = selectedTrainer.name;
+  document.getElementById('modal-trainer-expertise').textContent = selectedTrainer.expertise;
+  document.getElementById('session-date').min   = new Date().toISOString().split('T')[0];
+  document.getElementById('session-date').value = '';
+  document.getElementById('session-time').value = '';
+  openModal('book-modal');
 }
 
-async function submitBooking() {
-  const date     = document.getElementById('session-date').value;
-  const time     = document.getElementById('session-time').value;
-  const duration = parseInt(document.getElementById('session-duration').value);
-  const notes    = document.getElementById('session-notes').value.trim();
-  const name     = selectedTrainer ? selectedTrainer.name : 'trainer';
-  const tid      = selectedTrainer ? selectedTrainer.id   : null;
+function submitBooking() {
+  const date = document.getElementById('session-date').value;
+  const time = document.getElementById('session-time').value;
+  const name = selectedTrainer ? selectedTrainer.name : 'trainer'; // save BEFORE closeModal
   if (!date || !time) { showToast('Please select date and time.', 'error'); return; }
-  try {
-    await api('POST', '/trainers/book', { trainerID: tid, sessionDate: date, sessionTime: time, durationMinutes: duration, notes });
-    closeModal('book-modal');
-    showToast(`Session booked with ${name} on ${date} at ${time}!`);
-  } catch (err) { showToast(err.message, 'error'); }
+  closeModal('book-modal');
+  showToast(`Session booked with ${name} on ${date} at ${time}!`);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -959,29 +923,8 @@ function showToast(msg, type = '') {
 }
 
 // INIT
-(function init() {
-  // Read user from localStorage
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  const token = localStorage.getItem('token');
-  if (user) {
-    document.getElementById('nav-user-name').textContent = (user.name || 'USER').toUpperCase();
-    document.getElementById('nav-user-id').textContent = user.memberId || user.id || '';
-    // Auto-set role based on user role
-    if (user.role === 'admin') {
-      setRole('admin');
-    }
-  }
-  if (!token) {
-    // Still load data even without auth (public endpoints)
-  }
-  loadCourses();
-  loadTrainers();
-})();
-
-function doLogout() {
-  localStorage.clear();
-  window.location.href = '/auth.html';
-}
+loadCourses();
+loadTrainers();
 </script>
 </body>
 </html>

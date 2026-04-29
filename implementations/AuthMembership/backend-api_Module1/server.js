@@ -15,8 +15,15 @@ const paymentRoutes = require('../../payment-service/src/routes/payment');
 const authRoutes = require('./src/routes/authRoutes');
 const membershipRoutes = require('./src/routes/membershipRoutes');
 
+// Course-service routes (integrated into gateway)
+const courseInitDb = require('../../course-service/src/config/initDb');
+const courseRoutes = require('../../course-service/src/routes/courseRoutes');
+const trainerRoutes = require('../../course-service/src/routes/trainerRoutes');
+const reviewRoutes = require('../../course-service/src/routes/reviewRoutes');
+
 // สั่งให้ฐานข้อมูลเตรียมพร้อม
 initializeDatabase();
+courseInitDb();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -24,7 +31,7 @@ const PORT = process.env.PORT || 8080;
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(morgan('dev'));
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 
 
 // ---------------------------------------------------------
@@ -39,6 +46,21 @@ app.get('/', (req, res) => {
 // หน้า Dashboard สำหรับสมาชิกทั่วไป (Member)
 app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, '../Frontend/Home.html'));
+});
+
+// หน้า Profile Edit
+app.get('/profile', (req, res) => {
+    res.sendFile(path.join(__dirname, '../Frontend/profile.html'));
+});
+
+// หน้า Forgot Password
+app.get('/forgot-password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../Frontend/forgot-password.html'));
+});
+
+// หน้า Reset Password
+app.get('/reset-password', (req, res) => {
+    res.sendFile(path.join(__dirname, '../Frontend/reset-password.html'));
 });
 
 // ✅ เพิ่มใหม่: หน้าเลือกสำหรับ Admin (admin_select.html)
@@ -69,6 +91,11 @@ app.use(express.static(path.join(__dirname, '../../reservation-service/frontend'
 app.use('/api/auth', authRoutes);
 app.use('/api/membership', membershipRoutes);
 app.use('/api/payments', paymentRoutes);
+
+// Course & Trainer API (integrated from course-service)
+app.use('/api/courses', courseRoutes);
+app.use('/api/trainers', trainerRoutes);
+app.use('/api/trainers', reviewRoutes);
 
 // 🌉 สะพานเชื่อม API ของเพื่อน (แก้ไขใหม่)
 // ใช้ /^\/api\/courts/ เพื่อจับทุก Path ที่ขึ้นต้นด้วย /api/courts
