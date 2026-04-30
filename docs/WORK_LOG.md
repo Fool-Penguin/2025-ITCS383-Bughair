@@ -26,6 +26,20 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 16:25 ICT - Codex
+
+**Task:** Check whether the connected database currently contains real data.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` only.
+
+**Verified:**
+- Ran `_migration` `npm run check`: schema check passed; core seeded counts were users 6, membership plans 3, trainers 3, courses 3, promotions 5, courts 5.
+- Ran read-only database summary queries for user/account and activity row counts.
+
+**Notes / Next Steps:**
+- Database contains seeded/demo data plus apparent manual activity rows; no cleanup was performed.
+
 ## 2026-04-30 16:14 ICT - Codex
 
 **Task:** Fix hardcoded/demo page wiring found during manual browser testing.
