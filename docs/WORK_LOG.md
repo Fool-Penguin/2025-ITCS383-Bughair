@@ -26,6 +26,24 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:06 ICT - Codex
+
+**Task:** Commit and push reset-password email timeout fix.
+
+**Changed:**
+- Pushed commit `72e6dd5` (`Fix password reset email timeout`) to `origin/master`.
+- Updated `docs/WORK_LOG.md` with this push record.
+
+**Verified:**
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+- Ran `node --check implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`.
+- Parsed the inline script in `implementations/AuthMembership/frontend/forgot-password.html`.
+- `git push origin master` completed successfully: `fa35770..72e6dd5 master -> master`.
+
+**Notes / Next Steps:**
+- Wait for Render to redeploy, then retest `/forgot-password`.
+- If the email still does not arrive, inspect Render logs for the exact SMTP error and rotate the exposed Gmail app password after testing.
+
 ## 2026-04-30 19:03 ICT - Codex
 
 **Task:** Review password-reset SMTP environment variable configuration from screenshot.
