@@ -1,78 +1,45 @@
-## Feature 1 — Mobile Client App (Android)
- 
-| CR ID | Description | Maintenance Type | Priority | Severity | Verification |
-|-------|-------------|-----------------|----------|----------|--------------|
-| CR-M1 | Create native Android app shell with navigation, auth, and API client. | Adaptive | High | High | Instrumented UI tests + API smoke tests |
-| CR-M2 | Implement all member-facing web features in Android (auth, courses, payments, reservations, memberships, etc.). | Adaptive | High | High | Feature parity checklist + UI tests |
-| CR-M3 | Add/adjust backend endpoints and auth flows to support mobile client needs (tokens, pagination, media upload, etc.). | Adaptive | Medium | Medium | API tests + regression tests |
- 
----
- 
-## Feature 2 — Profile Edit & Password Reset
- 
-| CR ID | Description | Maintenance Type | Priority | Severity | Verification |
-|-------|-------------|-----------------|----------|----------|--------------|
-| CR-P1 | Add endpoints to update name, phone, and profile picture; update DB schema to store profile data. | Perfective | High | High | Unit + API tests |
-| CR-P2 | Add forgot-password endpoints, secure token generation, email delivery, and password reset confirmation. | Perfective | High | Critical | Unit + integration tests + security checks |
-| CR-P3 | Add profile edit screens and forgot-password UI on web client(s). | Adaptive | High | High | UI tests + end-to-end flow validation |
-| CR-P4 | Add profile edit and forgot-password UI on Android. | Adaptive | High | High | Instrumented UI tests |
- 
----
- 
-## Feature 3 — Trainer Rating & Review System
- 
-| CR ID | Description | Maintenance Type | Priority | Severity | Verification |
-|-------|-------------|-----------------|----------|----------|--------------|
-| CR-R1 | Add DB schema for ratings and reviews; enforce unique review per member–session pair at the database level. | Perfective | Medium | High | Unit + migration tests |
-| CR-R2 | Enforce at the API layer that only members with a completed session may submit a review; reject duplicate submissions. | Perfective | High | High | API tests + access control tests |
-| CR-R3 | Display average rating and review list on trainer profiles (web + mobile). | Adaptive | Medium | High | UI snapshot tests (web) + screenshot tests (Android) |
-| CR-R4 | Add admin endpoints and UI to remove or flag inappropriate reviews. | Perfective | Medium | High | Role-based access tests |
- 
----
- 
-## Feature 4 — Booking Flow & Data Integrity
- 
-| CR ID | Description | Maintenance Type | Priority | Severity | Verification |
-|-------|-------------|-----------------|----------|----------|--------------|
-| CR-C1 | Replace mock course enrollment in the web UI with API-backed calls to `/courses/enroll` and `/courses/enroll/cancel` so bookings persist correctly. | Corrective | High | High | UI tests + API integration tests |
-| CR-C2 | Wire trainer booking UI to `/trainers/book` and `/trainers/my/bookings` so trainer bookings persist and display correctly. | Corrective | High | High | UI tests + API integration tests |
-| CR-PR1 | Add automated API integration tests for course enrollment and trainer booking covering happy path, conflict, and duplicate cases to prevent regressions. | Preventive | High | High | CI test run + integration test report |
-| CR-PR2 | Add DB constraints and input validation for booking records to prevent corrupt or orphaned data. | Preventive | High | Medium | DB constraint tests + invalid booking rejection tests |
-
-
 # D3: Change Request Analysis
 
 This document breaks down the required new features (Native Android App, Member Profile Edit & Password Recovery, and Trainer Rating and Review System) into specific Change Requests (CRs). The CRs are categorized logically by maintenance type: Adaptive, Perfective, Corrective, and Preventive.
 
 ## 1. Adaptive Maintenance
 
-### CR-01: Native Android Client UI Development
+### CR-01: Backend API Authentication Adaptation
 | Attribute | Description |
 |---|---|
-| **Associated Feature** | Native Android Mobile App (Feature 1) |
-| **Description** | "Existing web application features must be ported to a native Android application to expand platform availability. This covers the client-side UI and logic." |
-| **Maintenance Type** | Adaptive |
-| **Priority** | High |
-| **Severity** | Critical |
-| **Marketing Justification** | "Required to capture the mobile market share. Fitness members increasingly expect a mobile app to book and manage sessions." |
-| **Time to Implement** | 2.0 person-weeks |
-| **Verification Method** | End-to-end UI testing on Android emulators and physical devices. |
-
-### CR-02: Backend API Authentication Adaptation
-| Attribute | Description |
-|---|---|
-| **Associated Feature** | Native Android Mobile App (Feature 1) |
+| **Associated Feature** | Mobile AppBackend API Authentication Adaptation |
 | **Description** | "Backend authentication logic must be updated to support mobile clients securely (e.g., transitioning to JWT or adding mobile-friendly token auth)." |
 | **Maintenance Type** | Adaptive |
 | **Priority** | High |
-| **Severity** | Critical |
-| **Marketing Justification** | "Essential architectural update to allow the new Android app to securely communicate with the existing backend without relying on browser cookies." |
+| **Severity** | Major |
 | **Time to Implement** | 1.0 person-weeks |
-| **Verification Method** | API unit testing for token generation and verification, and integration tests from the mobile client. |
+| **Verification Method** | Run backend unit tests asserting JWT generation and validation, followed by mobile integration tests ensuring the client can successfully authenticate and securely access protected routes. |
+
+### CR-02: Automated Testing & Deployment to Cloud
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Automated Testing & Deployment to Cloud |
+| **Description** | Establish a CI/CD pipeline using GitHub Actions to automate testing, perform SonarQube quality analysis, and deploy the application to a cloud provider |
+| **Maintenance Type** | Adaptive |
+| **Priority** | High |
+| **Severity** | Major |
+| **Time to Implement** | 1.5 person-weeks |
+| **Verification Method** | Push a sample commit to the repository and monitor the GitHub Actions runner to ensure unit tests execute, SonarQube gates pass, and the build successfully deploys to the staging cloud environment |
+
+### CR-03: Android Mobile Application Development
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Android Mobile Application Development |
+| **Description** | Develop and integrate a new native Android mobile application that connects to the existing backend services and replicates core system functionality for mobile users |
+| **Maintenance Type** | Adaptive |
+| **Priority** | High |
+| **Severity** | Major |
+| **Time to Implement** | 4.0 person-weeks |
+| **Verification Method** | Manually testing the Android version to ensure that registration, booking, and profile with sync with the code |
 
 ## 2. Perfective Maintenance
 
-### CR-03: Member Profile Edit Interface and API
+### CR-04: Member Profile Edit Interface and API
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Member Profile Edit & Password Recovery System |
@@ -80,11 +47,10 @@ This document breaks down the required new features (Native Android App, Member 
 | **Maintenance Type** | Perfective |
 | **Priority** | Medium |
 | **Severity** | Major |
-| **Marketing Justification** | "Allows users to keep their contact information up to date, improving personalization and ensuring the gym can contact them when necessary." |
 | **Time to Implement** | 1.0 person-weeks |
-| **Verification Method** | Manual UI testing for data updates and automated backend validation tests. |
+| **Verification Method** | Execute automated backend tests to verify input validation and database updates, and perform manual UI testing to confirm the profile edit form accurately reflects and saves changes. |
 
-### CR-04: Password Recovery Mechanism
+### CR-05: Password Recovery Mechanism
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Member Profile Edit & Password Recovery System |
@@ -92,23 +58,21 @@ This document breaks down the required new features (Native Android App, Member 
 | **Maintenance Type** | Perfective |
 | **Priority** | High |
 | **Severity** | Major |
-| **Marketing Justification** | "Provides self-service recovery, reducing customer support tickets and preventing users from permanently losing access to their accounts." |
 | **Time to Implement** | 1.0 person-weeks |
-| **Verification Method** | Automated integration testing for email dispatch and manual testing of the full reset flow. |
+| **Verification Method** | Run automated integration tests to confirm password reset tokens are securely generated, and perform end-to-end manual testing from email dispatch to successful password update. |
 
-### CR-05: Trainer Rating and Review Submission
+### CR-06: Trainer Rating and Review Submission
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Trainer Rating and Review System |
 | **Description** | "Develop the database schema, backend API, and frontend interface to allow members to submit a 1-5 star rating and text feedback for trainers." |
 | **Maintenance Type** | Perfective |
-| **Priority** | High |
-| **Severity** | Major |
-| **Marketing Justification** | "Enhances community engagement and provides valuable feedback to management regarding trainer performance." |
+| **Priority** | Medium |
+| **Severity** | Medium |
 | **Time to Implement** | 1.0 person-weeks |
-| **Verification Method** | Functional testing of review submission and database insertion verification. |
+| **Verification Method** | Perform API testing to ensure ratings and feedback text are properly validated, securely inserted into the database, and correctly mapped to the target trainer ID. |
 
-### CR-06: Trainer Profile Rating Display
+### CR-07: Trainer Profile Rating Display
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Trainer Rating and Review System |
@@ -116,25 +80,23 @@ This document breaks down the required new features (Native Android App, Member 
 | **Maintenance Type** | Perfective |
 | **Priority** | Medium |
 | **Severity** | Minor |
-| **Marketing Justification** | "Helps new members confidently select trainers based on peer feedback, increasing private session bookings." |
 | **Time to Implement** | 0.5 person-weeks |
-| **Verification Method** | UI testing to ensure average ratings calculate correctly and reviews display properly. |
+| **Verification Method** | Verify through frontend component tests that the UI retrieves the latest reviews, correctly calculates and displays the aggregate average rating, and renders individual feedback strings. |
 
 ## 3. Corrective Maintenance
 
-### CR-07: Fix Unmodifiable Static Profile Data
+### CR-08: Fix Unmodifiable Static Profile Data
 | Attribute | Description |
 |---|---|
-| **Associated Feature** | Member Profile Edit & Password Recovery System |
+| **Associated Feature** | Member Profile Edit & Password reset System |
 | **Description** | "User profiles are currently static and missing parts of the User Management system, leading to inaccurate real-life data in the system." |
 | **Maintenance Type** | Corrective |
 | **Priority** | Medium |
 | **Severity** | Major |
-| **Marketing Justification** | "Inaccurate user data causes missed communications and billing issues. Fixing this makes the User Management system functional for real life." |
 | **Time to Implement** | 0.5 person-weeks |
-| **Verification Method** | Inspect database records before and after profile updates to confirm persistence. |
+| **Verification Method** | Execute end-to-end data flow tests asserting that modifying profile fields on the frontend accurately persists the updated state to the central database table. |
 
-### CR-08: Prevent Duplicate Trainer Reviews
+### CR-09: Prevent Duplicate Trainer Reviews
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Trainer Rating and Review System |
@@ -142,11 +104,10 @@ This document breaks down the required new features (Native Android App, Member 
 | **Maintenance Type** | Corrective |
 | **Priority** | Medium |
 | **Severity** | Major |
-| **Marketing Justification** | "Inaccurate trainer ratings degrade trust in the platform and cause complaints from trainers about unfair scores." |
 | **Time to Implement** | 0.5 person-weeks |
-| **Verification Method** | Database constraint testing and API tests ensuring duplicate submissions are rejected. |
+| **Verification Method** | Write automated API tests simulating duplicate review submissions from the same member ID for the same trainer session, asserting that the backend properly rejects the duplicates with a 4xx error. |
 
-### CR-09: Fix Review UI
+### CR-10: Fix Review UI
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Trainer Rating and Review System |
@@ -154,25 +115,56 @@ This document breaks down the required new features (Native Android App, Member 
 | **Maintenance Type** | Corrective |
 | **Priority** | Medium |
 | **Severity** | Minor |
-| **Marketing Justification** | "Unable to review the trainer causes a drop in trustworthiness of the trainer and could cause user's disatisfaction." |
 | **Time to Implement** | 0.5 person-weeks |
-| **Verification Method** | UI testing with Database to ensure the logic works correctly. |
+| **Verification Method** | Conduct manual UI testing to confirm the review submission button is accessible, the form allows 1-5 star selection, and successfully submits the payload to the backend without errors. |
+
+### CR-11: Secure Server-Side Session Management
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Secure Server-Side Session Management |
+| **Description** | Implement a server-side token blocklist mechanism to ensure JWTs are invalidated immediately upon user logout |
+| **Maintenance Type** | Corrective |
+| **Priority** | High |
+| **Severity** | High |
+| **Time to Implement** | 1.0 person-weeks |
+| **Verification Method** | Write automated security tests that capture a valid JWT, invoke the server-side logout endpoint, and then assert that subsequent API requests using the invalidated JWT are strictly rejected with a 401 Unauthorized status |
+
+### CR-12: Centralized Course Data Management
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Centralized Course Data Management |
+| **Description** | Resolve a data type mismatch between the Admin panel and course-service microservice where a course ID is transmitted as a String but expected as an Integer, causing the 'Enroll Now' functionality to fail |
+| **Maintenance Type** | Corrective |
+| **Priority** | High |
+| **Severity** | Major |
+| **Time to Implement** | 1.0 person-weeks |
+| **Verification Method** | Conduct integration testing by triggering the 'Enroll Now' function in the Admin panel, inspecting the network payload to ensure the Course ID is an Integer, and verifying successful enrollment in the database |
+
+### CR-13: Centralized System Authentication
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Centralized System Authentication |
+| **Description** | Standardize and enforce authentication across all microservices by implementing a centralized JWT validation mechanism |
+| **Maintenance Type** | Corrective |
+| **Priority** | High |
+| **Severity** | Major |
+| **Time to Implement** | 1.5 person-weeks |
+| **Verification Method** | Run a comprehensive suite of API endpoint tests across Admin, Payment, and Reservation services without a valid JWT, asserting that every protected route correctly enforces authentication and returns a 401 error |
 
 ## 4. Preventive Maintenance
 
-### CR-09: Review Submission Session Validation
+### CR-14: Review Submission Session Validation
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Trainer Rating and Review System |
 | **Description** | "Implement validation to ensure only members who have booked and completed a private session can submit a review for that trainer." |
 | **Maintenance Type** | Preventive |
 | **Priority** | Medium |
-| **Severity** | Major |
-| **Marketing Justification** | "Prevents review spam from bots or non-clients, protecting the platform's reputation and ensuring fairness for trainers." |
+| **Severity** | Medium |
 | **Time to Implement** | 0.5 person-weeks |
-| **Verification Method** | Integration testing simulating review submissions from accounts with and without completed sessions. |
+| **Verification Method** | Run automated integration tests asserting that review submission requests are strictly rejected (403 Forbidden) if the authenticated user has not actively completed a booked session with the target trainer. |
 
-### CR-10: Administrative Content Moderation Tools
+### CR-15: Administrative Content Moderation Tools
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Trainer Rating and Review System |
@@ -180,11 +172,10 @@ This document breaks down the required new features (Native Android App, Member 
 | **Maintenance Type** | Preventive |
 | **Priority** | Low |
 | **Severity** | Minor |
-| **Marketing Justification** | "Prevents potential legal liability or platform toxicity by providing tools to quickly remove offensive or policy-violating content." |
 | **Time to Implement** | 1.0 person-weeks |
-| **Verification Method** | Manual testing of admin dashboard privileges and content deletion functionality. |
+| **Verification Method** | Perform role-based access control (RBAC) testing to confirm only admin-level accounts can access the moderation interface and successfully execute DELETE commands on inappropriate reviews. |
 
-### CR-11: Rate Limiting on Password Recovery
+### CR-16: Rate Limiting on Password Recovery
 | Attribute | Description |
 |---|---|
 | **Associated Feature** | Member Profile Edit & Password Recovery System |
@@ -192,7 +183,27 @@ This document breaks down the required new features (Native Android App, Member 
 | **Maintenance Type** | Preventive |
 | **Priority** | Medium |
 | **Severity** | Major |
-| **Marketing Justification** | "Prevents malicious actors from using the endpoint for email spamming or brute-force user enumeration attacks." |
 | **Time to Implement** | 0.5 person-weeks |
-| **Verification Method** | Automated tests simulating multiple rapid password reset requests to ensure rate limiting engages. |
+| **Verification Method** | Execute load testing scripts that fire multiple rapid password reset requests to the endpoint, asserting that the server correctly responds with a 429 Too Many Requests status after the defined limit. |
 
+### CR-17: Comprehensive Code Testing System
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Comprehensive Code Testing System |
+| **Description** | Develop and implement unit and integration tests for all backend services to achieve a minimum of 90% code coverage |
+| **Maintenance Type** | Preventive |
+| **Priority** | High |
+| **Severity** | High |
+| **Time to Implement** | 2.0 person-weeks |
+| **Verification Method** | Execute the test suite locally and review the generated SonarQube dashboard report to explicitly verify that the overall code coverage metric has reached or exceeded the 90% threshold |
+
+### CR-18: Code Readability and Maintainability Overhaul
+| Attribute | Description |
+|---|---|
+| **Associated Feature** | Code Readability and Maintainability Overhaul |
+| **Description** | Refactor high cognitive complexity code modules such as Courts.js and index.html to improve readability, reduce complexity, and enhance long-term maintainability |
+| **Maintenance Type** | Preventive |
+| **Priority** | Medium |
+| **Severity** | Minor |
+| **Time to Implement** | 1.0 person-weeks |
+| **Verification Method** | Trigger a fresh SonarQube static analysis scan and explicitly verify the maintainability report to ensure that refactored files report a cognitive complexity score strictly below 15 |
