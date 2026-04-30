@@ -125,7 +125,7 @@
 
     <div class="profile-card">
         <div class="avatar-section">
-            <div class="avatar-wrapper" onclick="document.getElementById('avatar-input').click()">
+            <div class="avatar-wrapper" role="button" tabindex="0" onclick="document.getElementById('avatar-input').click()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('avatar-input').click()}">
                 <div class="avatar-placeholder" id="avatar-placeholder">?</div>
                 <img id="avatar-preview" src="" alt="" style="display:none;">
                 <div class="avatar-overlay">📷 Change</div>
