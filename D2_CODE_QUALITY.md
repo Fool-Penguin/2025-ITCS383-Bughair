@@ -11,5 +11,9 @@
 
 # After Change
 ## Overall
+<img width="1728" height="826" alt="image" src="https://github.com/user-attachments/assets/452d7568-5e9e-4bc3-8903-d17ef0a0c7ff" />
+<img width="1728" height="700" alt="image" src="https://github.com/user-attachments/assets/c11cf707-7c71-49f0-b63a-cd02026f4b24" />
+<img width="1729" height="441" alt="image" src="https://github.com/user-attachments/assets/9b472727-5a30-44fc-9bd8-05eaf0a24d25" />
 
 ## Issues
+<img width="1728" height="875" alt="image" src="https://github.com/user-attachments/assets/6d967c58-452a-465a-bb4a-02786738991c" />
