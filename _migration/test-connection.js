@@ -1,15 +1,15 @@
-require('dotenv').config();
 const { Client } = require('pg');
 const dns = require('dns');
+const { requireDatabaseUrl } = require('./db-env');
 
 // Force IPv6 first since Supabase direct host is AAAA-only on this project
 dns.setDefaultResultOrder('ipv6first');
 
 (async () => {
-  const url = process.env.DATABASE_URL;
-  if (!url) { console.error('DATABASE_URL not set in .env'); process.exit(1); }
+  const { databaseUrl, source } = requireDatabaseUrl();
+  console.log('Using DATABASE_URL from ' + source + '.');
   const client = new Client({
-    connectionString: url,
+    connectionString: databaseUrl,
     ssl: { rejectUnauthorized: false },
     // Lookup that prefers IPv6
     lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 6, all: false }, cb),
@@ -24,4 +24,7 @@ dns.setDefaultResultOrder('ipv6first');
   } finally {
     await client.end().catch(() => {});
   }
-})();
+})().catch((e) => {
+  console.error('FAILED:', e.message);
+  process.exitCode = 1;
+});

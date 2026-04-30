@@ -1,26 +1,30 @@
-// Try connecting directly to the IPv6 literal we resolved.
+const dns = require('dns');
 const { Client } = require('pg');
-require('dotenv').config();
+const { requireDatabaseUrl } = require('./db-env');
 
-const PASSWORD = '1mKA3bUYD2VPawXx';
-const IPV6 = '2406:da12:b78:de19:da20:baab:1050:14f8';
+dns.setDefaultResultOrder('ipv6first');
 
 (async () => {
+  const { databaseUrl, source } = requireDatabaseUrl();
+  console.log('Using DATABASE_URL from ' + source + '.');
+
   const client = new Client({
-    host: IPV6,
-    port: 5432,
-    user: 'postgres',
-    password: PASSWORD,
-    database: 'postgres',
-    ssl: { rejectUnauthorized: false, servername: 'db.gtfswumxifmopecwbbbx.supabase.co' },
+    connectionString: databaseUrl,
+    ssl: { rejectUnauthorized: false },
+    lookup: (hostname, opts, cb) => dns.lookup(hostname, { family: 6, all: false }, cb),
   });
+
   try {
     await client.connect();
-    const r = await client.query('SELECT 1 as ok');
-    console.log('OK via IPv6 literal:', r.rows[0]);
-  } catch (e) {
-    console.error('FAILED:', e.code || '', e.message);
+    const result = await client.query('SELECT 1 AS ok');
+    console.log('OK via IPv6-preferred lookup:', result.rows[0]);
+  } catch (error) {
+    console.error('FAILED:', error.code || '', error.message);
+    process.exitCode = 1;
   } finally {
     await client.end().catch(() => {});
   }
-})();
+})().catch((error) => {
+  console.error('FAILED:', error.message);
+  process.exitCode = 1;
+});

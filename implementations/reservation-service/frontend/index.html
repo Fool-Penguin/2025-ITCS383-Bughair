@@ -564,7 +564,7 @@ td.blue{color:var(--blue);}
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-const API = "http://localhost:8080/api";
+const API = "/api";
 const SLOTS = ["07:00–08:00","08:00–09:00","09:00–10:00","10:00–11:00","11:00–12:00","12:00–13:00","13:00–14:00","14:00–15:00","15:00–16:00","16:00–17:00","17:00–18:00","18:00–19:00","19:00–20:00","20:00–21:00","21:00–22:00","22:00–23:00"];
 
 let S = { user: null, courts: [], myRes: [], sel: { court: null, slot: null }, bookingDate: todayStr() };
@@ -622,6 +622,7 @@ window.addEventListener("load", () => {
 function enterDash(user) {
   S.user = user;
   document.getElementById("mainNav").style.display = "flex";
+  ensureMemberAttendanceActions();
 
   const roleEl = document.getElementById("navRole");
   roleEl.textContent = user.role === "admin" ? "🔑 Admin" : "👤 Member";
@@ -876,6 +877,28 @@ async function mCancelRes(id) {
 }
 async function loadMemberAttendance() {
   // attendance stats loaded via loadMemberStats
+}
+function ensureMemberAttendanceActions() {
+  if (document.getElementById("mAttendanceActions")) return;
+  const target = document.getElementById("mPeakBadge")?.parentElement;
+  if (!target) return;
+  target.insertAdjacentHTML("beforeend", `
+    <div id="mAttendanceActions" style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
+      <button class="btn-confirm" style="padding:9px 14px;" onclick="memberCheckIn()">Check In</button>
+      <button class="btn-cancel-m" style="padding:9px 14px;" onclick="memberCheckOut()">Check Out</button>
+    </div>
+    <div class="alert" id="mAttendanceActionAlert" style="text-align:left;margin-top:10px;"></div>
+  `);
+}
+async function memberCheckIn() {
+  const r = await api("POST", "/attendance/enter", { member_id: S.user.id });
+  showAlert("mAttendanceActionAlert", r.success ? "Checked in successfully." : (r.message || "Check-in failed."), r.success ? "success" : "error");
+  await loadMemberStats();
+}
+async function memberCheckOut() {
+  const r = await api("POST", "/attendance/exit", { member_id: S.user.id });
+  showAlert("mAttendanceActionAlert", r.success ? "Checked out successfully." : (r.message || "Check-out failed."), r.success ? "success" : "error");
+  await loadMemberStats();
 }
 async function loadMemberPeakChart() {
   const r = await api("GET", "/reports/attendance");
@@ -1201,7 +1224,7 @@ function closeModal(id) { document.getElementById(id).classList.remove("show"); 
 document.querySelectorAll(".modal-overlay").forEach(o => o.addEventListener("click", function (e) { if (e.target === this) this.classList.remove("show"); }));
 
 // กำหนดให้เป็นพอร์ต 8080 ตาม server.js ของเรา
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "/api";
 </script>
 </body>
 </html>

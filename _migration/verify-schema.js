@@ -1,8 +1,10 @@
-require('dotenv').config();
 const { Client } = require('pg');
+const { requireDatabaseUrl } = require('./db-env');
 
 (async () => {
-  const c = new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  const { databaseUrl, source } = requireDatabaseUrl();
+  console.log('Using DATABASE_URL from ' + source + '.');
+  const c = new Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
   await c.connect();
   try {
     const r = await c.query(`
@@ -17,4 +19,7 @@ const { Client } = require('pg');
       console.log('  ' + row.table_name);
     }
   } finally { await c.end(); }
-})();
+})().catch((e) => {
+  console.error('Schema verification failed:', e.message);
+  process.exitCode = 1;
+});

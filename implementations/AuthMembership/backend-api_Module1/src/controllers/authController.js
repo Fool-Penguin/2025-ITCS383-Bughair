@@ -7,10 +7,19 @@ const USERS  = `payment_svc."Users"`;
 const TOKENS = `payment_svc."password_reset_tokens"`;
 
 function getBaseUrl(req) {
+    const proto = req.get('x-forwarded-proto') || req.protocol;
+    const host = req.get('host');
+    if (host && (host.startsWith('localhost') || host.startsWith('127.0.0.1'))) {
+        return `${proto}://${host}`;
+    }
     if (process.env.APP_BASE_URL) return process.env.APP_BASE_URL.replace(/\/$/, '');
 
-    const proto = req.get('x-forwarded-proto') || req.protocol;
-    return `${proto}://${req.get('host')}`;
+    return `${proto}://${host}`;
+}
+
+function canExposeResetLink(req) {
+    const host = req.hostname || '';
+    return !process.env.SMTP_USER || host === 'localhost' || host === '127.0.0.1';
 }
 
 // Register
@@ -192,7 +201,11 @@ exports.forgotPassword = async (req, res) => {
             console.log(`=========================================\n`);
         }
 
-        res.json({ success: true, message: 'If the email exists, a password reset link has been sent.' });
+        const response = { success: true, message: 'If the email exists, a password reset link has been sent.' };
+        if (canExposeResetLink(req)) {
+            response.resetLink = resetLink;
+        }
+        res.json(response);
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

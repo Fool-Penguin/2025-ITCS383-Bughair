@@ -8,7 +8,7 @@
 //   GET  /api/reports/attendance
 // ============================================================
 
-const { pool, localDateStr } = require('../db/database');
+const { pool, seedIfEmpty, localDateStr } = require('../db/database');
 const { json, readBody, calcDuration, getTodayPeakStats } = require('../helpers');
 
 async function getCurrentCount() {
@@ -145,8 +145,7 @@ async function handleReport(res) {
 
 // MAIN ROUTER
 async function handleAttendance(req, res, url, method) {
-  // Trigger lazy seed on first request
-  require('../db/database').getDb();
+  await seedIfEmpty();
 
   if (method === 'POST' && url === '/api/attendance/enter') {
     await handleEnter(req, res);

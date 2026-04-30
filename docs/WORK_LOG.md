@@ -26,6 +26,99 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 16:14 ICT - Codex
+
+**Task:** Fix hardcoded/demo page wiring found during manual browser testing.
+
+**Changed:**
+- Added gateway page routes for `/payments`, `/courses`, and `/courts`.
+- Updated home, admin-select, payment, course, and reservation frontends to use gateway-relative routes and APIs instead of hardcoded service file paths or `localhost:8080`.
+- Made local password reset responses expose the generated reset link in the forgot-password page when safe for local/demo use.
+- Updated court availability API to return live `status` and `booked_slots` for the selected date so the reservation page can enable court/slot booking.
+- Added member check-in/check-out controls to the reservation attendance page.
+- Prefilled trainer booking date/time with editable values so users can choose a session date/time.
+
+**Verified:**
+- `rg` scan found no remaining targeted hardcoded service paths or `localhost:8080` API constants in the edited user-facing pages.
+- `node --check` passed for `authController.js`, gateway `server.js`, and reservation `courts.js`.
+- `npm test` passed in `implementations/reservation-service/backend`: 17 tests passed.
+- `npm test -- --runInBand` passed in `implementations/course-service`: 22 tests passed.
+- `npm run check` passed in `_migration`: schema check passed and seeded row counts were present.
+- Temporary gateway smoke test on port `8090` returned HTTP 200 for `/payments`, `/courses`, `/courts`, `/api/courts/available`, and `/api/attendance/current`.
+
+**Notes / Next Steps:**
+- Restart the gateway running on port `8080` before browser retesting; the already-running terminal process still has the old code loaded.
+- Browser retest should cover login, forgot-password reset link display, payments from main login session, trainer booking date/time, court reservation, and attendance check-in/check-out.
+
+## 2026-04-30 15:36 ICT - Codex
+
+**Task:** Start the local gateway for manual authenticated browser testing.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with manual test startup status.
+
+**Verified:**
+- Started the AuthMembership gateway in a visible PowerShell window and initially confirmed port `8080` was listening.
+- A follow-up check showed the process did not remain active after the tool call in this environment.
+
+**Notes / Next Steps:**
+- Manual browser testing should run the gateway directly from the user's terminal, then open `http://localhost:8080`.
+- Stop the terminal server with `Ctrl+C` after testing.
+- Avoid sharing real credentials in chat; use a new demo member account or trusted local credentials.
+
+## 2026-04-30 15:22 ICT - Codex
+
+**Task:** Smoke-test the main gateway after database safety changes.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with gateway smoke-test results.
+
+**Verified:**
+- Started the AuthMembership gateway locally with `npm start`.
+- Confirmed startup completed with payment, course, admin, and reservation seed checks.
+- Confirmed HTTP 200 for `/`, `/api/payments/plans`, `/api/courses`, `/api/trainers`, `/api/courts/available`, `/api/attendance/current`, and `/api/admin-svc/api/dashboard/stats`.
+- Stopped the temporary local gateway process after testing.
+
+**Notes / Next Steps:**
+- API smoke test did not include authenticated member/admin write flows.
+- Background server launch is sandbox-sensitive on this Windows profile; use an elevated/local shell for manual demo startup if needed.
+
+## 2026-04-30 15:11 ICT - Codex
+
+**Task:** Make the database setup safer and verify it will not crash during demo/startup.
+
+**Changed:**
+- Added `_migration/db-env.js`, `_migration/check-database.js`, and `_migration/seed-reservation.js`.
+- Added `_migration` npm scripts for schema checking, schema apply/verify, data verify, connection test, and reservation seeding.
+- Updated migration scripts to load `DATABASE_URL` from `_migration/.env` or existing service `.env` files and fail with clear messages.
+- Removed a hardcoded database credential from `_migration/test-ipv6.js`.
+- Updated reservation startup/route seeding so `reservation_svc` courts are seeded deterministically before use.
+- Updated the AuthMembership gateway startup to include reservation seeding.
+
+**Verified:**
+- Ran Node syntax checks for changed migration, gateway, and reservation files.
+- Ran `npm test` in `implementations/reservation-service/backend`: 17 tests passed.
+- Ran `npm run check` in `_migration`: database schema check passed.
+- Ran `npm run reservation:seed` in `_migration`: seeded 5 courts and sample attendance rows.
+- Re-ran `npm run check` in `_migration`: users 5, membership plans 3, trainers 3, courses 3, promotions 5, courts 5.
+
+**Notes / Next Steps:**
+- `_migration/node_modules` was installed locally for verification and remains ignored by Git.
+- The database preflight is read-only; use `npm run reservation:seed` only when intentionally seeding demo reservation data.
+
+## 2026-04-30 14:57 ICT - Codex
+
+**Task:** Read through the `docs/` folder to understand current project requirements and next work.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this review entry.
+
+**Verified:**
+- Read the docs index, project overview, current handoff, team task split, phase description, requested features, CR example, D3 draft, and original Phase 2 PDF text.
+
+**Notes / Next Steps:**
+- Immediate priorities remain final deliverables D2, D4, D5, Android app/repo verification, SonarCloud re-check, and optional idempotent mock-data seeding after confirming `DATABASE_URL`.
+
 ## 2026-04-30 15:20 ICT - Codex
 
 **Task:** Prepare account-transfer handoff before usage limit is reached.

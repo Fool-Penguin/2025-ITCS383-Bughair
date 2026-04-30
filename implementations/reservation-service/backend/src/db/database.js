@@ -19,6 +19,10 @@ function createTestPool() {
       return { query: this.query, release() {} };
     },
     async query(sql, params = []) {
+      if (sql.includes('COUNT(*)::int AS c FROM reservation_svc.courts')) {
+        return result([{ c: data.courts.length }]);
+      }
+
       if (sql.includes('FROM reservation_svc.courts WHERE court_id=$1')) {
         return result(data.courts.filter((court) => court.court_id === Number(params[0])));
       }
@@ -68,47 +72,56 @@ if (process.env.DATABASE_URL) {
 pool.on('error', (err) => console.error('Unexpected pg pool error:', err));
 
 let seeded = false;
+let seedPromise = null;
 
 // Idempotent — seeds 5 courts and a few attendance rows on first call.
 async function seedIfEmpty() {
-  if (seeded) return;
-  seeded = true;
-  const { rows } = await pool.query('SELECT COUNT(*)::int AS c FROM reservation_svc.courts');
-  if (rows[0].c > 0) return;
+  if (seedPromise) return seedPromise;
+  seedPromise = (async () => {
+    if (seeded) return;
+    const { rows } = await pool.query('SELECT COUNT(*)::int AS c FROM reservation_svc.courts');
+    if (rows[0].c > 0) {
+      seeded = true;
+      return;
+    }
 
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    for (let i = 1; i <= 5; i++) {
-      await client.query(
-        `INSERT INTO reservation_svc.courts (court_id, court_number)
-         VALUES ($1,$2) ON CONFLICT (court_id) DO NOTHING`,
-        [i, i]
-      );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      for (let i = 1; i <= 5; i++) {
+        await client.query(
+          `INSERT INTO reservation_svc.courts (court_id, court_number)
+           VALUES ($1,$2) ON CONFLICT (court_id) DO NOTHING`,
+          [i, i]
+        );
+      }
+      const today = new Date();
+      const todayStr = today.toISOString().slice(0, 10);
+      const seedLogs = [
+        ['M001', 'John Doe', `${todayStr} 08:00:00+00`],
+        ['M003', 'Tom Lee',  `${todayStr} 09:00:00+00`],
+        ['M005', 'Pat Wong', `${todayStr} 09:30:00+00`],
+        ['M007', 'Mark Tan', `${todayStr} 10:00:00+00`],
+      ];
+      for (const [id, name, time] of seedLogs) {
+        await client.query(
+          `INSERT INTO reservation_svc.attendance_logs (member_id, member_name, entry_time)
+           VALUES ($1,$2,$3::timestamptz)`,
+          [id, name, time]
+        );
+      }
+      await client.query('COMMIT');
+      seeded = true;
+      console.log('Reservation DB seeded (5 courts + sample attendance logs)');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      seedPromise = null;
+      throw e;
+    } finally {
+      client.release();
     }
-    const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
-    const seedLogs = [
-      ['M001', 'John Doe', `${todayStr} 08:00:00+00`],
-      ['M003', 'Tom Lee',  `${todayStr} 09:00:00+00`],
-      ['M005', 'Pat Wong', `${todayStr} 09:30:00+00`],
-      ['M007', 'Mark Tan', `${todayStr} 10:00:00+00`],
-    ];
-    for (const [id, name, time] of seedLogs) {
-      await client.query(
-        `INSERT INTO reservation_svc.attendance_logs (member_id, member_name, entry_time)
-         VALUES ($1,$2,$3::timestamptz)`,
-        [id, name, time]
-      );
-    }
-    await client.query('COMMIT');
-    console.log('Reservation DB seeded (5 courts + sample attendance logs)');
-  } catch (e) {
-    await client.query('ROLLBACK');
-    throw e;
-  } finally {
-    client.release();
-  }
+  })();
+  return seedPromise;
 }
 
 // Returns the connection pool. Kept named getDb() for backwards compat with old call sites.
@@ -136,4 +149,4 @@ async function upsertUser(id, name, email, role) {
   );
 }
 
-module.exports = { pool, getDb, localDateStr, upsertUser };
+module.exports = { pool, getDb, seedIfEmpty, localDateStr, upsertUser };

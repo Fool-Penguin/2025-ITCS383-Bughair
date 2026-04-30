@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "description": "Tooling to migrate per-service SQLite DBs to a single Supabase Postgres",
+  "scripts": {
+    "check": "node check-database.js",
+    "schema:apply": "node apply-schema.js",
+    "schema:verify": "node verify-schema.js",
+    "reservation:seed": "node seed-reservation.js",
+    "data:verify": "node verify-data.js",
+    "connection:test": "node test-connection.js"
+  },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
     "dotenv": "^16.3.1",

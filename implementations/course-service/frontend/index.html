@@ -278,9 +278,9 @@
   <a href="/home" class="nav-logo" style="text-decoration: none;">FITNESS</a>
   <div class="nav-links">
     <a href="/home" class="nav-link" style="text-decoration: none;">Dashboard</a>
-    <a href="/reservation-service/frontend/index.html" class="nav-link" style="text-decoration: none;">Courts</a>
+    <a href="/courts" class="nav-link" style="text-decoration: none;">Courts</a>
     <button class="nav-link active" id="nav-courses" onclick="focusCourses()">Courses</button>
-    <a href="/payment-service/fitness-payment-frontend.html" class="nav-link" style="text-decoration: none;">Payments</a>
+    <a href="/payments" class="nav-link" style="text-decoration: none;">Payments</a>
   </div>
   <div class="nav-user">
     <div class="nav-user-info">
@@ -504,7 +504,7 @@
 // ══════════════════════════════════════════════════════════
 // CONFIG — เปลี่ยน API_BASE ถ้า deploy ที่อื่น
 // ══════════════════════════════════════════════════════════
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = '/api';
 let TOKEN = localStorage.getItem('token') || null;
 
 // ══════════════════════════════════════════════════════════
@@ -999,9 +999,10 @@ function openBookModal(tid) {
     selectedTrainer = mapTrainer(json.data);
     document.getElementById('modal-trainer-name').textContent      = selectedTrainer.name;
     document.getElementById('modal-trainer-expertise').textContent = selectedTrainer.expertise;
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     document.getElementById('session-date').min   = new Date().toISOString().split('T')[0];
-    document.getElementById('session-date').value = '';
-    document.getElementById('session-time').value = '';
+    document.getElementById('session-date').value = tomorrow;
+    document.getElementById('session-time').value = '09:00';
     openModal('book-modal');
   }).catch(err => showToast(err.message, 'error'));
 }

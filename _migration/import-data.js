@@ -1,18 +1,20 @@
 // Imports rows from each existing SQLite .db into the matching Postgres
 // schema. Idempotent — every insert is ON CONFLICT DO NOTHING and sequences
 // are bumped to MAX(id)+1 at the end.
-require('dotenv').config();
 const Database = require('better-sqlite3');
 const { Client } = require('pg');
 const path = require('path');
 const fs = require('fs');
+const { requireDatabaseUrl } = require('./db-env');
 
 const ROOT = path.resolve(__dirname, '..', 'implementations');
 
 function open(p) { return fs.existsSync(p) ? new Database(p, { readonly: true }) : null; }
 
 async function main() {
-  const pg = new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+  const { databaseUrl, source } = requireDatabaseUrl();
+  console.log('Using DATABASE_URL from ' + source + '.');
+  const pg = new Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
   await pg.connect();
   try {
     await importPayment(pg);

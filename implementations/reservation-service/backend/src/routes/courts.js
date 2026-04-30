@@ -2,7 +2,7 @@
 // src/routes/courts.js  —  Postgres version
 // ============================================================
 
-const { pool, localDateStr } = require('../db/database');
+const { pool, seedIfEmpty, localDateStr } = require('../db/database');
 const {
   json, readBody, getCourtStatus, doubleBooking, slotConflict, slotInMaintenance
 } = require('../helpers');
@@ -13,7 +13,21 @@ async function handleGetAvailable(res, url) {
   const params = new URLSearchParams(url.split('?')[1] || '');
   const targetDate = params.get('date') || localDateStr();
   const r = await pool.query(`SELECT * FROM reservation_svc.courts ORDER BY court_number`);
-  return json(res, 200, { success: true, targetDate, courts: r.rows });
+  const courts = await Promise.all(r.rows.map(async (court) => {
+    const booked = await pool.query(
+      `SELECT time_slot FROM reservation_svc.court_reservations
+       WHERE court_id=$1 AND date=$2::date AND status='active'
+       ORDER BY time_slot`,
+      [court.court_id, targetDate]
+    );
+    const bookedSlots = booked.rows.map((row) => row.time_slot);
+    const liveStatus = await getCourtStatus(court);
+    const status = liveStatus === 'maintenance'
+      ? 'maintenance'
+      : bookedSlots.length >= 16 ? 'booked' : 'available';
+    return { ...court, status, booked_slots: bookedSlots };
+  }));
+  return json(res, 200, { success: true, targetDate, courts });
 }
 
 async function handleBooking(req, res) {
@@ -122,8 +136,7 @@ async function handleMaintenance(req, res, url, method) {
 // --- [MAIN DISPATCHER] ---
 
 async function handleCourts(req, res, url, method) {
-  // Trigger lazy seed on first request
-  require('../db/database').getDb();
+  await seedIfEmpty();
 
   if (method === 'GET') {
     if (url.startsWith('/api/courts/available')) return handleGetAvailable(res, url);

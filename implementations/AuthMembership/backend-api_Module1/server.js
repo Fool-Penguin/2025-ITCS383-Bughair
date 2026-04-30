@@ -9,6 +9,7 @@ const morgan = require('morgan');
 const { initializeDatabase } = require('../../payment-service/src/config/database'); 
 const { handleCourts } = require('../../reservation-service/backend/src/routes/courts');
 const { handleAttendance } = require('../../reservation-service/backend/src/routes/attendance');
+const { seedIfEmpty: seedReservationData } = require('../../reservation-service/backend/src/db/database');
 
 // ✅ FIXED: ดึง API Routes
 const paymentRoutes = require('../../payment-service/src/routes/payment');
@@ -61,6 +62,18 @@ app.get('/forgot-password', (req, res) => {
 // หน้า Reset Password
 app.get('/reset-password', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/reset-password.html'));
+});
+
+app.get('/payments', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../payment-service/fitness-payment-frontend.html'));
+});
+
+app.get('/courses', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../course-service/frontend/index.html'));
+});
+
+app.get('/courts', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../reservation-service/frontend/index.html'));
 });
 
 // ✅ เพิ่มใหม่: หน้าเลือกสำหรับ Admin (admin_select.html)
@@ -144,6 +157,7 @@ app.use('/admin', express.static(path.join(__dirname, '../../Admin/front')));
             initializeDatabase(),     // payment_svc seeds (idempotent)
             courseInitDb(),           // course_svc seeds (idempotent)
             seedAdminData(),          // admin_svc seeds  (idempotent)
+            seedReservationData(),    // reservation_svc seeds (idempotent)
         ]);
     } catch (e) {
         console.error('DB seed failed (continuing — schema is already applied):', e.message);
