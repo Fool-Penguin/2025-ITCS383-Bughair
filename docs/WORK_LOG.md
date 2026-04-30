@@ -26,6 +26,36 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 23:17 ICT - Codex
+
+**Task:** Remove unnecessary SonarCloud project details from the root README.
+
+**Changed:**
+- Updated `README.md` to remove the SonarCloud project key and organization table from the CI/CD and Quality section.
+- Kept the link to `D2_CODE_QUALITY.md` as the source for detailed quality evidence.
+- Updated `docs/WORK_LOG.md` with this README refinement entry.
+
+**Verified:**
+- Ran `git diff --check -- README.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- None.
+
+## 2026-04-30 23:11 ICT - Codex
+
+**Task:** Read project docs and improve the root README for the current project state.
+
+**Changed:**
+- Rewrote `README.md` to reflect Phase 2 Part 2 maintenance status, deployed backend URL, Android app path, current maintenance features, service structure, setup commands, test commands, environment variables, CI/Sonar info, and D2-D5 deliverable links.
+- Updated `docs/WORK_LOG.md` with this documentation entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, recent `docs/WORK_LOG.md`, current root `README.md`, and `android-app/README.md`.
+- Ran `git diff --check -- README.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Review the README links in GitHub after push to confirm all relative paths render correctly.
+
 ## 2026-04-30 22:25 ICT - Codex
 
 **Task:** Prepare current session handoff for switching accounts near token limit.
