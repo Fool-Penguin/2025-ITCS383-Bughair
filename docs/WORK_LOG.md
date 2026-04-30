@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 21:18 ICT - Antigravity (Claude)
+
+**Task:** Complete D5_AI-USAGE.md with missing recent activity and empty category sections.
+
+**Changed:**
+- Updated `D5_AI-USAGE.md`: added 3 new summary table rows (20:00-21:18), filled sections 4.2-4.7 with brief descriptions, and added 15 chronological log entries covering 20:00-21:14 ICT activity.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Cross-referenced all new entries against `docs/WORK_LOG.md` entries from 20:00-21:03 ICT.
+- Confirmed no empty category sections remain in D5.
+
+**Notes / Next Steps:**
+- D5 is now complete and covers all recorded AI-assisted activity through 21:18 ICT.
+- If more AI-assisted work happens before the 23:55 deadline, add entries to both D5 and this work log.
+
 ## 2026-04-30 21:17 ICT - Codex
 
 **Task:** Prepare immediate handoff because the user is near the usage limit before Android app work can continue.
