@@ -26,6 +26,78 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 17:02 ICT - Codex
+
+**Task:** Check whether the current changes are ready to push and production-test.
+
+**Changed:**
+- Updated `docs/handoff/CURRENT_SESSION_HANDOFF.md` so the former interrupted-work section reflects the completed and verified state.
+- Updated `docs/WORK_LOG.md` with this readiness check.
+
+**Verified:**
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+- Scanned current diff for obvious conflict markers and secret/env-token leakage.
+- Ran `npm test` in `implementations/reservation-service/backend`: 17 tests passed.
+- Confirmed no untracked generated files are pending from the test runs.
+
+**Notes / Next Steps:**
+- Changes look ready to push from local checks.
+- After push, verify GitHub Actions, Render deployment, SonarCloud, and browser smoke-test the production URL.
+
+## 2026-04-30 17:00 ICT - Codex
+
+**Task:** Continue interrupted profile-picture, course booking, trainer booking, and trainer-review work.
+
+**Changed:**
+- Completed profile-picture propagation from login/profile save into AuthMembership home/course navigation displays.
+- Added member-facing course booking and trainer booking panels on the course-service frontend.
+- Wired trainer review submission to completed trainer bookings and enforced the completed-booking rule in the review controller.
+- Changed course list/detail capacity display to derive active attendee counts from non-cancelled enrollments.
+- Updated course-service tests for the completed-booking review rule.
+
+**Verified:**
+- Parsed AuthMembership auth controller, course controller, review controller, and course frontend script for JavaScript syntax.
+- Ran `npm test -- --runInBand` in `implementations/course-service`: 22 tests passed, 92.74% line coverage.
+
+**Notes / Next Steps:**
+- `node --check` for some files hit a Windows sandbox `EPERM` path-resolution issue, so equivalent parse checks were run with `new Function(...)`; course-service Jest tests were run with approved elevation.
+- Browser smoke testing is still recommended for login, profile picture display, course enrollment panel refresh, trainer booking panel display, and completed-booking review submission.
+
+## 2026-04-30 16:52 ICT - Codex
+
+**Task:** Read all project documentation to understand requirements and current situation.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this documentation review entry.
+
+**Verified:**
+- Read every markdown file under `docs/`.
+- Extracted and reviewed the original Phase 2 Part 2 assignment PDF text.
+- Checked current `git status --short` to confirm outstanding modified files.
+
+**Notes / Next Steps:**
+- Current repo has uncommitted partial code/docs changes from the interrupted 16:42 work log entry; verify before pushing.
+- Immediate priorities are to finish/verify interrupted course/profile/review work, complete D2/D4/D5, verify Android repo/link, and re-check SonarCloud/GitHub Actions.
+
+## 2026-04-30 16:42 ICT - Codex
+
+**Task:** Interrupted fix attempt for course booking, profile-picture display, trainer-booking visibility, and trainer reviews; prepare handoff.
+
+**Changed:**
+- Partially modified `implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js` to return `profile_picture` on login.
+- Partially modified `implementations/AuthMembership/frontend/auth.html`, `profile.html`, and `Home.html` to persist/display profile pictures.
+- Partially modified `implementations/course-service/src/controllers/courseController.js` to calculate course attendee counts from active enrollments.
+- Partially modified `implementations/course-service/frontend/index.html` to add profile avatar display, member course/trainer booking panels, and review-from-booking UI hooks.
+
+**Verified:**
+- No verification completed after these partial edits.
+
+**Notes / Next Steps:**
+- Work was intentionally stopped by the user before completion.
+- Current modified files are not tested and should be reviewed before commit/push.
+- Continue by checking `implementations/course-service/frontend/index.html` for JS syntax/completeness, especially review booking select wiring and init calls for `loadMyEnrollments()` / `loadMyBookings()`.
+- Then run `node --check` on changed backend JS files and `npm test -- --runInBand` in `implementations/course-service`.
+
 ## 2026-04-30 16:25 ICT - Codex
 
 **Task:** Check whether the connected database currently contains real data.

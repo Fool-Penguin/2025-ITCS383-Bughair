@@ -36,6 +36,18 @@
             transition: 0.3s;
         }
         .nav-links a:hover, .nav-links a.active { color: var(--lime); }
+        .profile-avatar {
+            width: 42px; height: 42px; border-radius: 50%;
+            border: 1px solid rgba(200,245,60,0.55); object-fit: cover;
+            background: rgba(200,245,60,0.08); display: none;
+        }
+        .profile-avatar-fallback {
+            width: 42px; height: 42px; border-radius: 50%;
+            border: 1px solid rgba(200,245,60,0.35);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--lime); font-family: 'Bebas Neue'; font-size: 1.35rem;
+            background: rgba(200,245,60,0.08); letter-spacing: 1px;
+        }
 
         .container { max-width: 1300px; margin: 50px auto; padding: 0 30px; }
         .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
@@ -74,6 +86,10 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:20px;">
+            <div>
+                <img id="uAvatar" class="profile-avatar" alt="Profile picture">
+                <div id="uAvatarFallback" class="profile-avatar-fallback">?</div>
+            </div>
             <div style="text-align: right;">
                 <div id="uName" style="font-weight: 800; font-size: 0.9rem;">LOADING...</div>
                 <div id="uID" style="font-size: 0.7rem; color: var(--lime);">MEM-000000</div>
@@ -121,7 +137,22 @@
     </div>
 
     <script>
-        window.onload = function() {
+        function renderAvatar(user) {
+            const avatar = document.getElementById('uAvatar');
+            const fallback = document.getElementById('uAvatarFallback');
+            const initials = (user.name || user.full_name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+            fallback.textContent = initials || '?';
+            if (user.profile_picture) {
+                avatar.src = user.profile_picture;
+                avatar.style.display = 'block';
+                fallback.style.display = 'none';
+            } else {
+                avatar.style.display = 'none';
+                fallback.style.display = 'flex';
+            }
+        }
+
+        window.onload = async function() {
             const user = JSON.parse(localStorage.getItem('user'));
             const token = localStorage.getItem('token');
 
@@ -134,6 +165,7 @@
 
             document.getElementById('uName').innerText = user.name.toUpperCase();
             document.getElementById('uID').innerText = user.memberId || user.id;
+            renderAvatar(user);
 
             const planDisplay = document.getElementById('uPlan');
             if (user.role === 'admin') {
@@ -142,6 +174,20 @@
             } else {
                 planDisplay.innerText = "ELITE MEMBER";
                 planDisplay.style.color = "var(--lime)";
+            }
+
+            try {
+                const res = await fetch('/api/auth/profile', { headers: { Authorization: `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success && data.data) {
+                    user.name = data.data.full_name || user.name;
+                    user.profile_picture = data.data.profile_picture || user.profile_picture;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    document.getElementById('uName').innerText = user.name.toUpperCase();
+                    renderAvatar(user);
+                }
+            } catch (e) {
+                // Keep the stored profile display if the profile endpoint is unavailable.
             }
         };
 

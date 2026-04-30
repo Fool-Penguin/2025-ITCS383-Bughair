@@ -2,6 +2,20 @@ const pool = require('../config/db');
 
 const T = (t) => `course_svc."${t}"`;
 
+function withActiveEnrollmentCount(baseWhere = '1=1') {
+  return `
+    SELECT c.*,
+           COALESCE(ec."activeCount", 0)::int AS "currentAttendees"
+    FROM ${T('Courses')} c
+    LEFT JOIN (
+      SELECT "courseID", COUNT(*)::int AS "activeCount"
+      FROM ${T('CourseEnrollments')}
+      WHERE "attendanceStatus" != 'cancelled'
+      GROUP BY "courseID"
+    ) ec ON ec."courseID" = c."courseID"
+    WHERE ${baseWhere}`;
+}
+
 // ─── ADMIN: Create Course ─────────────────────────────────────────────────────
 const createCourse = async (req, res) => {
   try {
@@ -96,11 +110,11 @@ const cancelCourse = async (req, res) => {
 const getAllCourses = async (req, res) => {
   try {
     const { fitnessLevel, courseType } = req.query;
-    let query = `SELECT * FROM ${T('Courses')} WHERE "status" = 'published'`;
+    let query = withActiveEnrollmentCount(`c."status" = 'published'`);
     const params = [];
-    if (fitnessLevel) { params.push(fitnessLevel); query += ` AND "fitnessLevel" = $${params.length}`; }
-    if (courseType)   { params.push(courseType);   query += ` AND "courseType" = $${params.length}`; }
-    query += ' ORDER BY "schedule" ASC';
+    if (fitnessLevel) { params.push(fitnessLevel); query += ` AND c."fitnessLevel" = $${params.length}`; }
+    if (courseType)   { params.push(courseType);   query += ` AND c."courseType" = $${params.length}`; }
+    query += ' ORDER BY c."schedule" ASC';
     const r = await pool.query(query, params);
     res.json({ success: true, data: r.rows });
   } catch (err) {
@@ -112,11 +126,11 @@ const getAllCourses = async (req, res) => {
 const getAllCoursesAdmin = async (req, res) => {
   try {
     const { fitnessLevel, courseType } = req.query;
-    let query = `SELECT * FROM ${T('Courses')} WHERE 1=1`;
+    let query = withActiveEnrollmentCount();
     const params = [];
-    if (fitnessLevel) { params.push(fitnessLevel); query += ` AND "fitnessLevel" = $${params.length}`; }
-    if (courseType)   { params.push(courseType);   query += ` AND "courseType" = $${params.length}`; }
-    query += ' ORDER BY "schedule" ASC';
+    if (fitnessLevel) { params.push(fitnessLevel); query += ` AND c."fitnessLevel" = $${params.length}`; }
+    if (courseType)   { params.push(courseType);   query += ` AND c."courseType" = $${params.length}`; }
+    query += ' ORDER BY c."schedule" ASC';
     const r = await pool.query(query, params);
     res.json({ success: true, data: r.rows });
   } catch (err) {
@@ -127,7 +141,7 @@ const getAllCoursesAdmin = async (req, res) => {
 // ─── PUBLIC: Get Single Course ────────────────────────────────────────────────
 const getCourseById = async (req, res) => {
   try {
-    const r = await pool.query(`SELECT * FROM ${T('Courses')} WHERE "courseID" = $1`, [req.params.id]);
+    const r = await pool.query(withActiveEnrollmentCount(`c."courseID" = $1`), [req.params.id]);
     if (r.rowCount === 0) return res.status(404).json({ success: false, message: 'Course not found' });
     res.json({ success: true, data: r.rows[0] });
   } catch (err) {
@@ -144,7 +158,7 @@ const enrollCourse = async (req, res) => {
     const memberID = req.user.id;
 
     const courseRes = await client.query(
-      `SELECT * FROM ${T('Courses')} WHERE "courseID" = $1 AND "status" = 'published'`,
+      withActiveEnrollmentCount(`c."courseID" = $1 AND c."status" = 'published'`),
       [courseID]
     );
     if (courseRes.rowCount === 0) {

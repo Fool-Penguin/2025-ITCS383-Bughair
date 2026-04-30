@@ -7,7 +7,7 @@ const submitReview = async (req, res) => {
   try {
     const trainerID = parseInt(req.params.id);
     const memberID = req.user.id;
-    const { rating, comment } = req.body;
+    const { rating, comment, bookingID } = req.body;
 
     if (!rating) {
       return res.status(400).json({ success: false, message: 'Rating is required' });
@@ -24,6 +24,27 @@ const submitReview = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Trainer not found' });
     }
 
+    const bookingParams = [memberID, trainerID];
+    let bookingWhere = '';
+    if (bookingID) {
+      bookingParams.push(bookingID);
+      bookingWhere = ` AND "bookingID" = $${bookingParams.length}`;
+    }
+    const completedBooking = await pool.query(
+      `SELECT "bookingID" FROM ${T('TrainerBookings')}
+       WHERE "memberID" = $1 AND "trainerID" = $2 AND status = 'completed'${bookingWhere}
+       ORDER BY "sessionDate" DESC, "sessionTime" DESC
+       LIMIT 1`,
+      bookingParams
+    );
+    if (completedBooking.rowCount === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only completed trainer bookings can be reviewed',
+      });
+    }
+    const reviewBookingID = completedBooking.rows[0].bookingID;
+
     const existing = await pool.query(
       `SELECT "reviewID" FROM ${T('TrainerReviews')} WHERE "memberID" = $1 AND "trainerID" = $2`,
       [memberID, trainerID]
@@ -33,9 +54,9 @@ const submitReview = async (req, res) => {
       const reviewID = existing.rows[0].reviewID;
       await pool.query(
         `UPDATE ${T('TrainerReviews')}
-           SET rating = $1, comment = $2, "createdAt" = NOW(), status = 'visible'
-         WHERE "reviewID" = $3`,
-        [rating, comment || null, reviewID]
+           SET rating = $1, comment = $2, "bookingID" = $3, "createdAt" = NOW(), status = 'visible'
+         WHERE "reviewID" = $4`,
+        [rating, comment || null, reviewBookingID, reviewID]
       );
       return res.json({
         success: true,
@@ -45,9 +66,9 @@ const submitReview = async (req, res) => {
     }
 
     const r = await pool.query(
-      `INSERT INTO ${T('TrainerReviews')} ("trainerID","memberID","rating","comment")
-       VALUES ($1,$2,$3,$4) RETURNING "reviewID"`,
-      [trainerID, memberID, rating, comment || null]
+      `INSERT INTO ${T('TrainerReviews')} ("trainerID","memberID","bookingID","rating","comment")
+       VALUES ($1,$2,$3,$4,$5) RETURNING "reviewID"`,
+      [trainerID, memberID, reviewBookingID, rating, comment || null]
     );
 
     res.status(201).json({

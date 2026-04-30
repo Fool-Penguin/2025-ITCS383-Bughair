@@ -67,6 +67,7 @@ exports.login = async (req, res) => {
             userId: user.id,
             memberId: user.member_id,
             full_name: user.full_name,
+            profile_picture: user.profile_picture,
             role: user.role
         });
     } catch (error) {

@@ -142,3 +142,45 @@ _migration
 ## Important Caution
 
 The project has real deployment and database credentials in local environment files. Do not paste `.env` contents into chat, docs, commits, screenshots, or issue reports.
+# 2026-04-30 16:42 ICT / 17:00 ICT - Profile, Booking, and Review Work Handoff
+
+User initially asked to stop current work and prepare handoff. The interrupted changes were later continued and verified at 17:00 ICT.
+
+## Current State
+
+Last pushed commit before this interrupted work:
+
+- `0e82df4` - `Fix gateway flows and database checks`
+
+Uncommitted completed changes now exist in:
+
+- `docs/WORK_LOG.md`
+- `implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`
+- `implementations/AuthMembership/frontend/Home.html`
+- `implementations/AuthMembership/frontend/auth.html`
+- `implementations/AuthMembership/frontend/profile.html`
+- `implementations/course-service/frontend/index.html`
+- `implementations/course-service/src/controllers/courseController.js`
+- `implementations/course-service/src/controllers/reviewController.js`
+- `implementations/course-service/tests/course.test.js`
+
+## What Was Completed
+
+- Return `profile_picture` from login response.
+- Store `profile_picture` in `localStorage` during login/profile save.
+- Display member avatar on Home dashboard.
+- Display member avatar on course page nav.
+- Add member-facing panels for my course bookings and my trainer bookings.
+- Add review UI wiring from completed trainer bookings.
+- Enforce on the backend that trainer reviews require a completed trainer booking.
+- Update course list/detail backend to derive `currentAttendees` from active, non-cancelled enrollments.
+
+## Verification Completed
+
+- Parsed AuthMembership auth controller, course controller, review controller, and the course frontend script for JavaScript syntax.
+- Ran `npm test -- --runInBand` in `implementations/course-service`: 22 tests passed, 92.74% line coverage.
+
+## Remaining Risk / Recommended Next Checks
+
+- Browser smoke test is still recommended for login, profile picture display, course enrollment panel refresh, trainer booking panel display, and completed-booking review submission.
+- After push, re-check GitHub Actions, Render deployment, and SonarCloud.

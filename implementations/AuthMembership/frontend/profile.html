@@ -245,6 +245,7 @@
                 // Update localStorage user data
                 const user = JSON.parse(localStorage.getItem('user') || '{}');
                 user.name = full_name;
+                user.profile_picture = data.data?.profile_picture || profilePicBase64 || user.profile_picture;
                 localStorage.setItem('user', JSON.stringify(user));
 
                 showToast('Profile updated successfully!', 'success');

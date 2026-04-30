@@ -29,6 +29,16 @@
   .nav-user-info { text-align: right; }
   .nav-user-name { font-family: 'Space Mono', monospace; font-size: 0.72rem; font-weight: 700; color: var(--white); letter-spacing: 1px; text-transform: uppercase; }
   .nav-user-id   { font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--lime); letter-spacing: 1px; margin-top: 1px; }
+  .nav-avatar, .nav-avatar-fallback {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid rgba(200,241,53,0.45); background: rgba(200,241,53,0.08);
+    flex-shrink: 0;
+  }
+  .nav-avatar { display: none; object-fit: cover; }
+  .nav-avatar-fallback {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--lime); font-family: 'Bebas Neue', cursive; font-size: 1.2rem; letter-spacing: 1px;
+  }
   .btn-logout {
     padding: 0.38rem 0.9rem; border-radius: 6px;
     border: 1px solid var(--border); background: transparent;
@@ -270,6 +280,22 @@
   .booking-select { width: 100%; padding: 0.6rem 0.8rem; background: var(--dark); border: 1px solid var(--border); color: var(--white); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; margin-bottom: 0.8rem; outline: none; }
   .booking-select:focus { border-color: var(--lime); }
   .no-reviews { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+
+  .member-panel { max-width: 1200px; margin: 0 auto 2rem; padding: 0 2rem; display: none; }
+  .member-panel.show { display: block; }
+  .member-panel-header { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.7rem; margin-bottom: 1rem; }
+  .member-panel-title { font-family: 'Bebas Neue', cursive; font-size: 1.5rem; letter-spacing: 1px; color: var(--lime); }
+  .member-panel-action { border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 6px; padding: 0.35rem 0.7rem; cursor: pointer; font-size: 0.72rem; font-weight: 700; }
+  .member-panel-action:hover { border-color: var(--lime); color: var(--lime); }
+  .member-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.9rem; }
+  .member-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .member-card-title { font-family: 'Bebas Neue', cursive; font-size: 1.2rem; letter-spacing: 1px; margin-bottom: 0.35rem; }
+  .member-card-meta { color: var(--muted); font-size: 0.78rem; line-height: 1.55; }
+  .member-card-status { display: inline-block; margin-top: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid rgba(200,241,53,0.22); color: var(--lime); font-size: 0.65rem; font-family: 'Space Mono', monospace; text-transform: uppercase; }
+  .member-card-actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+  .member-card-actions button { flex: 1; padding: 0.48rem; border-radius: 6px; border: 1px solid var(--lime); background: transparent; color: var(--lime); cursor: pointer; font-weight: 700; font-size: 0.74rem; }
+  .member-card-actions button:hover { background: var(--lime); color: var(--black); }
+  .empty-member-list { border: 1px dashed var(--border); border-radius: 10px; padding: 1rem; color: var(--muted); font-size: 0.84rem; }
 </style>
 </head>
 <body>
@@ -283,6 +309,8 @@
     <a href="/payments" class="nav-link" style="text-decoration: none;">Payments</a>
   </div>
   <div class="nav-user">
+    <img id="nav-user-avatar" class="nav-avatar" alt="Profile picture">
+    <div id="nav-user-avatar-fallback" class="nav-avatar-fallback">?</div>
     <div class="nav-user-info">
       <div class="nav-user-name" id="nav-user-name">LOADING...</div>
       <div class="nav-user-id" id="nav-user-id">MEM-000000</div>
@@ -329,6 +357,13 @@
     </div>
     <div class="courses-grid" id="courses-grid"></div>
   </div>
+  <div class="member-panel" id="my-courses-panel">
+    <div class="member-panel-header">
+      <div class="member-panel-title">MY COURSE BOOKINGS</div>
+      <button class="member-panel-action" onclick="loadMyEnrollments()">Refresh</button>
+    </div>
+    <div class="member-list" id="my-courses-list"></div>
+  </div>
 </div>
 
 <!-- TRAINERS PAGE -->
@@ -351,6 +386,13 @@
       <div class="section-count" id="trainer-count"></div>
     </div>
     <div class="trainers-grid" id="trainers-grid"></div>
+  </div>
+  <div class="member-panel" id="my-bookings-panel">
+    <div class="member-panel-header">
+      <div class="member-panel-title">MY TRAINER BOOKINGS</div>
+      <button class="member-panel-action" onclick="loadMyBookings()">Refresh</button>
+    </div>
+    <div class="member-list" id="my-bookings-list"></div>
   </div>
 </div>
 
@@ -493,6 +535,8 @@
       <h4 id="write-review-title">WRITE A REVIEW</h4>
       <label class="form-label">Your Rating</label>
       <div class="star-picker" id="star-picker"></div>
+      <label class="form-label" id="review-booking-label" style="display:none">Related Booking</label>
+      <select class="booking-select" id="review-booking" style="display:none"></select>
       <label class="form-label">Comment (optional)</label>
       <textarea class="review-textarea" id="review-comment" placeholder="Share your experience with this trainer..."></textarea>
       <button class="submit-btn lime" id="submit-review-btn" onclick="submitReview()">Submit Review</button>
@@ -516,6 +560,8 @@ let allTrainers = [];
 let selectedTrainer   = null;
 let currentFilterLevel = 'all';
 let currentFilterExp   = 'all';
+let currentUser = null;
+let myTrainerBookings = [];
 const enrolledSet   = new Set();
 const enrolledTimes = new Map();
 
@@ -578,6 +624,7 @@ function setRole(r) {
   document.getElementById('admin-toolbar-trainers').classList.toggle('show', r==='admin');
   loadCourses(currentFilterLevel);
   loadTrainers(currentFilterExp);
+  loadMemberPanels();
   showToast(r === 'admin' ? '⚡ Admin mode' : '👤 Customer mode', 'info');
 }
 
@@ -601,6 +648,37 @@ function fmtDur(h) {
   if (h === 1) return '1 hr';
   if (Number.isInteger(h)) return `${h} hrs`;
   return `${Math.floor(h)} hr ${Math.round((h%1)*60)} min`;
+}
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+function fmtDateTime(date, time) {
+  const joined = time ? `${date}T${time}` : date;
+  const d = new Date(joined);
+  if (Number.isNaN(d.getTime())) return [date, time].filter(Boolean).join(' ');
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function requireLogin() {
+  if (TOKEN) return true;
+  showToast('Please sign in first.', 'error');
+  setTimeout(() => { window.location.href = '/auth.html'; }, 800);
+  return false;
+}
+function renderNavAvatar(user) {
+  const img = document.getElementById('nav-user-avatar');
+  const fallback = document.getElementById('nav-user-avatar-fallback');
+  const initials = (user?.name || user?.full_name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+  fallback.textContent = initials;
+  if (user?.profile_picture) {
+    img.src = user.profile_picture;
+    img.style.display = 'block';
+    fallback.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    fallback.style.display = 'flex';
+  }
 }
 function getConflict(courseID) {
   const c = allCourses.find(x => x.id === courseID);
@@ -632,7 +710,66 @@ async function loadCourses(filterLevel = 'all') {
   }
 }
 
+async function loadMyEnrollments() {
+  const panel = document.getElementById('my-courses-panel');
+  const list = document.getElementById('my-courses-list');
+  if (!TOKEN || role !== 'customer') {
+    panel.classList.remove('show');
+    enrolledSet.clear();
+    enrolledTimes.clear();
+    return;
+  }
+
+  try {
+    const json = await api('GET', '/courses/my/enrollments');
+    const rows = json.data || [];
+    enrolledSet.clear();
+    enrolledTimes.clear();
+
+    rows.filter(e => e.attendanceStatus !== 'cancelled').forEach(e => {
+      const courseID = Number(e.courseID);
+      enrolledSet.add(courseID);
+      const start = new Date(e.schedule);
+      if (!Number.isNaN(start.getTime())) {
+        enrolledTimes.set(courseID, { start, end: new Date(start.getTime() + 3600000) });
+      }
+    });
+
+    panel.classList.add('show');
+    if (!rows.length) {
+      list.innerHTML = '<div class="empty-member-list">No course bookings yet. Pick a class above and tap Enroll Now.</div>';
+    } else {
+      list.innerHTML = rows.map(e => `
+        <div class="member-card">
+          <div class="member-card-title">${escapeHtml(e.courseName || 'Course')}</div>
+          <div class="member-card-meta">
+            ${escapeHtml(e.courseType || '')} ${e.fitnessLevel ? `- ${escapeHtml(e.fitnessLevel)}` : ''}<br>
+            ${fmtDateTime(e.schedule)}<br>
+            Instructor: ${escapeHtml(e.instructor || '-')}
+          </div>
+          <span class="member-card-status">${escapeHtml(e.attendanceStatus || 'enrolled')}</span>
+        </div>`).join('');
+    }
+    renderCourses(allCourses);
+  } catch (err) {
+    panel.classList.add('show');
+    list.innerHTML = `<div class="empty-member-list">Could not load course bookings: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
 // Helper 1: คำนวณสถานะปุ่ม Enroll สำหรับ Customer
+async function loadMemberPanels() {
+  if (!TOKEN || role !== 'customer') {
+    document.getElementById('my-courses-panel').classList.remove('show');
+    document.getElementById('my-bookings-panel').classList.remove('show');
+    enrolledSet.clear();
+    enrolledTimes.clear();
+    myTrainerBookings = [];
+    return;
+  }
+  await Promise.all([loadMyEnrollments(), loadMyBookings()]);
+}
+
 function getEnrollButtonProps(c, isEnrolled, conflict, isFull) {
   if (c.status === 'cancelled') return { txt: 'Cancelled', cls: 'enroll-btn', dis: 'disabled' };
   if (isEnrolled) return { txt: '✓ Enrolled — tap to cancel', cls: 'enroll-btn enrolled', dis: '' };
@@ -716,6 +853,7 @@ function filterCourses(level, btn) {
 // CUSTOMER: ENROLL / CANCEL
 // ══════════════════════════════════════════════════════════
 async function toggleEnroll(cid, btn) {
+  if (!requireLogin()) return;
   const c = allCourses.find(x => x.id === cid);
   if (!c || c.status === 'cancelled') return;
 
@@ -728,6 +866,7 @@ async function toggleEnroll(cid, btn) {
       btn.textContent = 'Enroll Now'; btn.className = 'enroll-btn'; btn.disabled = false;
       showToast('Enrollment cancelled.');
       updateCapacityUI(c); refreshAllConflicts();
+      await loadMyEnrollments();
     } catch (err) { showToast(err.message, 'error'); }
   } else {
     if (c.cur >= c.max) return;
@@ -743,6 +882,7 @@ async function toggleEnroll(cid, btn) {
       btn.textContent = '✓ Enrolled — tap to cancel'; btn.className = 'enroll-btn enrolled';
       showToast('Successfully enrolled!');
       updateCapacityUI(c); refreshAllConflicts();
+      await loadMyEnrollments();
     } catch (err) { showToast(err.message, 'error'); }
   }
 }
@@ -995,6 +1135,7 @@ async function deleteTrainer(tid) {
 // BOOK TRAINER
 // ══════════════════════════════════════════════════════════
 function openBookModal(tid) {
+  if (!requireLogin()) return;
   api('GET', `/trainers/${tid}`).then(json => {
     selectedTrainer = mapTrainer(json.data);
     document.getElementById('modal-trainer-name').textContent      = selectedTrainer.name;
@@ -1019,7 +1160,50 @@ async function submitBooking() {
     await api('POST', '/trainers/book', { trainerID: tid, sessionDate: date, sessionTime: time, durationMinutes: duration, notes });
     closeModal('book-modal');
     showToast(`Session booked with ${name} on ${date} at ${time}!`);
+    await loadMyBookings();
   } catch (err) { showToast(err.message, 'error'); }
+}
+
+async function loadMyBookings() {
+  const panel = document.getElementById('my-bookings-panel');
+  const list = document.getElementById('my-bookings-list');
+  if (!TOKEN || role !== 'customer') {
+    panel.classList.remove('show');
+    myTrainerBookings = [];
+    return;
+  }
+
+  try {
+    const json = await api('GET', '/trainers/my/bookings');
+    myTrainerBookings = json.data || [];
+    panel.classList.add('show');
+
+    if (!myTrainerBookings.length) {
+      list.innerHTML = '<div class="empty-member-list">No trainer bookings yet. Book a private session above to review your trainer later.</div>';
+      return;
+    }
+
+    list.innerHTML = myTrainerBookings.map(b => {
+      const status = String(b.status || 'pending').toLowerCase();
+      const action = status === 'completed'
+        ? `<div class="member-card-actions"><button onclick="openReviewModal(${Number(b.trainerID)})">Review Trainer</button></div>`
+        : `<div class="member-card-meta" style="margin-top:0.75rem;">Complete this session before reviewing.</div>`;
+      return `
+        <div class="member-card">
+          <div class="member-card-title">${escapeHtml(b.trainerName || 'Trainer')}</div>
+          <div class="member-card-meta">
+            ${escapeHtml(b.expertise || '')}<br>
+            ${fmtDateTime(b.sessionDate, b.sessionTime)}<br>
+            Duration: ${escapeHtml(b.durationMinutes || 60)} min
+          </div>
+          <span class="member-card-status">${escapeHtml(status)}</span>
+          ${action}
+        </div>`;
+    }).join('');
+  } catch (err) {
+    panel.classList.add('show');
+    list.innerHTML = `<div class="empty-member-list">Could not load trainer bookings: ${escapeHtml(err.message)}</div>`;
+  }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1120,7 +1304,7 @@ async function openReviewModal(tid) {
               <div class="review-item-stars">${renderStars(r.rating)}</div>
               <span class="review-item-date">${date}</span>
             </div>
-            ${r.comment ? `<div class="review-item-comment">${r.comment}</div>` : ''}
+            ${r.comment ? `<div class="review-item-comment">${escapeHtml(r.comment)}</div>` : ''}
             ${adminBtns}
           </div>`;
       }).join('');
@@ -1128,12 +1312,34 @@ async function openReviewModal(tid) {
 
     // Show write review section for logged-in customers
     const writeSection = document.getElementById('write-review-section');
+    const bookingLabel = document.getElementById('review-booking-label');
+    const bookingSelect = document.getElementById('review-booking');
     if (role === 'customer' && TOKEN) {
+      if (!myTrainerBookings.length) {
+        try { await loadMyBookings(); } catch (e) { /* booking panel already shows load errors */ }
+      }
+      const eligibleBookings = myTrainerBookings.filter(b =>
+        Number(b.trainerID) === Number(tid) && String(b.status || '').toLowerCase() === 'completed'
+      );
+
+      if (!eligibleBookings.length) {
+        writeSection.style.display = 'none';
+        bookingLabel.style.display = 'none';
+        bookingSelect.style.display = 'none';
+        showToast('Complete a trainer booking before writing a review.', 'info');
+        return;
+      }
+
       writeSection.style.display = 'block';
       selectedRating = 0;
       document.getElementById('review-comment').value = '';
       document.getElementById('write-review-title').textContent = 'WRITE A REVIEW';
       document.getElementById('submit-review-btn').textContent = 'Submit Review';
+      bookingLabel.style.display = 'block';
+      bookingSelect.style.display = 'block';
+      bookingSelect.innerHTML = eligibleBookings.map(b => `
+        <option value="${Number(b.bookingID)}">${escapeHtml(fmtDateTime(b.sessionDate, b.sessionTime))}</option>
+      `).join('');
 
       // Check if user already reviewed this trainer — pre-fill for editing
       try {
@@ -1143,12 +1349,15 @@ async function openReviewModal(tid) {
           document.getElementById('review-comment').value = myReview.data.comment || '';
           document.getElementById('write-review-title').textContent = 'UPDATE YOUR REVIEW';
           document.getElementById('submit-review-btn').textContent = 'Update Review';
+          if (myReview.data.bookingID) bookingSelect.value = myReview.data.bookingID;
         }
       } catch (e) { /* no existing review — that's fine */ }
 
       renderStarsInteractive(selectedRating);
     } else {
       writeSection.style.display = 'none';
+      bookingLabel.style.display = 'none';
+      bookingSelect.style.display = 'none';
     }
   } catch (err) {
     showToast('Failed to load reviews: ' + err.message, 'error');
@@ -1160,6 +1369,7 @@ async function submitReview() {
   if (selectedRating === 0) { showToast('Please select a star rating', 'error'); return; }
 
   const comment = document.getElementById('review-comment').value.trim();
+  const bookingID = document.getElementById('review-booking').value;
   const btn = document.getElementById('submit-review-btn');
   btn.disabled = true;
   btn.textContent = 'SUBMITTING...';
@@ -1167,7 +1377,8 @@ async function submitReview() {
   try {
     await api('POST', `/trainers/${reviewTrainerID}/reviews`, {
       rating: selectedRating,
-      comment: comment || null
+      comment: comment || null,
+      bookingID: bookingID ? Number(bookingID) : undefined
     });
     showToast('Review submitted! Thank you! ⭐');
     // Reload the reviews and trainer list
@@ -1215,18 +1426,23 @@ function showToast(msg, type = '') {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const token = localStorage.getItem('token');
   if (user) {
+    currentUser = user;
     document.getElementById('nav-user-name').textContent = (user.name || 'USER').toUpperCase();
     document.getElementById('nav-user-id').textContent = user.memberId || user.id || '';
+    renderNavAvatar(user);
     // Auto-set role based on user role
     if (user.role === 'admin') {
       setRole('admin');
     }
+  } else {
+    renderNavAvatar(null);
   }
   if (!token) {
     // Still load data even without auth (public endpoints)
   }
   loadCourses();
   loadTrainers();
+  loadMemberPanels();
 })();
 
 function doLogout() {

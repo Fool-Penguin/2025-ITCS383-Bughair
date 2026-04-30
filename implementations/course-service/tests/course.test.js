@@ -416,9 +416,11 @@ describe('review routes', () => {
   test('submits, updates, lists, and checks reviews', async () => {
     mockQueries(
       dbResult([{ ok: 1 }], 1),
+      dbResult([{ bookingID: 7 }], 1),
       dbResult([], 0),
       dbResult([{ reviewID: 5 }], 1),
       dbResult([{ reviewID: 5 }], 1),
+      dbResult([{ bookingID: 7 }], 1),
       dbResult([{ reviewID: 5 }], 1),
       dbResult([], 1),
       dbResult([{ reviewID: 5, rating: 5 }]),
@@ -450,6 +452,7 @@ describe('review routes', () => {
 
     pool.query
       .mockResolvedValueOnce(dbResult([{ ok: 1 }], 1))
+      .mockResolvedValueOnce(dbResult([{ bookingID: 7 }], 1))
       .mockResolvedValueOnce(dbResult([], 0))
       .mockRejectedValueOnce(Object.assign(new Error('duplicate'), { code: '23505' }));
 
@@ -467,6 +470,10 @@ describe('review routes', () => {
     mockQueries(dbResult([], 0));
     res = await request(app).post('/api/trainers/99/reviews').set('Authorization', `Bearer ${memberToken}`).send({ rating: 5 });
     expect(res.status).toBe(404);
+
+    mockQueries(dbResult([{ ok: 1 }], 1), dbResult([], 0));
+    res = await request(app).post('/api/trainers/1/reviews').set('Authorization', `Bearer ${memberToken}`).send({ rating: 5 });
+    expect(res.status).toBe(403);
 
     mockQueries(dbResult([{ reviewID: 1 }]), dbResult([], 1), dbResult([], 1), dbResult([], 0), dbResult([], 0));
     res = await request(app).get('/api/trainers/1/reviews/admin').set('Authorization', `Bearer ${adminToken}`);
