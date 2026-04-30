@@ -26,6 +26,21 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:27 ICT - Codex
+
+**Task:** Prevent Resend from accidentally using the old Gmail SMTP sender.
+
+**Changed:**
+- Updated `implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js` so Resend uses `RESEND_FROM` or the Resend sandbox sender, not `SMTP_FROM`.
+- Updated `docs/WORK_LOG.md` with this follow-up entry.
+
+**Verified:**
+- Reviewed the Resend sender fallback against the current Render env setup.
+
+**Notes / Next Steps:**
+- Set `RESEND_FROM` explicitly in Render when using a verified Resend domain.
+- If testing without a verified domain, leave `RESEND_FROM` unset and send only to the allowed Resend test recipient.
+
 ## 2026-04-30 19:26 ICT - Codex
 
 **Task:** Commit and push Resend password-reset email support.

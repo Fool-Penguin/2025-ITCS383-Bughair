@@ -61,7 +61,7 @@ async function sendWithResend(email, subject, html) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                from: process.env.RESEND_FROM || process.env.SMTP_FROM || 'Bughair Fitness <onboarding@resend.dev>',
+                from: process.env.RESEND_FROM || 'Bughair Fitness <onboarding@resend.dev>',
                 to: [email],
                 subject,
                 html
