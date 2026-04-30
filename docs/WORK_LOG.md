@@ -26,6 +26,21 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:55 ICT - Codex
+
+**Task:** Commit and push SendGrid password-reset email support.
+
+**Changed:**
+- Pushed commit `544d452` (`Add SendGrid password reset emails`) to `origin/master`.
+- Updated `docs/WORK_LOG.md` with this push record.
+
+**Verified:**
+- `git push origin master` completed successfully: `55398e9..544d452 master -> master`.
+
+**Notes / Next Steps:**
+- Configure SendGrid Single Sender Verification, then set `SENDGRID_API_KEY` and `SENDGRID_FROM` in Render.
+- Watch Render logs for `Password reset email sent to: ... via SendGrid`.
+
 ## 2026-04-30 19:50 ICT - Codex
 
 **Task:** Add SendGrid support for password-reset emails as a no-domain alternative.
