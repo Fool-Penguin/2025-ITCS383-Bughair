@@ -26,6 +26,21 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:26 ICT - Codex
+
+**Task:** Commit and push Resend password-reset email support.
+
+**Changed:**
+- Pushed commit `cfbefd4` (`Add Resend password reset emails`) to `origin/master`.
+- Updated `docs/WORK_LOG.md` with this push record.
+
+**Verified:**
+- `git push origin master` completed successfully: `72ceaf7..cfbefd4 master -> master`.
+
+**Notes / Next Steps:**
+- Configure `RESEND_API_KEY` and `RESEND_FROM` in Render, redeploy, then retest password reset.
+- Watch Render logs for `Password reset email sent to: ... via Resend`.
+
 ## 2026-04-30 19:24 ICT - Codex
 
 **Task:** Add Resend support for password-reset emails because Render free services block SMTP ports.
