@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 22:25 ICT - Codex
+
+**Task:** Prepare current session handoff for switching accounts near token limit.
+
+**Changed:**
+- Updated `docs/handoff/CURRENT_SESSION_HANDOFF.md` with the latest Android app state, pushed commits, verification, emulator notes, and immediate next steps.
+- Marked older Android creation guidance as historical/partially obsolete by adding a newer top handoff section.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Checked latest Git history and status before editing.
+- Reviewed current Android README references and handoff content for stale WebView/native-only guidance.
+
+**Notes / Next Steps:**
+- New account should start from the 2026-04-30 22:25 ICT handoff section, then run `git status --short --untracked-files=all`.
+
 ## 2026-04-30 22:20 ICT - Codex
 
 **Task:** Polish Android profile header/status text and circular avatar display.

@@ -1,8 +1,146 @@
 # Current Session Handoff
 
-Last updated: 2026-04-30 15:20 ICT
+Last updated: 2026-04-30 22:25 ICT
 
 This file exists so work can continue from another account or coding agent without relying on chat history.
+
+# 2026-04-30 22:25 ICT - Immediate Handoff: Android App Built, Native-Only, Pushed
+
+## Why This Handoff Exists
+
+The user is near the token/usage limit and wants to switch accounts. Continue from this section first; older Android notes below are historical and partially obsolete.
+
+## Current Git State
+
+- Branch: `master`
+- Working tree was clean before this handoff edit.
+- Latest pushed commits before this handoff edit:
+  - `fc9b131` - `Polish Android profile header`
+  - `d470445` - `Complete D4 impact analysis`
+  - `923888c` - `Add native Android profile image picker`
+  - `a42136d` - `Make Android app native only`
+  - `8c58a43` - `Add Android mobile app`
+- Last push succeeded: `origin/master` advanced from `d470445` to `fc9b131`.
+- Git may warn locally: `unable to access 'C:\Users\markz/.config/git/ignore': Permission denied`. This warning has not blocked commit, rebase, build, or push.
+
+## Android Requirement Interpretation
+
+The user clarified that the assignment requires a mobile client focused solely on native Android. Do not reintroduce a web button, WebView fallback, or visible native/API/backend-debug labels in the UI.
+
+The Android app is in:
+
+```text
+android-app/
+```
+
+The root `README.md` already links/describes this Android app, satisfying the "include the link/path in README" requirement for this repo setup.
+
+## Android App Current State
+
+- Native Java Android app using built-in Android views.
+- Backend base URL:
+
+```text
+https://two025-itcs383-bughair-1.onrender.com
+```
+
+- Android SDK path supplied by user:
+
+```text
+C:\Users\markz\AppData\Local\Android\Sdk
+```
+
+- Current native coverage:
+  - Login
+  - Register
+  - Forgot password request
+  - Profile view/edit
+  - Native device image picker for profile picture upload
+  - Circular profile image rendering in header/profile card
+  - Courses list/enrollment action wiring
+  - Trainers and review display
+  - Payments plan/history view plus demo-card action wiring
+  - Courts stats/availability/reservations plus first-available-slot booking action wiring
+
+## Latest User-Requested UI Fixes Already Done
+
+- Removed the visible `WEB` button earlier.
+- Removed the unnecessary `NATIVE/API` and `BACKEND RENDER` cards from the dashboard.
+- Replaced profile picture URL editing with native image upload from the device.
+- Removed `MEM38837 - Profile loaded` style header text.
+- Header now shows only the member name when logged in, or `WELCOME` when logged out.
+- Profile images are circular-cropped so they stay inside the round avatar frame.
+
+## Verification Already Done
+
+From `android-app/`:
+
+```powershell
+$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline
+```
+
+Latest result: `BUILD SUCCESSFUL`.
+
+Emulator/device checks already performed on `emulator-5554`:
+
+- APK installed and launched.
+- Login worked against the deployed backend.
+- Profile loaded.
+- Courses loaded 3 published courses.
+- Trainers loaded 3 trainers/ratings.
+- Payments loaded 3 membership plans.
+- Courts loaded 5 courts plus stats.
+- Latest profile-header screenshot confirmed no member ID/status-message text and circular avatar rendering.
+
+Mutation caution:
+
+- Some buttons are wired to live deployed APIs. Avoid creating live payments/reservations/enrollments unless the user explicitly wants that demo data changed.
+- A profile image save was tested earlier only as needed for the profile-image flow; avoid further live profile mutations unless requested.
+
+## Useful Commands
+
+Check state:
+
+```powershell
+git status --short --untracked-files=all
+git pull --rebase origin master
+```
+
+Build Android:
+
+```powershell
+cd android-app
+$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline
+```
+
+Install/relaunch on emulator:
+
+```powershell
+C:\Users\markz\AppData\Local\Android\Sdk\platform-tools\adb.exe install -r android-app\app\build\outputs\apk\debug\app-debug.apk
+C:\Users\markz\AppData\Local\Android\Sdk\platform-tools\adb.exe shell am force-stop edu.mahidol.bughair
+C:\Users\markz\AppData\Local\Android\Sdk\platform-tools\adb.exe shell am start -n edu.mahidol.bughair/.MainActivity
+```
+
+## Immediate Next Steps For New Account
+
+1. Start with `git status --short --untracked-files=all`.
+2. Read `docs/WORK_LOG.md` top entries from 22:08 onward.
+3. If asked for more Android polish, edit primarily `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java`.
+4. Build with the Android SDK path above after every Android change.
+5. Update `docs/WORK_LOG.md` after every task.
+6. Rebase before push because teammates are actively pushing:
+
+```powershell
+git pull --rebase origin master
+git push origin master
+```
+
+## Do Not Do
+
+- Do not bring back WebView or a `WEB` button.
+- Do not display technical/debug labels like `NATIVE/API`, `BACKEND RENDER`, or `Profile loaded` in the final UI.
+- Do not commit APKs, screenshots, `.env`, database files, dependency folders, or coverage output.
+- Do not blindly edit backend/email/provider code; Android is the current focus unless the user redirects.
 
 # 2026-04-30 21:12 ICT - Immediate Handoff: Android App Must Continue From New Account
 
