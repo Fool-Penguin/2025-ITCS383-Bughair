@@ -89,6 +89,40 @@ Open your browser and navigate to: `http://localhost:8080`
 
 ---
 
+## Android App
+
+A native Android demo app now lives in:
+
+```text
+android-app/
+```
+
+The app connects to the deployed Render backend:
+
+```text
+https://two025-itcs383-bughair-1.onrender.com
+```
+
+Current mobile coverage includes native login, forgot-password request, profile view/edit, courses with enrollment, trainers with review display, and WebView fallbacks for deployed web flows such as payments and courts.
+
+Build the debug APK from PowerShell:
+
+```powershell
+cd android-app
+$env:ANDROID_HOME="$env:LOCALAPPDATA\Android\Sdk"
+.\gradlew.bat assembleDebug
+```
+
+Debug APK output:
+
+```text
+android-app/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Open `android-app/` in Android Studio to run it on an emulator.
+
+---
+
 ## Services Overview
 
 | Service | Location | Responsibility |

@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 21:58 ICT - Codex
+
+**Task:** Prepare Android app changes for push after a teammate updated `origin/master`.
+
+**Changed:**
+- Committed the Android app work locally before rebasing.
+- Resolved the `docs/WORK_LOG.md` rebase conflict by keeping both the teammate's latest documentation/D5 entries and the Android app entries.
+- Updated `docs/WORK_LOG.md` with this conflict-handling entry.
+
+**Verified:**
+- Ran `git diff --check` before the rebase; no whitespace or conflict-marker errors were reported.
+- Ran `git pull --rebase origin master`; conflict was limited to `docs/WORK_LOG.md`.
+
+**Notes / Next Steps:**
+- Continue the rebase, run final checks, then push the rebased Android app commit to `origin/master`.
+
 ## 2026-04-30 21:43 ICT - Codex
 
 **Task:** Push the latest documentation updates to GitHub.
@@ -87,6 +103,99 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 **Notes / Next Steps:**
 - `git status --short` could not run because `git` is not available in this shell PATH.
 - Current likely priorities are D4 completion, D2/D3/D5 final review, Android app/repo evidence, and any final deployed web demo blockers.
+
+## 2026-04-30 21:54 ICT - Codex
+
+**Task:** Show the member profile picture in the Android app.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/SessionStore.java` to persist `profile_picture` with the Android session.
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to decode and display profile pictures from both web-uploaded base64 `data:image/...` values and normal image URLs.
+- Added the signed-in member avatar to the Android header and the profile screen avatar card.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the rebuilt APK on `emulator-5554`, launched the app, opened Profile, and confirmed the uploaded profile picture appears in both the header and profile card.
+
+**Notes / Next Steps:**
+- The profile image is displayed from the existing stored `profile_picture`; no profile data was changed during verification.
+
+## 2026-04-30 21:47 ICT - Codex
+
+**Task:** Remove implementation-facing dashboard stats from the Android home screen.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so the dashboard stat row shows member-facing values: current plan, expiry date, and days left.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the rebuilt APK on `emulator-5554` and launched `edu.mahidol.bughair/.MainActivity`.
+
+**Notes / Next Steps:**
+- Expiry date and days-left values currently mirror the web dashboard's static demo copy. Replace them with real membership data later if an API endpoint is confirmed.
+
+## 2026-04-30 21:44 ICT - Codex
+
+**Task:** Make the Android app closer to the deployed website and verify key emulator flows.
+
+**Changed:**
+- Reworked `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to better match the web UI: FITNESS header, dark bordered cards, lime active navigation, dashboard hero, quick-access cards, auth/register role selector, profile badge form, course capacity cards, and trainer rating/review cards.
+- Updated Android navigation/status handling so the active screen and API load states are visible.
+- Updated `android-app/README.md` with the user's Android SDK path and screenshot capture commands.
+- Updated `.gitignore` so local Android screenshot PNG files are not accidentally committed with live member details.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the debug APK on `emulator-5554` with `adb install -r`.
+- Launched `edu.mahidol.bughair/.MainActivity` with `adb shell am start`.
+- Verified native Courses screen loaded 3 published courses from the deployed API.
+- Verified native Trainers screen loaded 3 active trainers with ratings from the deployed API.
+- Verified native Profile screen loaded the signed-in member profile from `/api/auth/profile`.
+- Captured local emulator screenshots for home, courses, trainers, and profile; PNG files are ignored by Git because they include live demo account details.
+
+**Notes / Next Steps:**
+- Enroll, forgot-password, and profile-save buttons are wired to live endpoints but were not clicked during this pass to avoid changing live data or sending extra reset emails without explicit confirmation.
+- Final demo should use known demo credentials and capture fresh screenshots/video after any last data changes.
+
+## 2026-04-30 21:35 ICT - Codex
+
+**Task:** Start creating the Android application from the current handoff plan.
+
+**Changed:**
+- Added `android-app/` as a buildable native Android project using Java, Android Gradle Plugin 8.3.0, and the Gradle wrapper.
+- Added native Android screens/helpers for login, forgot password, profile view/edit, courses/enrollment, trainers/reviews, JWT session storage, deployed API calls, and WebView fallbacks.
+- Updated `.gitignore` to exclude Android local/build outputs and APK/AAB artifacts.
+- Updated root `README.md` and added `android-app/README.md` with Android app location, backend URL, build command, APK path, and demo flow.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="$env:LOCALAPPDATA\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Confirmed debug APK exists at `android-app/app/build/outputs/apk/debug/app-debug.apk`.
+- Installed the APK on running emulator `emulator-5554` with `adb install -r`.
+- Launched `edu.mahidol.bughair/.MainActivity` with `adb shell am start`; process was running and screenshot was captured.
+
+**Notes / Next Steps:**
+- More emulator screenshots are still needed for login/profile/courses/trainers after demo credentials are available.
+- Native Android app currently uses built-in Java Android UI instead of Compose because Compose/Kotlin dependencies were not available locally; this matches the handoff fallback strategy to keep the app buildable.
+- Gradle installed local Android SDK Build-Tools 34 during the first successful build; this is local SDK state and not committed.
+
+## 2026-04-30 21:21 ICT - Codex
+
+**Task:** Read project documentation and handoff notes to prepare for the next incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this orientation entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, `docs/WORK_LOG.md`, `docs/handoff/CURRENT_SESSION_HANDOFF.md`, `docs/handoff/3-HOUR-FINAL-SPLIT.md`, `docs/handoff/Team Task Split.md`, and root `README.md`.
+- Ran `git status --short`; no tracked/untracked changes were listed before this log edit, only local Git config permission warnings.
+
+**Notes / Next Steps:**
+- Current priority appears to be final-deadline work: Android emulator demo/parity, D2-D5 completion, and careful final integration/push discipline.
+- Root `README.md` appears older than the current handoff docs, so use handoff and work log as fresher context for upcoming tasks.
 
 ## 2026-04-30 21:18 ICT - Antigravity (Claude)
 
