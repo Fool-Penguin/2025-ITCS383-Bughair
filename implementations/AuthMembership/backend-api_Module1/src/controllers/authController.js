@@ -23,6 +23,11 @@ function canExposeResetLink(req) {
     return !hasEmailProvider || host === 'localhost' || host === '127.0.0.1';
 }
 
+// Sanitize user-controlled values before logging to prevent log injection
+function sanitizeForLog(value) {
+    return String(value || '').replace(/[\r\n\t]/g, '_');
+}
+
 function parseEmailAddress(value, fallbackName = 'Bughair Fitness') {
     const sender = (value || '').trim();
 
@@ -68,7 +73,7 @@ function buildPasswordResetEmail(user, resetLink) {
 function logResetLink(reason, email, resetLink, token, expiresAt) {
     console.log(`\n=========================================`);
     console.log(`PASSWORD RESET LINK (${reason})`);
-    console.log(`   User: ${email}`);
+    console.log(`   User: ${sanitizeForLog(email)}`);
     console.log(`   Link: ${resetLink}`);
     console.log(`   Token: ${token}`);
     console.log(`   Expires: ${expiresAt}`);
@@ -105,7 +110,7 @@ async function sendWithSendGrid(email, subject, html) {
             throw new Error(`SendGrid API error: HTTP ${response.status}${body ? ` ${body}` : ''}`);
         }
 
-        console.log(`Password reset email sent to: ${email} via SendGrid`);
+        console.log(`Password reset email sent to: ${sanitizeForLog(email)} via SendGrid`);
     } finally {
         clearTimeout(timeoutId);
     }
@@ -143,7 +148,7 @@ async function sendWithResend(email, subject, html) {
             throw new Error(`Resend API error: ${message}`);
         }
 
-        console.log(`Password reset email sent to: ${email} via Resend (${payload.id || 'no id'})`);
+        console.log(`Password reset email sent to: ${sanitizeForLog(email)} via Resend (${payload.id || 'no id'})`);
     } finally {
         clearTimeout(timeoutId);
     }
@@ -319,12 +324,12 @@ exports.forgotPassword = async (req, res) => {
                         </div>
                     `
                 });
-                console.log(`Password reset email sent to: ${email} via SMTP`);
+                console.log(`Password reset email sent to: ${sanitizeForLog(email)} via SMTP`);
             } else {
                 // No SMTP configured — log to console
                 console.log(`\n=========================================`);
                 console.log(`PASSWORD RESET LINK (no email configured)`);
-                console.log(`   User: ${email}`);
+                console.log(`   User: ${sanitizeForLog(email)}`);
                 console.log(`   Link: ${resetLink}`);
                 console.log(`   Token: ${token}`);
                 console.log(`   Expires: ${expiresAt}`);
@@ -334,7 +339,7 @@ exports.forgotPassword = async (req, res) => {
         } catch (emailErr) {
             console.log(`\n=========================================`);
             console.log(`PASSWORD RESET LINK (email failed: ${emailErr.message})`);
-            console.log(`   User: ${email}`);
+            console.log(`   User: ${sanitizeForLog(email)}`);
             console.log(`   Link: ${resetLink}`);
             console.log(`   Token: ${token}`);
             console.log(`   Expires: ${expiresAt}`);
