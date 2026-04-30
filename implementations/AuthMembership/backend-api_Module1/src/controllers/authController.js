@@ -74,7 +74,7 @@ function logResetLink(reason, email, resetLink, token, expiresAt) {
     console.log(`\n=========================================`);
     console.log(`PASSWORD RESET LINK (${reason})`);
     console.log(`   User: ${sanitizeForLog(email)}`);
-    console.log(`   Link: ${resetLink}`);
+    console.log(`   Link: ${sanitizeForLog(resetLink)}`);
     console.log(`   Token: ${token}`);
     console.log(`   Expires: ${expiresAt}`);
     console.log(`=========================================\n`);
@@ -330,7 +330,7 @@ exports.forgotPassword = async (req, res) => {
                 console.log(`\n=========================================`);
                 console.log(`PASSWORD RESET LINK (no email configured)`);
                 console.log(`   User: ${sanitizeForLog(email)}`);
-                console.log(`   Link: ${resetLink}`);
+                console.log(`   Link: ${sanitizeForLog(resetLink)}`);
                 console.log(`   Token: ${token}`);
                 console.log(`   Expires: ${expiresAt}`);
                 console.log(`=========================================\n`);
@@ -338,9 +338,9 @@ exports.forgotPassword = async (req, res) => {
             }
         } catch (emailErr) {
             console.log(`\n=========================================`);
-            console.log(`PASSWORD RESET LINK (email failed: ${emailErr.message})`);
+            console.log(`PASSWORD RESET LINK (email failed: ${sanitizeForLog(emailErr.message)})`);
             console.log(`   User: ${sanitizeForLog(email)}`);
-            console.log(`   Link: ${resetLink}`);
+            console.log(`   Link: ${sanitizeForLog(resetLink)}`);
             console.log(`   Token: ${token}`);
             console.log(`   Expires: ${expiresAt}`);
             console.log(`=========================================\n`);
