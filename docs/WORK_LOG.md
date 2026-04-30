@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 14:35 ICT - Codex
+
+**Task:** Raise SonarCloud new-code coverage above the D2 requirement after Sonar showed 87.5%.
+
+**Changed:**
+- Added focused course-service tests for uncovered course and review controller branches.
+- Covered publish/undo-cancel errors, enrollment duplicate/rollback paths, empty review stats, duplicate review handling, and review moderation 404 paths.
+
+**Verified:**
+- Ran `npm test -- --coverageReporters=json-summary --coverageReporters=text --runInBand` in `implementations/course-service`.
+- Result: 22 tests passed, 93.08% line coverage, 92.61% statement coverage, 86.4% branch coverage.
+
+**Notes / Next Steps:**
+- Push and wait for SonarCloud to rerun.
+- The expected new-code coverage should move above 90%, but the quality gate may still fail on reliability, security, or duplication.
+
 ## 2026-04-30 14:20 ICT - Codex
 
 **Task:** Fix reservation-service CI failure caused by missing `DATABASE_URL` during tests.

@@ -145,7 +145,7 @@ describe('course routes', () => {
   });
 
   test('handles course admin error branches', async () => {
-    mockQueries(dbResult([], 0), dbResult([], 0), dbResult([], 0), dbResult([], 1));
+    mockQueries(dbResult([], 0), dbResult([], 0), dbResult([], 0), dbResult([{ status: 'published' }], 1));
 
     let res = await request(app).put('/api/courses/404').set('Authorization', `Bearer ${adminToken}`).send({});
     expect(res.status).toBe(404);
@@ -156,7 +156,13 @@ describe('course routes', () => {
     res = await request(app).patch('/api/courses/1/publish').set('Authorization', `Bearer ${adminToken}`).send({ status: 'bad' });
     expect(res.status).toBe(400);
 
+    res = await request(app).patch('/api/courses/404/publish').set('Authorization', `Bearer ${adminToken}`).send({ status: 'published' });
+    expect(res.status).toBe(404);
+
     res = await request(app).patch('/api/courses/1/cancel').set('Authorization', `Bearer ${adminToken}`).send({});
+    expect(res.status).toBe(400);
+
+    res = await request(app).patch('/api/courses/1/undo-cancel').set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(400);
   });
 
@@ -195,10 +201,45 @@ describe('course routes', () => {
     expect(res.status).toBe(200);
     expect(client.query).toHaveBeenCalledWith('COMMIT');
 
+    mockClient(dbResult([], 0));
+    res = await request(app).post('/api/courses/enroll/cancel').set('Authorization', `Bearer ${memberToken}`).send({ courseID: 404 });
+    expect(res.status).toBe(404);
+
     mockQueries(dbResult([{ enrollmentID: 7, courseName: 'Yoga' }]));
     res = await request(app).get('/api/courses/my/enrollments').set('Authorization', `Bearer ${memberToken}`);
     expect(res.status).toBe(200);
     expect(res.body.data[0].courseName).toBe('Yoga');
+  });
+
+  test('handles enrollment database errors and duplicate key errors', async () => {
+    const duplicateClient = {
+      query: jest.fn()
+        .mockResolvedValueOnce(dbResult([{ courseID: 1, currentAttendees: 0, maxAttendees: 10, schedule: '2026-05-01' }], 1))
+        .mockResolvedValueOnce(dbResult([], 0))
+        .mockResolvedValueOnce(dbResult([], 0))
+        .mockResolvedValueOnce(dbResult([], 0))
+        .mockRejectedValueOnce(Object.assign(new Error('duplicate'), { code: '23505' }))
+        .mockResolvedValueOnce(dbResult([], 0)),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValueOnce(duplicateClient);
+
+    let res = await request(app).post('/api/courses/enroll').set('Authorization', `Bearer ${memberToken}`).send({ courseID: 1 });
+    expect(res.status).toBe(409);
+
+    const failingClient = {
+      query: jest.fn()
+        .mockResolvedValueOnce(dbResult([{ enrollmentID: 7 }], 1))
+        .mockResolvedValueOnce(dbResult([], 0))
+        .mockRejectedValueOnce(new Error('db down'))
+        .mockResolvedValueOnce(dbResult([], 0)),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValueOnce(failingClient);
+
+    res = await request(app).post('/api/courses/enroll/cancel').set('Authorization', `Bearer ${memberToken}`).send({ courseID: 1 });
+    expect(res.status).toBe(500);
+    expect(failingClient.query).toHaveBeenCalledWith('ROLLBACK');
   });
 
   test('returns course attendance report', async () => {
@@ -400,6 +441,22 @@ describe('review routes', () => {
     expect(res.status).toBe(200);
   });
 
+  test('handles empty review stats and duplicate-review database errors', async () => {
+    mockQueries(dbResult([]), dbResult([{ averageRating: null, totalReviews: 0 }]), dbResult([]));
+    let res = await request(app).get('/api/trainers/1/reviews');
+    expect(res.status).toBe(200);
+    expect(res.body.data.averageRating).toBe(0);
+    expect(res.body.data.totalReviews).toBe(0);
+
+    pool.query
+      .mockResolvedValueOnce(dbResult([{ ok: 1 }], 1))
+      .mockResolvedValueOnce(dbResult([], 0))
+      .mockRejectedValueOnce(Object.assign(new Error('duplicate'), { code: '23505' }));
+
+    res = await request(app).post('/api/trainers/1/reviews').set('Authorization', `Bearer ${memberToken}`).send({ rating: 5 });
+    expect(res.status).toBe(409);
+  });
+
   test('review validation and admin moderation', async () => {
     let res = await request(app).post('/api/trainers/1/reviews').set('Authorization', `Bearer ${memberToken}`).send({});
     expect(res.status).toBe(400);
@@ -411,7 +468,7 @@ describe('review routes', () => {
     res = await request(app).post('/api/trainers/99/reviews').set('Authorization', `Bearer ${memberToken}`).send({ rating: 5 });
     expect(res.status).toBe(404);
 
-    mockQueries(dbResult([{ reviewID: 1 }]), dbResult([], 1), dbResult([], 1), dbResult([], 0));
+    mockQueries(dbResult([{ reviewID: 1 }]), dbResult([], 1), dbResult([], 1), dbResult([], 0), dbResult([], 0));
     res = await request(app).get('/api/trainers/1/reviews/admin').set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
 
@@ -422,6 +479,9 @@ describe('review routes', () => {
     expect(res.status).toBe(200);
 
     res = await request(app).delete('/api/trainers/reviews/404').set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(404);
+
+    res = await request(app).patch('/api/trainers/reviews/404/flag').set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(404);
   });
 });
