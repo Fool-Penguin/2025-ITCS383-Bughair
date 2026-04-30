@@ -3,7 +3,7 @@
 
 ## 1. Overview
 
-This report documents the project activities where AI assistance was used for the Bughair Fitness Management System maintenance phase. The primary evidence source is `docs/WORK_LOG.md`, which records Codex activity after each task.
+This report documents the project activities where AI assistance was used for the Bughair Fitness Management System maintenance phase. The primary evidence source is `docs/WORK_LOG.md`, which records AI-assisted activity after each task.
 
 AI was used as a coding and documentation assistant for analysis, implementation support, test generation, debugging, deployment guidance, and deliverable preparation. The team remains responsible for reviewing, verifying, accepting, and presenting the final project work.
 
@@ -12,6 +12,7 @@ AI was used as a coding and documentation assistant for analysis, implementation
 | Tool | Role in Project | Main Usage |
 |---|---|---|
 | Codex / AI coding assistant | Development and documentation assistant | Code inspection, bug fixing, test support, documentation drafting, handoff preparation, verification guidance, and final deliverable preparation |
+| Antigravity (Claude) | Documentation assistant | Project orientation, D5 completion, and work-log cross-checking |
 
 ## 3. Summary of AI-Assisted Activities
 
@@ -26,6 +27,11 @@ AI was used as a coding and documentation assistant for analysis, implementation
 | 2026-04-30 18:37-19:06 | Codex / AI coding assistant | Review the current project state, explain SMTP setup, check Gmail app-password requirements, and fix forgot-password timeout behavior. | Review current docs, guide SMTP setup, explain Gmail app passwords, fix forgot-password timeout behavior, review Render SMTP environment variables, and push final password reset timeout fix. | Official Google app-password guidance checked, Nodemailer configuration reviewed, syntax checks, inline script parsing, diff check, and git push confirmation. |
 | 2026-04-30 19:16-19:55 | Codex / AI coding assistant | Diagnose Render SMTP timeout, compare no-domain email providers, and add HTTP email-provider support for password reset. | Identify SMTP blocking risk, add Resend and SendGrid password-reset email paths, fix sender fallback behavior, and push email-provider commits. | Official/provider docs checked, backend syntax checks, diff checks, Render log review, and git push confirmations. |
 | 2026-04-30 19:39-19:50 | Codex / AI coding assistant | Generate and refine the AI usage log in `D5_AI-USAGE.md` from `docs/WORK_LOG.md`. | Generate this D5 AI usage report from the project work log, add prompt-focused columns, trim section descriptions, and remove the academic integrity section. | Markdown content reviewed for coverage of visible AI-assisted activities and work-log traceability. |
+| 2026-04-30 20:00-20:33 | Codex / AI coding assistant | Diagnose SendGrid/Resend provider switching, fix course enrollment ID type mismatch, verify production password-reset emails, and run local gateway tests. | Resolve email provider configuration, fix course enrollment click failure caused by string/number ID mismatch, confirm working password-reset email flow, and local gateway smoke testing. | Render log review, local gateway HTTP checks, course-service tests passed with 92.71% line coverage, diff checks. |
+| 2026-04-30 20:47-21:03 | Codex / AI coding assistant | Create and iteratively refine a 3-hour final work split for a 5-person team. | Plan final team work distribution covering Android app, web QA, documentation, file ownership, branch/push rules, prerequisites, timed working order, AI-agent handoff prompts, and recommended tech stack. | Reviewed split for practical simultaneous coding, conflict avoidance, and AI-agent delegation readiness. |
+| 2026-04-30 21:14-21:18 | Antigravity (Claude) | Read project docs to understand current situation and update D5 with missing recent activity. | Project orientation, D5 AI usage report completion with missing work log entries. | Read all project docs, work log, and deliverable files. |
+| 2026-04-30 21:24-21:28 | Codex / AI coding assistant | Read project docs to prepare for incoming work and re-check D5 for completeness. | Project orientation, final D5 consistency review, and alignment with latest work-log entries. | Read required handoff docs, checked D5 against recent work-log entries, and reviewed the D5 assignment requirement. |
+| 2026-04-30 21:43 | Codex / AI coding assistant | Push the latest documentation updates to GitHub. | Continue the interrupted rebase, confirm the repository default branch, update the work log/D5 trace, and prepare the final push. | Git status, branch/default-remote checks, staged diff review, and rebase continuation. |
 
 ## 4. Activity Categories
 
@@ -43,15 +49,27 @@ Main outputs included:
 
 ### 4.2 Code Quality, SonarCloud, and Test Coverage
 
+AI assisted with raising SonarCloud new-code coverage above 90%, generating focused unit tests for uncovered controller branches, fixing CI test failures (reservation-service), adjusting SonarCloud configuration to exclude test files and backup files from analysis, and reviewing duplication hotspots.
+
 ### 4.3 Database Setup, Seeding, and Safety
+
+AI assisted with creating migration helper scripts, adding a database connection preflight check, seeding demo reservation data idempotently, removing a hardcoded credential from a migration file, and running read-only data verification queries.
 
 ### 4.4 Feature Implementation and Bug Fixing
 
+AI assisted with fixing course enrollment (re-enrollment after cancellation, ID type normalization, active capacity derivation), trainer booking completion and review submission, profile picture propagation across pages, gateway route wiring, court reservation availability, attendance check-in/check-out controls, and navigation consistency.
+
 ### 4.5 Password Reset and SMTP Support
+
+AI assisted with password reset architecture decisions, SMTP timeout handling, Gmail app-password guidance, diagnosing Render free-service SMTP port blocking, adding Resend and SendGrid HTTP email provider support, fixing sender fallback behavior, and verifying successful production email delivery.
 
 ### 4.6 Deployment, CI/CD, and Production Testing Support
 
+AI assisted with Render deployment configuration, gateway smoke testing, local gateway startup and API verification, Render log diagnosis, environment variable review, and commit/push support for multiple deployment-critical fixes.
+
 ### 4.7 Deliverable Preparation
+
+AI assisted with generating this D5 AI usage report, reviewing D3 change request coverage, preparing the 3-hour final work split with file ownership and AI-agent handoff prompts, and creating account-transfer handoff documentation.
 
 ## 5. Chronological AI Usage Log
 
@@ -101,6 +119,23 @@ Main outputs included:
 | 2026-04-30 19:50 | SendGrid password-reset email support. | Added SendGrid HTTPS email sending support and Render env placeholders. | Backend syntax check and diff check. |
 | 2026-04-30 19:50 | AI usage report trimming. | Removed section descriptions from 4.2-4.7 and removed the academic integrity section. | Reviewed the affected D5 sections after editing. |
 | 2026-04-30 19:55 | SendGrid email support push. | Pushed commit `544d452` for SendGrid password-reset emails. | Git push completed successfully. |
+| 2026-04-30 20:00 | SendGrid environment cleanup guidance. | Identified which Render env vars to keep/remove after switching to SendGrid. | Reviewed auth controller provider priority and Render env screenshot. |
+| 2026-04-30 20:06 | SendGrid/Resend provider switching diagnosis. | Identified that Render was still executing the Resend path; recommended deleting Resend env vars. | Reviewed Render log showing Resend execution path. |
+| 2026-04-30 20:18 | Course enrollment click handler fix analysis. | Updated enroll button handler with shared `handleEnrollButtonClick` and delegated listener. | Parsed course-service frontend script; course-service tests passed with 92.71% line coverage. |
+| 2026-04-30 20:23 | Successful production password-reset email verification. | Recorded that SendGrid password-reset email flow is working in production. | User confirmed working email delivery. |
+| 2026-04-30 20:27 | Local gateway startup for course page testing. | Started AuthMembership gateway locally; confirmed HTTP 200 and API responses. | Gateway started, `/courses` returned 200, `/api/courses` returned 3 courses. |
+| 2026-04-30 20:33 | Course enrollment ID type mismatch fix. | Normalized course IDs to numbers to fix strict equality failure in `toggleEnroll()`. | Confirmed API returns string IDs; verified normalized IDs pass strict equality; course-service tests passed. |
+| 2026-04-30 20:47 | 3-hour final work split creation. | Created `docs/handoff/3-HOUR-FINAL-SPLIT.md` with owner checklists and final-freeze guidance. | Created markdown document in handoff folder. |
+| 2026-04-30 20:50 | Final split Android parity revision. | Reworked split for closer Android feature parity with web app. | Reviewed for 5-person ownership and Android emulator proof rules. |
+| 2026-04-30 20:52 | Final split prerequisites and timed working order. | Added prerequisites and timed working order covering setup, parallel work, integration, and freeze. | Reviewed prerequisites for Render/SendGrid/Android emulator context. |
+| 2026-04-30 20:56 | Final split push readiness check. | Confirmed no conflict markers or whitespace errors in split documentation. | Ran git status, git diff --check, and conflict marker search. |
+| 2026-04-30 20:59 | Final split conflict boundary refinement. | Added explicit file ownership, branch/push rules, and conflict boundaries. | Reviewed for realistic simultaneous coding and shared-file conflict avoidance. |
+| 2026-04-30 21:00 | Final split Person 5 coding role revision. | Gave Person 5 ownership of Android integration code, Gradle/build config, and shared helpers. | Reviewed Person 5 role for coding ownership and conflict boundaries. |
+| 2026-04-30 21:02 | Final split AI-agent handoff and push rules. | Added AI-agent usage rules and role-specific prompt blocks for all five team members. | Reviewed for explicit push safety and AI-agent delegation instructions. |
+| 2026-04-30 21:03 | Final split recommended tech stack. | Added recommended Android, backend, email, visual, and do-not-use tech stack section. | Checked that the split names specific technologies consistently. |
+| 2026-04-30 21:14 | Project orientation and D5 completion. | Read all project docs; updated D5 with missing recent activity and filled empty category sections. | Read all required project documentation and cross-referenced work log entries. |
+| 2026-04-30 21:24 | Project orientation and D5 consistency review. | Read required docs, checked D5 against recent work-log entries, and updated D5 to include the latest AI-assisted activity. | Confirmed D5 now includes Codex and Antigravity/Claude activity and reflects the latest work log entries. |
+| 2026-04-30 21:43 | Final documentation push preparation. | Continued the interrupted rebase, confirmed the remote default branch is `master`, and prepared the final documentation push. | Git status, branch/default-remote checks, staged diff review, and rebase continuation. |
 
 ## 6. Evidence Source
 

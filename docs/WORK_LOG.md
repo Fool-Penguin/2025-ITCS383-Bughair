@@ -26,6 +26,480 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 22:25 ICT - Codex
+
+**Task:** Prepare current session handoff for switching accounts near token limit.
+
+**Changed:**
+- Updated `docs/handoff/CURRENT_SESSION_HANDOFF.md` with the latest Android app state, pushed commits, verification, emulator notes, and immediate next steps.
+- Marked older Android creation guidance as historical/partially obsolete by adding a newer top handoff section.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Checked latest Git history and status before editing.
+- Reviewed current Android README references and handoff content for stale WebView/native-only guidance.
+
+**Notes / Next Steps:**
+- New account should start from the 2026-04-30 22:25 ICT handoff section, then run `git status --short --untracked-files=all`.
+
+## 2026-04-30 22:20 ICT - Codex
+
+**Task:** Polish Android profile header/status text and circular avatar display.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so the header status shows only the member name or `WELCOME`, not member ID or transient load messages.
+- Added circular bitmap cropping for profile images so avatars stay inside the round profile frame.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the rebuilt APK on `emulator-5554`, opened Profile, and confirmed the member ID/status message were removed from the header and profile images render circularly.
+
+**Notes / Next Steps:**
+- Local screenshots remain ignored by Git because they include live demo account details.
+
+## 2026-04-30 22:15 ICT - Codex
+
+**Task:** Add native profile picture upload to the Android profile screen.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to replace the profile-picture URL field with a native image picker.
+- Added image URI reading, 2MB validation, base64 `data:image/...` conversion, avatar preview refresh, and profile save integration with the existing `/api/auth/profile` endpoint.
+- Updated root `README.md` and `android-app/README.md` to describe native profile picture upload.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the APK on `emulator-5554` and confirmed the Profile screen shows `CHOOSE PROFILE PICTURE` with no profile-picture URL field.
+
+**Notes / Next Steps:**
+- Did not save a new live profile image during verification to avoid mutating the demo account without explicit confirmation.
+
+## 2026-04-30 22:08 ICT - Codex
+
+**Task:** Remove Android WebView fallback and make Payments/Courts native.
+
+**Changed:**
+- Removed `WebFallbackActivity` and the visible `WEB` header button from the Android app.
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so Payments and Courts are native Android screens backed by existing APIs.
+- Added native payment plan/history loading, demo-card payment action wiring, court availability/reservation loading, and first-available-slot court booking action wiring.
+- Updated root `README.md` and `android-app/README.md` to describe native Android coverage instead of WebView fallback.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the APK on `emulator-5554` and confirmed native Payments loaded 3 membership plans from the deployed API.
+- Confirmed native Courts loaded 5 courts plus dashboard court stats from the deployed API.
+
+**Notes / Next Steps:**
+- Payment and court booking mutation buttons are wired but were not clicked during verification to avoid creating live transactions or reservations without explicit confirmation.
+
+## 2026-04-30 21:58 ICT - Codex
+
+**Task:** Prepare Android app changes for push after a teammate updated `origin/master`.
+
+**Changed:**
+- Committed the Android app work locally before rebasing.
+- Resolved the `docs/WORK_LOG.md` rebase conflict by keeping both the teammate's latest documentation/D5 entries and the Android app entries.
+- Updated `docs/WORK_LOG.md` with this conflict-handling entry.
+
+**Verified:**
+- Ran `git diff --check` before the rebase; no whitespace or conflict-marker errors were reported.
+- Ran `git pull --rebase origin master`; conflict was limited to `docs/WORK_LOG.md`.
+
+**Notes / Next Steps:**
+- Continue the rebase, run final checks, then push the rebased Android app commit to `origin/master`.
+
+## 2026-04-30 21:43 ICT - Codex
+
+**Task:** Push the latest documentation updates to GitHub.
+
+**Changed:**
+- Continued the interrupted rebase on `master`.
+- Updated `docs/WORK_LOG.md` and `D5_AI-USAGE.md` to record this final AI-assisted push step.
+
+**Verified:**
+- Confirmed `origin/HEAD` points to `origin/master`; this repository does not currently use `main` as the default remote branch.
+- Checked local status and recent commits before push preparation.
+
+**Notes / Next Steps:**
+- Push the local `master` commits to `origin/master`.
+
+## 2026-04-30 21:36 ICT - Codex
+
+**Task:** Commit and push the latest D5 AI usage documentation updates.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this push-preparation entry.
+
+**Verified:**
+- Checked staged D5/work-log diff.
+- Ran `git diff --check`: no whitespace or conflict-marker errors.
+
+**Notes / Next Steps:**
+- Push the local documentation commits to `origin/master`.
+
+## 2026-04-30 21:28 ICT - Codex
+
+**Task:** Re-check `D5_AI-USAGE.md` for completeness and consistency.
+
+**Changed:**
+- Updated `D5_AI-USAGE.md` to clarify that the work log records AI-assisted activity, not only Codex activity.
+- Added Antigravity (Claude) to the AI tool table.
+- Added the latest Codex orientation/D5 review activity to the summary and chronological D5 tables.
+- Updated `docs/WORK_LOG.md` with this review entry.
+
+**Verified:**
+- Checked D5 against the latest `docs/WORK_LOG.md` entries.
+- Reviewed the Phase 2 D5 requirement to document every AI-assisted activity.
+
+**Notes / Next Steps:**
+- D5 now covers recorded AI-assisted work through 21:28 ICT.
+- Add new D5 entries if more AI-assisted project work is performed before final submission.
+
+## 2026-04-30 21:24 ICT - Codex
+
+**Task:** Read project docs to understand the current situation and prepare for the incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this orientation entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, `docs/WORK_LOG.md`, `docs/handoff/CURRENT_SESSION_HANDOFF.md`, `docs/handoff/3-HOUR-FINAL-SPLIT.md`, and `D5_AI-USAGE.md`.
+- Checked repository root contents.
+
+**Notes / Next Steps:**
+- `git status --short` could not run because `git` is not available in this shell PATH.
+- Current likely priorities are D4 completion, D2/D3/D5 final review, Android app/repo evidence, and any final deployed web demo blockers.
+
+## 2026-04-30 21:54 ICT - Codex
+
+**Task:** Show the member profile picture in the Android app.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/SessionStore.java` to persist `profile_picture` with the Android session.
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to decode and display profile pictures from both web-uploaded base64 `data:image/...` values and normal image URLs.
+- Added the signed-in member avatar to the Android header and the profile screen avatar card.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the rebuilt APK on `emulator-5554`, launched the app, opened Profile, and confirmed the uploaded profile picture appears in both the header and profile card.
+
+**Notes / Next Steps:**
+- The profile image is displayed from the existing stored `profile_picture`; no profile data was changed during verification.
+
+## 2026-04-30 21:47 ICT - Codex
+
+**Task:** Remove implementation-facing dashboard stats from the Android home screen.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so the dashboard stat row shows member-facing values: current plan, expiry date, and days left.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the rebuilt APK on `emulator-5554` and launched `edu.mahidol.bughair/.MainActivity`.
+
+**Notes / Next Steps:**
+- Expiry date and days-left values currently mirror the web dashboard's static demo copy. Replace them with real membership data later if an API endpoint is confirmed.
+
+## 2026-04-30 21:44 ICT - Codex
+
+**Task:** Make the Android app closer to the deployed website and verify key emulator flows.
+
+**Changed:**
+- Reworked `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to better match the web UI: FITNESS header, dark bordered cards, lime active navigation, dashboard hero, quick-access cards, auth/register role selector, profile badge form, course capacity cards, and trainer rating/review cards.
+- Updated Android navigation/status handling so the active screen and API load states are visible.
+- Updated `android-app/README.md` with the user's Android SDK path and screenshot capture commands.
+- Updated `.gitignore` so local Android screenshot PNG files are not accidentally committed with live member details.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the debug APK on `emulator-5554` with `adb install -r`.
+- Launched `edu.mahidol.bughair/.MainActivity` with `adb shell am start`.
+- Verified native Courses screen loaded 3 published courses from the deployed API.
+- Verified native Trainers screen loaded 3 active trainers with ratings from the deployed API.
+- Verified native Profile screen loaded the signed-in member profile from `/api/auth/profile`.
+- Captured local emulator screenshots for home, courses, trainers, and profile; PNG files are ignored by Git because they include live demo account details.
+
+**Notes / Next Steps:**
+- Enroll, forgot-password, and profile-save buttons are wired to live endpoints but were not clicked during this pass to avoid changing live data or sending extra reset emails without explicit confirmation.
+- Final demo should use known demo credentials and capture fresh screenshots/video after any last data changes.
+
+## 2026-04-30 21:35 ICT - Codex
+
+**Task:** Start creating the Android application from the current handoff plan.
+
+**Changed:**
+- Added `android-app/` as a buildable native Android project using Java, Android Gradle Plugin 8.3.0, and the Gradle wrapper.
+- Added native Android screens/helpers for login, forgot password, profile view/edit, courses/enrollment, trainers/reviews, JWT session storage, deployed API calls, and WebView fallbacks.
+- Updated `.gitignore` to exclude Android local/build outputs and APK/AAB artifacts.
+- Updated root `README.md` and added `android-app/README.md` with Android app location, backend URL, build command, APK path, and demo flow.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="$env:LOCALAPPDATA\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Confirmed debug APK exists at `android-app/app/build/outputs/apk/debug/app-debug.apk`.
+- Installed the APK on running emulator `emulator-5554` with `adb install -r`.
+- Launched `edu.mahidol.bughair/.MainActivity` with `adb shell am start`; process was running and screenshot was captured.
+
+**Notes / Next Steps:**
+- More emulator screenshots are still needed for login/profile/courses/trainers after demo credentials are available.
+- Native Android app currently uses built-in Java Android UI instead of Compose because Compose/Kotlin dependencies were not available locally; this matches the handoff fallback strategy to keep the app buildable.
+- Gradle installed local Android SDK Build-Tools 34 during the first successful build; this is local SDK state and not committed.
+
+## 2026-04-30 21:21 ICT - Codex
+
+**Task:** Read project documentation and handoff notes to prepare for the next incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this orientation entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, `docs/WORK_LOG.md`, `docs/handoff/CURRENT_SESSION_HANDOFF.md`, `docs/handoff/3-HOUR-FINAL-SPLIT.md`, `docs/handoff/Team Task Split.md`, and root `README.md`.
+- Ran `git status --short`; no tracked/untracked changes were listed before this log edit, only local Git config permission warnings.
+
+**Notes / Next Steps:**
+- Current priority appears to be final-deadline work: Android emulator demo/parity, D2-D5 completion, and careful final integration/push discipline.
+- Root `README.md` appears older than the current handoff docs, so use handoff and work log as fresher context for upcoming tasks.
+
+## 2026-04-30 21:18 ICT - Antigravity (Claude)
+
+**Task:** Complete D5_AI-USAGE.md with missing recent activity and empty category sections.
+
+**Changed:**
+- Updated `D5_AI-USAGE.md`: added 3 new summary table rows (20:00-21:18), filled sections 4.2-4.7 with brief descriptions, and added 15 chronological log entries covering 20:00-21:14 ICT activity.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Cross-referenced all new entries against `docs/WORK_LOG.md` entries from 20:00-21:03 ICT.
+- Confirmed no empty category sections remain in D5.
+
+**Notes / Next Steps:**
+- D5 is now complete and covers all recorded AI-assisted activity through 21:18 ICT.
+- If more AI-assisted work happens before the 23:55 deadline, add entries to both D5 and this work log.
+## 2026-04-30 22:12 ICT - Codex
+
+**Task:** Recheck and correct D4 against the exact Product Owner feature requests.
+
+**Changed:**
+- Updated `D4_IMPACT_ANALYSIS.md` to focus only on the two Product Owner feature requests plus the required planned/mock Android app.
+- Removed unnecessary CI/Sonar objects from the D4 SLO graph and matrix so SLOs are code modules only.
+- Reworded requirements, design objects, affected graphs, SLO graph, matrix, and analysis to match Member Profile Edit and Password Recovery plus Trainer Rating and Review requirements.
+- Updated `docs/WORK_LOG.md` with this correction entry.
+
+**Verified:**
+- Rechecked D4 against the provided feature request text.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Preview Mermaid diagrams before submission to confirm the layout renders clearly.
+
+## 2026-04-30 22:05 ICT - Codex
+
+**Task:** Simplify D4 traceability graphs to the three requested maintenance features.
+
+**Changed:**
+- Updated `D4_IMPACT_ANALYSIS.md` so the whole traceability graph has only three requirements: Member Profile Edit and Password Recovery, Trainer Rating and Review System, and Native Android Mobile Application.
+- Changed Mermaid graph nodes to box-style nodes with brief labels instead of many circular IDs.
+- Marked Android app traceability as planned/mock because it will be implemented later.
+- Kept separate affected graphs for each of the three features and aligned the SLO graph/matrix to the simplified object set.
+- Updated `docs/WORK_LOG.md` with this refinement entry.
+
+**Verified:**
+- Reviewed the rewritten D4 opening sections and graph structure.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Preview the Mermaid graphs in a Markdown renderer before final submission to ensure the box layout is visually acceptable.
+
+## 2026-04-30 21:57 ICT - Codex
+
+**Task:** Redo D4 impact analysis graphs to match the project description format.
+
+**Changed:**
+- Rewrote `D4_IMPACT_ANALYSIS.md` around Requirement, Design, Code, and Test traceability columns.
+- Added separate affected-only traceability graphs for Native Android App, Member Profile Edit and Password Recovery, and Trainer Rating and Review System.
+- Replaced the previous architecture-style graph with a code-module SLO directed graph and connectivity matrix.
+- Updated `docs/WORK_LOG.md` with this redo entry.
+
+**Verified:**
+- Reviewed the rewritten D4 start and graph structure.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Render `D4_IMPACT_ANALYSIS.md` in a Mermaid-capable Markdown viewer before submission to confirm the diagrams display cleanly.
+
+## 2026-04-30 21:47 ICT - Codex
+
+**Task:** Complete D4 impact analysis deliverable.
+
+**Changed:**
+- Filled `D4_IMPACT_ANALYSIS.md` with the whole-system traceability graph, affected-part graph, directed SLO graph, connectivity matrix, CR impact analysis, easy/hard change discussion, previous-developer expectations, and risk summary.
+- Updated `docs/WORK_LOG.md` with this D4 completion entry.
+
+**Verified:**
+- Read phase requirements, product-owner feature requests, root `D3_CHANGE_REQUESTS.md`, current handoff, and project overview.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Review D4 visually in a Markdown viewer that supports Mermaid graphs before final submission.
+- D3 contains duplicate `CR-09` labels; D4 normalizes them in its analysis note to keep references unambiguous.
+
+## 2026-04-30 21:44 ICT - Codex
+
+**Task:** Read project docs to understand the current situation before an incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this documentation-read entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, and `docs/WORK_LOG.md`.
+
+**Notes / Next Steps:**
+- Current focus is final demo readiness: Android app work, D2-D5 deliverables, Sonar/CI evidence, and careful push coordination near the deadline.
+## 2026-04-30 21:17 ICT - Codex
+
+**Task:** Prepare immediate handoff because the user is near the usage limit before Android app work can continue.
+
+**Changed:**
+- Updated `docs/handoff/CURRENT_SESSION_HANDOFF.md` with the current repo state, Android app status, recommended next Android strategy, API endpoints, and immediate next commands.
+- Updated `docs/WORK_LOG.md` with this handoff entry.
+
+**Verified:**
+- Checked `git status --short`: clean before the handoff edits, aside from local Git config permission warnings.
+- Checked recent commits, including `f7292bc` final split doc, `5bcbd15` course enroll normalization fix, and `69663c4` SendGrid verification log.
+- Confirmed no Android project files existed before this handoff and Android SDK platforms `android-34`/`android-36` were present locally.
+
+**Notes / Next Steps:**
+- Next account should start from `docs/handoff/CURRENT_SESSION_HANDOFF.md` and `docs/handoff/3-HOUR-FINAL-SPLIT.md`.
+- Android project has not been created yet; create `android-app/` in Android Studio and get the smallest emulator-runnable app working first.
+
+## 2026-04-30 21:03 ICT - Codex
+
+**Task:** Add a recommended tech stack to the final Android team split.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` with a recommended Android, backend, email, visual, and do-not-use tech stack section.
+- Updated `docs/WORK_LOG.md` with this documentation entry.
+
+**Verified:**
+- Checked that the split now explicitly names Kotlin, Jetpack Compose, Navigation Compose, simple MVVM, Gradle debug build, WebView fallback, Node/Express, Supabase/Postgres, and SendGrid.
+
+**Notes / Next Steps:**
+- All AI coding agents should follow the same stack to avoid incompatible Android implementations.
+
+## 2026-04-30 21:02 ICT - Codex
+
+**Task:** Strengthen final split push rules and make it AI-agent handoff ready.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` to make the direct-to-master announce/pull-rebase rule a must-do checklist.
+- Added AI-agent usage rules and role-specific AI prompt blocks for all five team members.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the updated split for explicit push safety and AI-agent delegation instructions.
+
+**Notes / Next Steps:**
+- Give each team member their role section plus shared rules/prerequisites/push rules when using GPT-5.5 or another AI coding agent.
+- No one should push directly to `master` without announcing and rebasing first.
+
+## 2026-04-30 21:00 ICT - Codex
+
+**Task:** Revise Person 5 in the final split so they also contribute code.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` so Person 5 owns Android integration code, Gradle/build config, shared helpers, route wiring, and final push.
+- Clarified that Person 5 can resolve integration/build errors without taking over feature-screen internals from other Android leads.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the updated Person 5 role for coding ownership and conflict boundaries.
+
+**Notes / Next Steps:**
+- Person 5 should code shared integration/build glue while still coordinating final merges.
+
+## 2026-04-30 20:59 ICT - Codex
+
+**Task:** Make the final split more practical for simultaneous coding with low merge-conflict risk.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` with explicit file ownership, branch/push rules, and conflict boundaries for all five people.
+- Adjusted the working order so Android screens integrate through route names and Person 5 merges branches one at a time.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the split for realistic simultaneous coding and shared-file conflict avoidance.
+
+**Notes / Next Steps:**
+- Each team member should announce their owned files/folders before coding.
+- Person 5 should be the only person editing `docs/WORK_LOG.md`, README, and final handoff docs during the final push window.
+
+## 2026-04-30 20:56 ICT - Codex
+
+**Task:** Check whether the 3-hour final split documentation is ready to push.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this readiness-check entry.
+
+**Verified:**
+- Ran `git status --short`.
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+- Searched `docs/WORK_LOG.md` and `docs/handoff/3-HOUR-FINAL-SPLIT.md` for conflict markers; none found.
+
+**Notes / Next Steps:**
+- The documentation changes are ready to commit and push.
+
+## 2026-04-30 20:52 ICT - Codex
+
+**Task:** Add prerequisites and timed working order to the 3-hour final split.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` with prerequisites for web/backend, Android, and documentation work.
+- Added a timed working order covering setup, parallel work, integration, evidence, and final freeze.
+- Updated `docs/WORK_LOG.md` with this documentation entry.
+
+**Verified:**
+- Reviewed the added prerequisites and working order for the current Render/SendGrid/Android emulator context.
+
+**Notes / Next Steps:**
+- Team members should check prerequisites before starting feature work.
+- Use the timed order to avoid blocking each other during the final hours.
+
+## 2026-04-30 20:50 ICT - Codex
+
+**Task:** Revise the 3-hour team split to target closer Android parity with the web app.
+
+**Changed:**
+- Reworked `docs/handoff/3-HOUR-FINAL-SPLIT.md` around Android shell/UI, auth/profile, courses/trainers/reviews, web QA/docs, and final integration roles.
+- Added native-first priorities with WebView fallback rules for risky modules.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the updated split for 5-person ownership, Android emulator proof, build proof, and final freeze rules.
+
+**Notes / Next Steps:**
+- Share the updated split and assign Android work across at least three people if closer parity is the priority.
+- Keep the rule that a working fallback is better than an unfinished native screen.
+
+## 2026-04-30 20:47 ICT - Codex
+
+**Task:** Create a ready-to-share 3-hour final work split for a 5-person team.
+
+**Changed:**
+- Added `docs/handoff/3-HOUR-FINAL-SPLIT.md` with owner checklists, proof-of-done, stop conditions, and final-freeze guidance.
+- Updated `docs/WORK_LOG.md` with this documentation entry.
+
+**Verified:**
+- Created the markdown split document in the handoff folder.
+
+**Notes / Next Steps:**
+- Share the split document with all five team members immediately.
+- Keep final work focused on demo evidence, D2-D5 completion, Android emulator proof, and final push safety.
+
 ## 2026-04-30 20:33 ICT - Codex
 
 **Task:** Re-analyze why course `Enroll Now` is clickable but performs no action.
@@ -80,7 +554,6 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 **Notes / Next Steps:**
 - Redeploy Render or push this change, then hard-refresh the production course page and retest `Enroll Now`.
 - If production still fails, check DevTools Network for `POST /api/courses/enroll` and Console for runtime errors.
-
 ## 2026-04-30 20:23 ICT - Codex
 
 **Task:** Record successful production password-reset email test.

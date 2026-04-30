@@ -1,0 +1,14 @@
+apply plugin: "com.android.application"
+
+android {
+    namespace "edu.mahidol.bughair"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "edu.mahidol.bughair"
+        minSdk 23
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+}
