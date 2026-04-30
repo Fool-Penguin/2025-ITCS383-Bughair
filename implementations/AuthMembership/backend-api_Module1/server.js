@@ -40,27 +40,27 @@ app.use(express.json({ limit: '5mb' }));
 
 // หน้าแรกสุดเมื่อเปิด localhost:8080
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Frontend/welcome.html'));
+    res.sendFile(path.join(__dirname, '../frontend/welcome.html'));
 });
 
 // หน้า Dashboard สำหรับสมาชิกทั่วไป (Member)
 app.get('/home', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Frontend/Home.html'));
+    res.sendFile(path.join(__dirname, '../frontend/Home.html'));
 });
 
 // หน้า Profile Edit
 app.get('/profile', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Frontend/profile.html'));
+    res.sendFile(path.join(__dirname, '../frontend/profile.html'));
 });
 
 // หน้า Forgot Password
 app.get('/forgot-password', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Frontend/forgot-password.html'));
+    res.sendFile(path.join(__dirname, '../frontend/forgot-password.html'));
 });
 
 // หน้า Reset Password
 app.get('/reset-password', (req, res) => {
-    res.sendFile(path.join(__dirname, '../Frontend/reset-password.html'));
+    res.sendFile(path.join(__dirname, '../frontend/reset-password.html'));
 });
 
 // ✅ เพิ่มใหม่: หน้าเลือกสำหรับ Admin (admin_select.html)
@@ -78,8 +78,8 @@ app.get('/index.html', (req, res) => {
 // 🛠️ ส่วนการจัดการไฟล์หน้าบ้าน (Static Files)
 // ---------------------------------------------------------
 
-// 1. ชี้ไปที่โฟลเดอร์ Frontend ของเราเอง
-app.use(express.static(path.join(__dirname, '../Frontend')));
+// 1. ชี้ไปที่โฟลเดอร์ frontend ของเราเอง
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // 2. ชี้ไปที่โฟลเดอร์ของเพื่อน
 app.use(express.static(path.join(__dirname, '../../reservation-service/frontend')));
