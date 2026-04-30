@@ -21,6 +21,10 @@ const courseRoutes = require('../../course-service/src/routes/courseRoutes');
 const trainerRoutes = require('../../course-service/src/routes/trainerRoutes');
 const reviewRoutes = require('../../course-service/src/routes/reviewRoutes');
 
+// Admin-service (migrated from SQLite to Postgres)
+const { adminApp } = require('../../Admin/backend/backend/server');
+const seedAdminData = require('../../Admin/backend/backend/databaseSetup');
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -93,6 +97,9 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/trainers', trainerRoutes);
 app.use('/api/trainers', reviewRoutes);
 
+// Admin-service API (Postgres — admin_svc schema)
+app.use('/api/admin-svc', adminApp);
+
 // 🌉 สะพานเชื่อม API ของเพื่อน (แก้ไขใหม่)
 // ใช้ /^\/api\/courts/ เพื่อจับทุก Path ที่ขึ้นต้นด้วย /api/courts
 app.all(/^\/api\/courts/, async (req, res) => {
@@ -128,6 +135,7 @@ app.use('/course-service', express.static(path.join(__dirname, '../../course-ser
 app.use('/payment-service', express.static(path.join(__dirname, '../../payment-service')));
 app.use('/reservation-service', express.static(path.join(__dirname, '../../reservation-service')));
 app.use('/Admin', express.static(path.join(__dirname, '../../Admin')));
+app.use('/admin', express.static(path.join(__dirname, '../../Admin/front')));
 
 // รันเซิร์ฟเวอร์ (DB seeds run in parallel; schema already lives in Supabase)
 (async () => {
@@ -135,6 +143,7 @@ app.use('/Admin', express.static(path.join(__dirname, '../../Admin')));
         await Promise.all([
             initializeDatabase(),     // payment_svc seeds (idempotent)
             courseInitDb(),           // course_svc seeds (idempotent)
+            seedAdminData(),          // admin_svc seeds  (idempotent)
         ]);
     } catch (e) {
         console.error('DB seed failed (continuing — schema is already applied):', e.message);

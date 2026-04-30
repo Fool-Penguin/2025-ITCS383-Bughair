@@ -36,11 +36,11 @@ beforeEach(() => jest.clearAllMocks());
 // HEALTH CHECK
 // ─────────────────────────────────────────────
 describe('GET /health', () => {
-  test('returns ok with SQLite info', async () => {
+  test('returns ok with Postgres info', async () => {
     const res = await request(app).get('/health');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('ok');
-    expect(res.body.db).toBe('SQLite');
+    expect(res.body.db).toBe('Postgres (Supabase)');
   });
 });
 

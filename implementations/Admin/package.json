@@ -1,7 +1,11 @@
 {
+  "name": "admin-service",
+  "version": "1.0.0",
+  "description": "Admin Dashboard Service — Postgres/Supabase",
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
     "express": "^5.2.1",
-    "sqlite3": "^5.1.7"
+    "pg": "^8.20.0"
   }
 }

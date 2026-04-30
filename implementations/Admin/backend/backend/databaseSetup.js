@@ -1,43 +1,63 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+// Seed the admin_svc schema with sample data (idempotent).
+// Run this once after apply-schema.js, or let the gateway call it at startup.
 
-// Path to your databases folder
-const dbDir = path.join(__dirname, 'databases');
+require('dotenv').config();
+const { Pool } = require('pg');
 
-// Check if folder exists, if not, create it
-if (!fs.existsSync(dbDir)) {
-    console.log("📁 Creating databases folder...");
-    fs.mkdirSync(dbDir);
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL is not set.');
+  process.exit(1);
 }
 
-// --- CREATE AUDIT DATABASE ---
-const auditDbPath = path.join(dbDir, 'admin_audit.db');
-const dbAudit = new sqlite3.Database(auditDbPath, (err) => {
-    if (err) {
-        console.error("❌ Failed to connect to Audit DB:", err.message);
-    } else {
-        console.log("🔌 Connected to admin_audit.db");
-    }
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 3,
 });
 
-dbAudit.serialize(() => {
-    dbAudit.run(`CREATE TABLE IF NOT EXISTS audit_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        admin_id TEXT,
-        action TEXT,
-        target_user TEXT,
-        details TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-        if (err) {
-            console.error("❌ Error creating audit table:", err.message);
-        } else {
-            console.log("✅ Audit table is ready in admin_audit.db");
-        }
-    });
-});
+async function seedAdminData() {
+  const { rows: [{ count }] } = await pool.query(
+    `SELECT COUNT(*)::int AS count FROM admin_svc.promotions`
+  );
+  if (count > 0) {
+    console.log('admin_svc: seed already present — skipping');
+    return;
+  }
 
-dbAudit.close(() => {
-    console.log("🔒 Database connection closed.");
-});
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Seed promotions
+    await client.query(`
+      INSERT INTO admin_svc.promotions
+        (promo_code, promo_name, discount_amount, discount_type, expiry_date, usage_limit, status)
+      VALUES
+        ('WELCOME20', 'Welcome 20% Off',  20, 'PERCENTAGE', '2026-12-31', 100, 'ACTIVE'),
+        ('NEWYEAR',   'New Year Special', 500, 'FIXED',      '2026-02-28', 50,  'ACTIVE')
+    `);
+
+    // Seed an audit log entry
+    await client.query(`
+      INSERT INTO admin_svc.audit_logs (admin_id, action, target_user, details)
+      VALUES ('Phruek_Admin', 'SYSTEM_INIT', 'SYSTEM', 'Admin database seeded')
+    `);
+
+    await client.query('COMMIT');
+    console.log('admin_svc: seeded promotions + initial audit log');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+// When run directly: seed and exit
+if (require.main === module) {
+  seedAdminData()
+    .then(() => pool.end())
+    .catch((e) => { console.error(e); pool.end(); process.exitCode = 1; });
+}
+
+module.exports = seedAdminData;
