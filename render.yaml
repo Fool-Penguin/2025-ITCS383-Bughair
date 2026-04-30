@@ -12,19 +12,14 @@
 services:
   - type: web
     name: fitpay-elite
-    runtime: node
+    runtime: docker
     region: singapore           # closest to Thailand
     plan: free                  # change to 'starter' for always-on
 
     # ── Build ────────────────────────────────────────
-    rootDir: implementations/AuthMembership/backend-api_Module1
-    buildCommand: |
-      npm install &&
-      cd ../../course-service && npm install &&
-      cd ../payment-service && npm install &&
-      cd ../reservation-service/backend && npm install &&
-      cd ../../Admin && npm install
-    startCommand: node server.js
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+
 
     # ── Environment ──────────────────────────────────
     envVars:
