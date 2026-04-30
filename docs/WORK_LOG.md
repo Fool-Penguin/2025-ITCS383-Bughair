@@ -26,6 +26,26 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 17:32 ICT - Codex
+
+**Task:** Fix course enrollment, trainer review clicks/submission, and course page top navigation consistency.
+
+**Changed:**
+- Updated course enrollment to reactivate a cancelled enrollment row instead of failing on the unique `(courseID, memberID)` constraint.
+- Added a member booking-complete endpoint and frontend button so trainer bookings can be completed, then reviewed.
+- Made trainer review modal open from booking cards even when the trainer is not in the current filtered trainer grid.
+- Updated course page top navigation sizing/links/profile action to better match the dashboard nav.
+- Added course-service tests for re-enrollment and booking completion.
+
+**Verified:**
+- Parsed the course-service frontend script, controllers, and routes for JavaScript syntax.
+- Ran `npm test -- --runInBand` in `implementations/course-service`: 23 tests passed, 92.71% line coverage.
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+
+**Notes / Next Steps:**
+- Browser smoke test the production/local course page: enroll, cancel, re-enroll, book trainer, complete booking, view reviews, submit review.
+- Changes are local and not pushed yet.
+
 ## 2026-04-30 17:08 ICT - Codex
 
 **Task:** Commit and push the verified profile, booking, and review changes for CI/deployment testing.

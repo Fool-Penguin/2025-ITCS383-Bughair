@@ -3,7 +3,7 @@ const router  = express.Router();
 const {
   createTrainer, updateTrainer, deleteTrainer,
   getAllTrainers, getAllTrainersAdmin, getTrainerById,
-  bookTrainer, getMyBookings
+  bookTrainer, getMyBookings, completeMyBooking
 } = require('../controllers/trainerController');
 const { authenticate, requireAdmin } = require('../middleware/auth');
 
@@ -11,6 +11,7 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 // NOTE: static paths MUST come before /:id
 router.get('/my/bookings',  authenticate, getMyBookings);
 router.get('/admin/all',    authenticate, requireAdmin, getAllTrainersAdmin);
+router.patch('/bookings/:bookingId/complete', authenticate, completeMyBooking);
 
 // ── Member ────────────────────────────────────────────────
 router.post('/book', authenticate, bookTrainer);

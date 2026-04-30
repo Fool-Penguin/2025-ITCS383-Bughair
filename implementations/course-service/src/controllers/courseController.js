@@ -177,6 +177,13 @@ const enrollCourse = async (req, res) => {
     );
     if (existing.rowCount > 0) return res.status(409).json({ success: false, message: 'Already enrolled in this course' });
 
+    const cancelled = await client.query(
+      `SELECT "enrollmentID" FROM ${T('CourseEnrollments')}
+       WHERE "courseID"=$1 AND "memberID"=$2 AND "attendanceStatus" = 'cancelled'
+       ORDER BY "enrollDate" DESC LIMIT 1`,
+      [courseID, memberID]
+    );
+
     // Schedule conflict (req 2.4.6) — within 60 min window
     const conflict = await client.query(
       `SELECT ce."enrollmentID" FROM ${T('CourseEnrollments')} ce
@@ -191,10 +198,19 @@ const enrollCourse = async (req, res) => {
     }
 
     await client.query('BEGIN');
-    await client.query(
-      `INSERT INTO ${T('CourseEnrollments')} ("courseID","memberID") VALUES ($1,$2)`,
-      [courseID, memberID]
-    );
+    if (cancelled.rowCount > 0) {
+      await client.query(
+        `UPDATE ${T('CourseEnrollments')}
+         SET "attendanceStatus"='enrolled', "enrollDate"=NOW()
+         WHERE "enrollmentID"=$1`,
+        [cancelled.rows[0].enrollmentID]
+      );
+    } else {
+      await client.query(
+        `INSERT INTO ${T('CourseEnrollments')} ("courseID","memberID") VALUES ($1,$2)`,
+        [courseID, memberID]
+      );
+    }
     await client.query(
       `UPDATE ${T('Courses')} SET "currentAttendees" = "currentAttendees" + 1 WHERE "courseID" = $1`,
       [courseID]

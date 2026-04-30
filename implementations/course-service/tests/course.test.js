@@ -172,6 +172,7 @@ describe('course routes', () => {
       dbResult([], 0),
       dbResult([], 0),
       dbResult([], 0),
+      dbResult([], 0),
       dbResult([], 1),
       dbResult([], 1),
       dbResult([], 0)
@@ -192,9 +193,26 @@ describe('course routes', () => {
     res = await request(app).post('/api/courses/enroll').set('Authorization', `Bearer ${memberToken}`).send({ courseID: 1 });
     expect(res.status).toBe(409);
 
-    mockClient(dbResult([{ courseID: 1, currentAttendees: 0, maxAttendees: 10, schedule: '2026-05-01' }], 1), dbResult([], 0), dbResult([{ enrollmentID: 4 }], 1));
+    mockClient(dbResult([{ courseID: 1, currentAttendees: 0, maxAttendees: 10, schedule: '2026-05-01' }], 1), dbResult([], 0), dbResult([], 0), dbResult([{ enrollmentID: 4 }], 1));
     res = await request(app).post('/api/courses/enroll').set('Authorization', `Bearer ${memberToken}`).send({ courseID: 1 });
     expect(res.status).toBe(409);
+
+    client = mockClient(
+      dbResult([{ courseID: 1, currentAttendees: 0, maxAttendees: 10, schedule: '2026-05-01 08:00' }], 1),
+      dbResult([], 0),
+      dbResult([{ enrollmentID: 12 }], 1),
+      dbResult([], 0),
+      dbResult([], 0),
+      dbResult([], 1),
+      dbResult([], 1),
+      dbResult([], 0)
+    );
+    res = await request(app).post('/api/courses/enroll').set('Authorization', `Bearer ${memberToken}`).send({ courseID: 1 });
+    expect(res.status).toBe(201);
+    expect(client.query).toHaveBeenCalledWith(
+      expect.stringContaining('SET "attendanceStatus"'),
+      [12]
+    );
 
     client = mockClient(dbResult([{ enrollmentID: 7 }], 1), dbResult([], 0), dbResult([], 1), dbResult([], 1));
     res = await request(app).post('/api/courses/enroll/cancel').set('Authorization', `Bearer ${memberToken}`).send({ courseID: 1 });
@@ -215,6 +233,7 @@ describe('course routes', () => {
     const duplicateClient = {
       query: jest.fn()
         .mockResolvedValueOnce(dbResult([{ courseID: 1, currentAttendees: 0, maxAttendees: 10, schedule: '2026-05-01' }], 1))
+        .mockResolvedValueOnce(dbResult([], 0))
         .mockResolvedValueOnce(dbResult([], 0))
         .mockResolvedValueOnce(dbResult([], 0))
         .mockResolvedValueOnce(dbResult([], 0))
@@ -366,6 +385,21 @@ describe('trainer routes', () => {
     const res = await request(app).get('/api/trainers/my/bookings').set('Authorization', `Bearer ${memberToken}`);
     expect(res.status).toBe(200);
     expect(res.body.data[0].trainerName).toBe('Alex');
+  });
+
+  test('marks own trainer booking complete for review', async () => {
+    mockQueries(dbResult([{ bookingID: 1, trainerID: 2, status: 'completed' }], 1));
+    let res = await request(app)
+      .patch('/api/trainers/bookings/1/complete')
+      .set('Authorization', `Bearer ${memberToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe('completed');
+
+    mockQueries(dbResult([], 0));
+    res = await request(app)
+      .patch('/api/trainers/bookings/404/complete')
+      .set('Authorization', `Bearer ${memberToken}`);
+    expect(res.status).toBe(404);
   });
 });
 

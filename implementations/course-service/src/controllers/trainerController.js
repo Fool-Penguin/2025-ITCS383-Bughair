@@ -213,6 +213,25 @@ const getMyBookings = async (req, res) => {
 };
 
 // ─── ADMIN: Update Trainer Schedule ──────────────────────────────────────────
+const completeMyBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const r = await pool.query(
+      `UPDATE ${T('TrainerBookings')}
+       SET status = 'completed'
+       WHERE "bookingID" = $1 AND "memberID" = $2 AND status != 'cancelled'
+       RETURNING "bookingID", "trainerID", status`,
+      [bookingId, req.user.id]
+    );
+    if (r.rowCount === 0) {
+      return res.status(404).json({ success: false, message: 'Booking not found or cannot be completed' });
+    }
+    res.json({ success: true, message: 'Booking completed', data: r.rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+};
+
 const updateTrainerSchedule = async (req, res) => {
   const client = await pool.connect();
   try {
@@ -244,5 +263,5 @@ const updateTrainerSchedule = async (req, res) => {
 module.exports = {
   createTrainer, updateTrainer, deleteTrainer,
   getAllTrainers, getAllTrainersAdmin, getTrainerById,
-  bookTrainer, getMyBookings, updateTrainerSchedule
+  bookTrainer, getMyBookings, completeMyBooking, updateTrainerSchedule
 };

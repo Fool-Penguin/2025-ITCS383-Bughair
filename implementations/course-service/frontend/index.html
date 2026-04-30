@@ -19,11 +19,11 @@
     position: sticky; top: 0; z-index: 200;
     background: rgba(10,10,10,0.97); backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
-    padding: 0 2.5rem; display: grid;
+    padding: 0 5%; display: grid;
     grid-template-columns: 1fr auto 1fr;
-    align-items: center; height: 60px;
+    align-items: center; height: 80px;
   }
-  .nav-logo { font-family: 'Bebas Neue', cursive; font-size: 1.7rem; letter-spacing: 3px; color: var(--lime); justify-self: start; }
+  .nav-logo { font-family: 'Bebas Neue', cursive; font-size: 2.2rem; letter-spacing: 3px; color: var(--lime); justify-self: start; text-decoration: none; }
   .nav-links { justify-self: center; }
   .nav-user { display: flex; align-items: center; gap: 1rem; justify-self: end; }
   .nav-user-info { text-align: right; }
@@ -39,17 +39,19 @@
     display: flex; align-items: center; justify-content: center;
     color: var(--lime); font-family: 'Bebas Neue', cursive; font-size: 1.2rem; letter-spacing: 1px;
   }
-  .btn-logout {
+  .btn-profile, .btn-logout {
     padding: 0.38rem 0.9rem; border-radius: 6px;
     border: 1px solid var(--border); background: transparent;
     color: var(--muted); font-family: 'Space Mono', monospace;
     font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-    cursor: pointer; transition: all 0.18s; flex-shrink: 0;
+    cursor: pointer; transition: all 0.18s; flex-shrink: 0; text-decoration: none;
   }
+  .btn-profile { border-color: var(--lime); color: var(--lime); }
+  .btn-profile:hover { background: rgba(200,241,53,0.08); }
   .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
   .nav-links { display: flex; gap: 0; }
   .nav-link {
-    padding: 0 1.4rem; height: 60px; line-height: 60px;
+    padding: 0 1.4rem; height: 80px; line-height: 80px;
     border: none; background: transparent;
     font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
     letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
@@ -315,6 +317,7 @@
       <div class="nav-user-name" id="nav-user-name">LOADING...</div>
       <div class="nav-user-id" id="nav-user-id">MEM-000000</div>
     </div>
+    <a href="/profile" class="btn-profile">Edit Profile</a>
     <button class="btn-logout" onclick="doLogout()">Logout</button>
   </div>
 </nav>
@@ -1187,7 +1190,10 @@ async function loadMyBookings() {
       const status = String(b.status || 'pending').toLowerCase();
       const action = status === 'completed'
         ? `<div class="member-card-actions"><button onclick="openReviewModal(${Number(b.trainerID)})">Review Trainer</button></div>`
-        : `<div class="member-card-meta" style="margin-top:0.75rem;">Complete this session before reviewing.</div>`;
+        : `<div class="member-card-actions">
+             <button onclick="completeBooking(${Number(b.bookingID)})">Complete</button>
+             <button onclick="openReviewModal(${Number(b.trainerID)})">View Reviews</button>
+           </div>`;
       return `
         <div class="member-card">
           <div class="member-card-title">${escapeHtml(b.trainerName || 'Trainer')}</div>
@@ -1209,6 +1215,18 @@ async function loadMyBookings() {
 // ══════════════════════════════════════════════════════════
 // MODAL HELPERS
 // ══════════════════════════════════════════════════════════
+async function completeBooking(bookingID) {
+  if (!requireLogin()) return;
+  try {
+    const json = await api('PATCH', `/trainers/bookings/${bookingID}/complete`);
+    showToast('Session completed. You can leave a review now.', 'info');
+    await loadMyBookings();
+    if (json.data?.trainerID) await openReviewModal(Number(json.data.trainerID));
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
@@ -1254,10 +1272,11 @@ let selectedRating = 0;
 
 async function openReviewModal(tid) {
   reviewTrainerID = tid;
-  const trainer = allTrainers.find(t => t.id === tid);
-  if (!trainer) return;
+  const trainer = allTrainers.find(t => Number(t.id) === Number(tid));
+  const bookingTrainer = myTrainerBookings.find(b => Number(b.trainerID) === Number(tid));
+  const trainerName = trainer?.name || bookingTrainer?.trainerName || 'Trainer';
 
-  document.getElementById('review-modal-title').textContent = `REVIEWS — ${trainer.name}`;
+  document.getElementById('review-modal-title').textContent = `REVIEWS - ${trainerName}`;
   openModal('review-modal');
 
   // Load reviews
