@@ -27,6 +27,14 @@ final class ApiClient {
         return request("PUT", path, body, token);
     }
 
+    static ApiResponse patch(String path, JSONObject body, String token) throws Exception {
+        return request("PATCH", path, body, token);
+    }
+
+    static ApiResponse delete(String path, String token) throws Exception {
+        return request("DELETE", path, null, token);
+    }
+
     private static ApiResponse request(String method, String path, JSONObject body, String token) throws Exception {
         URL url = new URL(BughairConfig.webUrl(path));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();

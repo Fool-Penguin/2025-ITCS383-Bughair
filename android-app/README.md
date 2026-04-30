@@ -8,7 +8,7 @@ Native Android demo app for the Bughair Fitness Management System.
 - Gradle wrapper with Android Gradle Plugin 8.3.0.
 - `HttpURLConnection` for API calls.
 - `SharedPreferences` for JWT session storage.
-- Native screens for auth, profile, courses, trainers/reviews, payments, and courts using the existing backend APIs.
+- Native screens for login, profile, course enrollment/cancel, trainer booking/reviews, payments, and court reservation/cancel using the existing backend APIs.
 
 ## Backend
 
@@ -36,13 +36,13 @@ app/build/outputs/apk/debug/app-debug.apk
 ## Demo Flow
 
 1. Launch the app on an Android Studio emulator.
-2. Use Login for member authentication.
+2. Sign in from the first screen for member authentication.
 3. Use Forgot to request a password reset email.
 4. Use Profile to load and update member details, including choosing a profile picture from the device.
-5. Use Courses to load deployed courses and enroll after login.
-6. Use Trainers to show trainer ratings and reviews.
-7. Use Payments to view membership plans and member payment history.
-8. Use Courts to view court availability and member reservations.
+5. Use Courses to load deployed courses, view your enrollments, enroll, and cancel.
+6. Use Trainers to pick a session date/time, book sessions, mark completed demo bookings, submit reviews, and show trainer ratings/reviews.
+7. Use Payments to view membership plans, pay with the card flow, and load member payment history.
+8. Use Courts to view court availability, pick a time slot, book courts, and cancel active reservations.
 
 Local emulator screenshots can be captured with:
 

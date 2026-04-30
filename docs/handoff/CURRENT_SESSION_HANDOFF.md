@@ -1,8 +1,149 @@
 # Current Session Handoff
 
-Last updated: 2026-04-30 22:25 ICT
+Last updated: 2026-04-30 23:35 ICT
 
 This file exists so work can continue from another account or coding agent without relying on chat history.
+
+# 2026-04-30 23:35 ICT - Immediate Handoff: Android Polish In Progress, Switch Accounts Now
+
+## Why This Handoff Exists
+
+The user is approaching usage limits and wants to switch accounts. Continue from this section first; the older 22:25 Android handoff below is useful background but is now partially outdated.
+
+## Current Git State
+
+- Branch: `master`.
+- Working tree is dirty with Android polish work:
+  - `android-app/README.md`
+  - `android-app/app/src/main/java/edu/mahidol/bughair/ApiClient.java`
+  - `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java`
+  - `docs/WORK_LOG.md`
+- Local Git may warn: `unable to access 'C:\Users\markz/.config/git/ignore': Permission denied`. This has not blocked status/build/push before.
+- Do not revert these files; they contain the latest requested Android changes.
+
+## Android Changes Completed Since 22:25
+
+- Removed the Android `Auth` nav button. Logged-out users now land on sign-in; logged-in users land on dashboard.
+- Hid the feature nav on sign-in and forgot-password screens.
+- Header now has the profile avatar plus a compact red `LOGOUT` button beside it.
+- Forgot password now gives inline sending/success/error feedback and has a compact `<- Back to Sign In` text link.
+- Nav order changed to `Dashboard`, `Courts`, `Courses`, `Trainers`, `Payments`, `Profile`.
+- Buttons were reduced in height/padding so the app feels less bulky.
+- Courts now let users choose visible time-slot buttons instead of booking the first available slot automatically.
+- Trainers now use selectable date/time buttons instead of typed date/time inputs.
+- Course enroll/cancel, trainer booking/complete/review, court reservation cancel, and payment API helpers were wired more closely to the web backend.
+- Crowded history sections were moved behind separate buttons:
+  - `MY ENROLLMENTS`
+  - `MY TRAINER BOOKINGS`
+  - `MY TRANSACTIONS`
+  - `MY RESERVATIONS`
+- Each history screen has a compact `<- Browse ...` link back to the main browse page.
+
+## Verification Already Done For These Changes
+
+From `android-app/`:
+
+```powershell
+$env:ANDROID_HOME='C:\Users\markz\AppData\Local\Android\Sdk'; .\gradlew.bat assembleDebug --offline
+```
+
+Latest result: `BUILD SUCCESSFUL`.
+
+Emulator checks on `emulator-5554`:
+
+- Installed the rebuilt debug APK.
+- Used a local debug-only session to inspect logged-in screens without doing a real login.
+- Verified Courts shows `MY RESERVATIONS` above availability/time slots.
+- Verified Courses shows `MY ENROLLMENTS` above course cards.
+- Verified Trainers shows `MY TRAINER BOOKINGS` above trainer cards and date/time choices.
+- Verified Payments shows `MY TRANSACTIONS` above plan cards.
+- Cleared emulator app data afterward with:
+
+```powershell
+C:\Users\markz\AppData\Local\Android\Sdk\platform-tools\adb.exe shell pm clear edu.mahidol.bughair
+```
+
+Mutation caution:
+
+- Do not click live enroll, book, pay, cancel, complete, review, check-in, or check-out actions unless the user explicitly approves. These target the deployed backend and can mutate demo data.
+
+## Interrupted User Request To Continue Next
+
+The newest unfinished request before this handoff was:
+
+> "Do we missing attendance checkin/out function? make it aside my reservation. Also make big bulky button except court (include trainer, course) to be half side cut so they can fit 2 button in the same row."
+
+Nothing has been implemented for this newest request yet. I only inspected where the web/backend attendance functionality lives.
+
+Recommended implementation in `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java`:
+
+1. Add a second button beside `MY RESERVATIONS` on the Courts screen:
+   - `MY RESERVATIONS`
+   - `CHECK IN / OUT` or `ATTENDANCE`
+2. Add an Android attendance view using existing deployed endpoints:
+   - `GET /api/attendance/current`
+   - `POST /api/attendance/enter` with body `{ "member_id": <member id> }`
+   - `POST /api/attendance/exit` with body `{ "member_id": <member id> }`
+3. The backend route does not require JWT in the reservation service code, but sending the session token through `ApiClient` is still fine.
+4. The body member id should likely come from the Android `SessionStore`; inspect its available fields/methods before editing.
+5. Show current facility count and whether this user appears in `members_inside`.
+6. Add a compact `<- Browse Courts` link back from the attendance view.
+
+Relevant backend/web references:
+
+- `implementations/reservation-service/backend/src/routes/attendance.js`
+- `implementations/reservation-service/frontend/index.html`
+  - Web member check-in posts `POST /attendance/enter` with `{ member_id: S.user.id }`.
+  - Web member check-out posts `POST /attendance/exit` with `{ member_id: S.user.id }`.
+- Gateway wires these as `/api/attendance/...` in `implementations/AuthMembership/backend-api_Module1/server.js`.
+
+Recommended button-layout implementation:
+
+- Keep Court time-slot buttons as they are; user said "except court".
+- Add a helper like `actionRow()` / `halfButtonParams()` for two buttons per row in Trainer, Course, and probably Payment/Profile action areas where large full-width buttons are making lists bulky.
+- Start with Course cards:
+  - Make `ENROLL NOW` / `CANCEL ENROLLMENT` half-width row actions if paired with another action, or at least use the same compact helper so future buttons fit two per row.
+- Trainer cards:
+  - Put `BOOK TRAINER` and `LOAD REVIEWS` on the same row.
+  - In booking history cards, put `MARK COMPLETED` and `SUBMIT REVIEW` style actions into half-width rows where applicable.
+- Avoid shrinking Court time-slot grid further unless user asks; it was already verified visually.
+
+## Commands For New Account
+
+Check state:
+
+```powershell
+git status --short --untracked-files=all
+```
+
+Build Android:
+
+```powershell
+cd android-app
+$env:ANDROID_HOME='C:\Users\markz\AppData\Local\Android\Sdk'; .\gradlew.bat assembleDebug --offline
+```
+
+Install/relaunch:
+
+```powershell
+C:\Users\markz\AppData\Local\Android\Sdk\platform-tools\adb.exe install -r android-app\app\build\outputs\apk\debug\app-debug.apk
+C:\Users\markz\AppData\Local\Android\Sdk\platform-tools\adb.exe shell am force-stop edu.mahidol.bughair
+C:\Users\markz\AppData\Local\Android\Sdk\platform-tools\adb.exe shell am start -n edu.mahidol.bughair/.MainActivity
+```
+
+Use a debug-only fake session only for UI inspection, then clear app data afterward. Do not leave fake session data on the emulator.
+
+## Required Workflow Reminder
+
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, and `docs/WORK_LOG.md` before editing.
+- Update `docs/WORK_LOG.md` after every task.
+- Do not commit secrets, `.env` files, database files, coverage output, dependency folders, screenshots with user data, or generated APKs.
+- Rebase before pushing because teammates may be active:
+
+```powershell
+git pull --rebase origin master
+git push origin master
+```
 
 # 2026-04-30 22:25 ICT - Immediate Handoff: Android App Built, Native-Only, Pushed
 

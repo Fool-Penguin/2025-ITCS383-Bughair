@@ -26,6 +26,83 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 23:50 ICT - Codex
+
+**Task:** Push the current code to `origin/master`.
+
+**Changed:**
+- Prepared the current staged Android app and handoff/work-log updates for commit.
+- Marked the resolved `docs/WORK_LOG.md` merge state clean after confirming no conflict markers remained.
+- Added this required work-log entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, and `docs/WORK_LOG.md`.
+- Checked `git status`, `git diff --stat`, and `git diff --check`.
+
+**Notes / Next Steps:**
+- Push outcome will be reported in the final response after the commit is sent to GitHub.
+
+## 2026-04-30 23:35 ICT - Codex
+
+**Task:** Prepare account-switch handoff for the current Android polish work.
+
+**Changed:**
+- Updated `docs/handoff/CURRENT_SESSION_HANDOFF.md` with the latest dirty working-tree state, completed Android UI/API polish, emulator verification, and the interrupted next request.
+- Documented the pending attendance check-in/out Android work and the requested half-width action-button layout change for the next account.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Checked `git status --short` and `git diff --stat`.
+- Confirmed attendance backend endpoints exist in `implementations/reservation-service/backend/src/routes/attendance.js`.
+- Confirmed Android `ApiClient` already supports `GET`, `POST`, `PATCH`, and `DELETE`.
+
+**Notes / Next Steps:**
+- New account should continue from the top of `docs/handoff/CURRENT_SESSION_HANDOFF.md`.
+- The attendance check-in/out UI and half-width trainer/course action buttons were not implemented before this handoff because the user requested account-switch preparation.
+
+## 2026-04-30 23:29 ICT - Codex
+
+**Task:** Separate Android "My ..." history sections from crowded browse screens.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so Courses, Trainers, Payments, and Courts show dedicated `MY ENROLLMENTS`, `MY TRAINER BOOKINGS`, `MY TRANSACTIONS`, and `MY RESERVATIONS` buttons.
+- Added separate history views with compact `<- Browse ...` links back to the normal browse screens.
+- Kept course, trainer, payment, and court browse lists focused on available actions instead of inline history records.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME='C:\Users\markz\AppData\Local\Android\Sdk'; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Ran `git diff --check` for `MainActivity.java`; no whitespace or conflict-marker errors were found, only the existing LF-to-CRLF warning.
+- Installed and opened the APK on `emulator-5554` with a local debug-only session.
+- Verified Courts shows `MY RESERVATIONS` above court availability/time slots, Courses shows `MY ENROLLMENTS` above course cards, Trainers shows `MY TRAINER BOOKINGS` above trainer cards, and Payments shows `MY TRANSACTIONS` above plan cards.
+- Cleared emulator app data afterward with `adb shell pm clear edu.mahidol.bughair`.
+
+**Notes / Next Steps:**
+- Did not click live enroll, book, pay, cancel, complete, or review actions to avoid mutating the deployed backend without explicit approval.
+
+## 2026-04-30 23:20 ICT - Codex
+
+**Task:** Improve Android court/trainer booking usability and reduce bulky button styling.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so Courts appears second in the main nav where Profile used to be.
+- Replaced court auto-first-slot booking with compact selectable time-slot buttons for each court.
+- Replaced trainer typed time input with selectable date and time buttons.
+- Reduced primary, outline, text, and nav button height/padding so actions look less bulky.
+- Updated `android-app/README.md` to describe picking court and trainer time slots.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Ran `git diff --check` for `MainActivity.java`; no whitespace or conflict-marker errors were found, only the existing LF-to-CRLF warning.
+- Installed the APK on `emulator-5554` and used a local debug-only session to verify nav order is `Dashboard`, `Courts`, `Courses`, `Trainers`, `Payments`, `Profile`.
+- Opened Courts on the emulator and confirmed selectable court time-slot buttons render.
+- Opened Trainers on the emulator and confirmed selectable date/time buttons render instead of typed time input.
+- Cleared emulator app data afterward with `adb shell pm clear edu.mahidol.bughair`.
+
+**Notes / Next Steps:**
+- Did not click live booking buttons to avoid creating real court/trainer bookings without explicit approval.
+
 ## 2026-04-30 23:17 ICT - Codex
 
 **Task:** Remove unnecessary SonarCloud project details from the root README.
@@ -55,6 +132,143 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 
 **Notes / Next Steps:**
 - Review the README links in GitHub after push to confirm all relative paths render correctly.
+
+## 2026-04-30 23:07 ICT - Codex
+
+**Task:** Change Android password recovery back action to a compact text link.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so the password recovery back action reads `<- Back to Sign In` as a left-aligned text-style link.
+- Tightened `textButton` layout so text actions do not render like full-width outline buttons.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Ran `git diff --check` for `MainActivity.java`; no whitespace or conflict-marker errors were found, only the existing LF-to-CRLF warning.
+- Installed the rebuilt APK on `emulator-5554` and cleared app data so the emulator opens from a clean sign-in state.
+
+**Notes / Next Steps:**
+- Used ASCII `<-` instead of a Unicode arrow to keep the Java source in the repo's plain ASCII style.
+
+## 2026-04-30 23:06 ICT - Codex
+
+**Task:** Fix Android forgot-password feedback and add a back button.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so the password recovery screen shows inline sending/success/error feedback instead of only changing the header status.
+- Added a `BACK TO SIGN IN` button on the Android password recovery screen.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Ran `git diff --check` for `MainActivity.java`; no whitespace or conflict-marker errors were found, only the existing LF-to-CRLF warning.
+- Installed the APK on `emulator-5554`, opened forgot password, confirmed `SEND RESET EMAIL` and `BACK TO SIGN IN` render.
+- Tapped send with an empty email and confirmed the inline message `Enter your email address first.` appears.
+- Tapped `BACK TO SIGN IN` and confirmed the app returns to the normal sign-in form.
+
+**Notes / Next Steps:**
+- Did not send another live reset email during verification; empty-email validation was used to avoid extra email traffic.
+
+## 2026-04-30 23:00 ICT - Codex
+
+**Task:** Make Android buttons behave more like the web app instead of acting mostly as visual placeholders.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/ApiClient.java` with PATCH and DELETE support for trainer completion and court cancellation endpoints.
+- Expanded `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` with course enrollment state, course cancellation, trainer booking fields/actions, trainer booking completion, trainer review submission, correct trainer-review parsing, court reservation cancellation, and a non-placeholder payment button label.
+- Updated `android-app/README.md` to describe the native action flows now covered.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Ran `git diff --check` on the Android files; no whitespace or conflict-marker errors were found, only existing LF-to-CRLF warnings.
+- Installed the APK on `emulator-5554`, used a local debug-only session to inspect logged-in UI, and confirmed trainer booking fields/buttons render and are reachable after scrolling.
+- Re-ran the Android build after the final review-submit navigation tweak; build succeeded.
+- Installed the final APK on `emulator-5554` and cleared emulator app data afterward with `adb shell pm clear edu.mahidol.bughair` so the user is left at a normal sign-in state.
+
+**Notes / Next Steps:**
+- Live mutation buttons were not clicked against the deployed backend to avoid creating real payments, bookings, enrollments, reviews, or reservations without explicit approval.
+- Final demo should sign in with real demo credentials and smoke-test one safe member flow at a time.
+
+## 2026-04-30 22:50 ICT - Codex
+
+**Task:** Move Android logout beside the profile picture instead of using a dashboard switch-account button.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to add a header `LOGOUT` button beside the profile avatar when logged in.
+- Removed the large dashboard `SWITCH ACCOUNT` action while keeping the signed-out dashboard sign-in fallback.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the APK on `emulator-5554`, seeded a local debug-only session, and confirmed the header shows avatar plus `LOGOUT` with no `SWITCH ACCOUNT`.
+- Tapped `LOGOUT` on the emulator and confirmed it clears the session and returns to the clean sign-in screen.
+
+**Notes / Next Steps:**
+- Temporary emulator verification files remain under `C:\tmp`, outside the repository.
+
+## 2026-04-30 22:45 ICT - Codex
+
+**Task:** Verify the Android sign-in behavior directly on the emulator and remove confusing nav from auth screens.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so the feature navigation is hidden on sign-in and forgot-password screens, then restored on Dashboard/Profile/Courses/Trainers/Payments/Courts.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Built the Android app with `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline`; build succeeded.
+- Installed the APK on `emulator-5554`, force-stopped and relaunched `edu.mahidol.bughair/.MainActivity`.
+- Captured emulator UI dump and screenshot; sign-in screen now shows the login form without the Dashboard/Profile/Courses navigation row.
+
+**Notes / Next Steps:**
+- Temporary verification files were pulled to `C:\tmp`, not the repository.
+- If an emulator still opens Dashboard, it has a saved session; use `SWITCH ACCOUNT` or clear app data before demoing the first-login path.
+
+## 2026-04-30 22:41 ICT - Codex
+
+**Task:** Make the Android path back to sign-in clear when a saved session opens Dashboard.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so logged-in Dashboard shows `SWITCH ACCOUNT` directly under the hero, clears the saved session, and returns to the sign-in screen.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+
+**Notes / Next Steps:**
+- Existing emulator sessions will still open Dashboard until `SWITCH ACCOUNT` is tapped or app data is cleared.
+
+## 2026-04-30 22:38 ICT - Codex
+
+**Task:** Remove the redundant visible Auth navigation button/page entry from the Android app.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so logged-out users open directly on the sign-in screen, the main nav no longer includes `Auth`, logout returns to sign-in, and the dashboard has a simple sign-in CTA only when logged out.
+- Updated `android-app/README.md` to describe the Android flow as login/sign-in rather than a separate auth feature screen.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build completed successfully with only the existing SDK XML-version warning.
+- Ran `rg` for the removed Android `Auth` nav/docs wording; no matches remained.
+
+**Notes / Next Steps:**
+- The login/register/forgot-password UI still exists internally because the app needs those flows, but it is no longer exposed as a main feature tab.
+- Emulator visual check is recommended before final demo if time allows.
+
+## 2026-04-30 22:35 ICT - Codex
+
+**Task:** Read project docs to understand the current situation and prepare for the incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this orientation entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, `docs/WORK_LOG.md`, and `docs/handoff/CURRENT_SESSION_HANDOFF.md`.
+- Ran `git status --short --untracked-files=all`; working tree was clean aside from the known local Git config permission warning.
+
+**Notes / Next Steps:**
+- Latest handoff says the native-only Android app is built, verified on emulator, and pushed through commit `fc9b131`.
+- Next task should start from the 2026-04-30 22:25 ICT handoff and avoid live API mutations unless explicitly requested.
 
 ## 2026-04-30 22:25 ICT - Codex
 
