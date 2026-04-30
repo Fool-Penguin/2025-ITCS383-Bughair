@@ -26,6 +26,53 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 21:36 ICT - Codex
+
+**Task:** Commit and push the latest D5 AI usage documentation updates.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this push-preparation entry.
+
+**Verified:**
+- Checked staged D5/work-log diff.
+- Ran `git diff --check`: no whitespace or conflict-marker errors.
+
+**Notes / Next Steps:**
+- Push the local documentation commits to `origin/master`.
+
+## 2026-04-30 21:28 ICT - Codex
+
+**Task:** Re-check `D5_AI-USAGE.md` for completeness and consistency.
+
+**Changed:**
+- Updated `D5_AI-USAGE.md` to clarify that the work log records AI-assisted activity, not only Codex activity.
+- Added Antigravity (Claude) to the AI tool table.
+- Added the latest Codex orientation/D5 review activity to the summary and chronological D5 tables.
+- Updated `docs/WORK_LOG.md` with this review entry.
+
+**Verified:**
+- Checked D5 against the latest `docs/WORK_LOG.md` entries.
+- Reviewed the Phase 2 D5 requirement to document every AI-assisted activity.
+
+**Notes / Next Steps:**
+- D5 now covers recorded AI-assisted work through 21:28 ICT.
+- Add new D5 entries if more AI-assisted project work is performed before final submission.
+
+## 2026-04-30 21:24 ICT - Codex
+
+**Task:** Read project docs to understand the current situation and prepare for the incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this orientation entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, `docs/WORK_LOG.md`, `docs/handoff/CURRENT_SESSION_HANDOFF.md`, `docs/handoff/3-HOUR-FINAL-SPLIT.md`, and `D5_AI-USAGE.md`.
+- Checked repository root contents.
+
+**Notes / Next Steps:**
+- `git status --short` could not run because `git` is not available in this shell PATH.
+- Current likely priorities are D4 completion, D2/D3/D5 final review, Android app/repo evidence, and any final deployed web demo blockers.
+
 ## 2026-04-30 21:18 ICT - Antigravity (Claude)
 
 **Task:** Complete D5_AI-USAGE.md with missing recent activity and empty category sections.
