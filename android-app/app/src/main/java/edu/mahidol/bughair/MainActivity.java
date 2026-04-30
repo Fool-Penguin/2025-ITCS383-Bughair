@@ -1,11 +1,13 @@
 package edu.mahidol.bughair;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,6 +27,7 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -36,6 +39,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
+    private static final int PICK_PROFILE_IMAGE = 42;
+    private static final int MAX_PROFILE_IMAGE_BYTES = 2 * 1024 * 1024;
     private static final int BG = Color.rgb(13, 13, 13);
     private static final int BG_2 = Color.rgb(20, 20, 20);
     private static final int BG_3 = Color.rgb(28, 28, 28);
@@ -58,6 +63,10 @@ public class MainActivity extends Activity {
     private LinearLayout content;
     private TextView status;
     private LinearLayout headerAvatar;
+    private LinearLayout profileAvatarHolder;
+    private TextView profilePictureStatus;
+    private String selectedProfilePictureValue = "";
+    private String selectedProfileName = "";
     private final Map<String, Button> navButtons = new HashMap<>();
     private String selectedRole = "member";
     private boolean loginMode = true;
@@ -169,7 +178,7 @@ public class MainActivity extends Activity {
         content.addView(grid);
         grid.addView(menuCard("COURT BOOKING", "View court availability and your reservations natively.", v -> showCourts()));
         grid.addView(menuCard("FITNESS COURSES", "Browse classes natively and enroll after login.", v -> showCourses()));
-        grid.addView(menuCard("PROFILE EDIT", "Update name, phone, and profile picture URL.", v -> showProfile()));
+        grid.addView(menuCard("PROFILE EDIT", "Update name, phone, and upload your profile picture.", v -> showProfile()));
         grid.addView(menuCard("PAYMENTS", "View membership plans and payment history natively.", v -> showPayments()));
 
         if (session.isLoggedIn()) {
@@ -345,15 +354,25 @@ public class MainActivity extends Activity {
     private void renderProfile(JSONObject data) {
         refreshStatus("Profile loaded");
         clear();
-        pageHero("EDIT", "PROFILE", "Update your personal information and profile picture URL.");
+        pageHero("EDIT", "PROFILE", "Update your personal information and upload a profile picture.");
 
         LinearLayout profile = card();
         String profilePicture = data.optString("profile_picture", session.profilePicture());
-        LinearLayout avatar = avatarView(data.optString("full_name", session.fullName()), profilePicture, 40, 64);
+        selectedProfilePictureValue = profilePicture;
+        selectedProfileName = data.optString("full_name", session.fullName());
+        LinearLayout avatar = avatarView(selectedProfileName, profilePicture, 40, 64);
+        profileAvatarHolder = avatar;
         LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(dp(112), dp(112));
         avatarParams.gravity = Gravity.CENTER_HORIZONTAL;
         profile.addView(avatar, avatarParams);
         profile.addView(centerLabel(data.optString("member_id", session.memberId())));
+        Button choosePicture = outlineButton("CHOOSE PROFILE PICTURE");
+        choosePicture.setOnClickListener(v -> openProfileImagePicker());
+        profile.addView(choosePicture);
+        profilePictureStatus = paragraph(profilePicture == null || profilePicture.trim().isEmpty()
+                ? "No profile picture selected."
+                : "Profile picture selected.");
+        profile.addView(profilePictureStatus);
         content.addView(profile);
 
         EditText email = input("Email Address", false);
@@ -363,13 +382,10 @@ public class MainActivity extends Activity {
         name.setText(data.optString("full_name"));
         EditText phone = input("Phone Number", false);
         phone.setText(data.optString("phone"));
-        EditText picture = input("Profile Picture URL", false);
-        picture.setText(profilePicture);
 
         content.addView(field("EMAIL ADDRESS", email));
         content.addView(field("FULL NAME", name));
         content.addView(field("PHONE NUMBER", phone));
-        content.addView(field("PROFILE PICTURE URL", picture));
 
         Button save = primaryButton("SAVE CHANGES");
         save.setOnClickListener(v -> {
@@ -382,13 +398,13 @@ public class MainActivity extends Activity {
                 JSONObject body = new JSONObject();
                 body.put("full_name", nameValue);
                 body.put("phone", phone.getText().toString().trim());
-                body.put("profile_picture", picture.getText().toString().trim());
+                body.put("profile_picture", selectedProfilePictureValue == null ? "" : selectedProfilePictureValue);
                 ApiClient.ApiResponse response = ApiClient.put("/api/auth/profile", body, session.token());
                 JSONObject json = response.json();
                 if (!response.ok() || !json.optBoolean("success")) {
                     throw new Exception(json.optString("message", "Profile save failed"));
                 }
-                session.saveLogin(session.token(), session.memberId(), nameValue, session.role(), picture.getText().toString().trim());
+                session.saveLogin(session.token(), session.memberId(), nameValue, session.role(), selectedProfilePictureValue);
                 main.post(() -> {
                     refreshStatus("Profile updated");
                     loadProfile();
@@ -396,6 +412,75 @@ public class MainActivity extends Activity {
             });
         });
         content.addView(save);
+    }
+
+    private void openProfileImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(Intent.createChooser(intent, "Choose profile picture"), PICK_PROFILE_IMAGE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != PICK_PROFILE_IMAGE || resultCode != RESULT_OK || data == null || data.getData() == null) {
+            return;
+        }
+        Uri uri = data.getData();
+        runTask("Loading selected picture...", () -> {
+            String dataUrl = imageDataUrlFromUri(uri);
+            selectedProfilePictureValue = dataUrl;
+            main.post(() -> {
+                if (profilePictureStatus != null) {
+                    profilePictureStatus.setText("New profile picture selected. Tap Save Changes to upload it.");
+                }
+                if (profileAvatarHolder != null) {
+                    profileAvatarHolder.removeAllViews();
+                    TextView fallback = text(initials(selectedProfileName), 40, LIME, Typeface.BOLD);
+                    fallback.setGravity(Gravity.CENTER);
+                    profileAvatarHolder.addView(fallback, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                    loadProfilePicture(selectedProfilePictureValue, profileAvatarHolder);
+                }
+                session.saveLogin(session.token(), session.memberId(), session.fullName(), session.role(), selectedProfilePictureValue);
+                refreshStatus("Profile picture ready to save");
+            });
+        });
+    }
+
+    private String imageDataUrlFromUri(Uri uri) throws Exception {
+        byte[] bytes;
+        try (InputStream stream = getContentResolver().openInputStream(uri)) {
+            if (stream == null) {
+                throw new Exception("Could not open selected image");
+            }
+            bytes = readBytes(stream);
+        }
+        if (bytes.length > MAX_PROFILE_IMAGE_BYTES) {
+            throw new Exception("Image must be under 2MB");
+        }
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        if (bitmap == null) {
+            throw new Exception("Selected file is not a valid image");
+        }
+        String mimeType = getContentResolver().getType(uri);
+        if (mimeType == null || !mimeType.startsWith("image/")) {
+            mimeType = "image/png";
+        }
+        return "data:" + mimeType + ";base64," + Base64.encodeToString(bytes, Base64.NO_WRAP);
+    }
+
+    private byte[] readBytes(InputStream stream) throws Exception {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int read;
+        while ((read = stream.read(buffer)) != -1) {
+            output.write(buffer, 0, read);
+            if (output.size() > MAX_PROFILE_IMAGE_BYTES) {
+                throw new Exception("Image must be under 2MB");
+            }
+        }
+        return output.toByteArray();
     }
 
     private void showCourses() {

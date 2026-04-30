@@ -38,7 +38,7 @@ app/build/outputs/apk/debug/app-debug.apk
 1. Launch the app on an Android Studio emulator.
 2. Use Login for member authentication.
 3. Use Forgot to request a password reset email.
-4. Use Profile to load and update member details.
+4. Use Profile to load and update member details, including choosing a profile picture from the device.
 5. Use Courses to load deployed courses and enroll after login.
 6. Use Trainers to show trainer ratings and reviews.
 7. Use Payments to view membership plans and member payment history.

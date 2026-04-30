@@ -26,6 +26,23 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 22:15 ICT - Codex
+
+**Task:** Add native profile picture upload to the Android profile screen.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to replace the profile-picture URL field with a native image picker.
+- Added image URI reading, 2MB validation, base64 `data:image/...` conversion, avatar preview refresh, and profile save integration with the existing `/api/auth/profile` endpoint.
+- Updated root `README.md` and `android-app/README.md` to describe native profile picture upload.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the APK on `emulator-5554` and confirmed the Profile screen shows `CHOOSE PROFILE PICTURE` with no profile-picture URL field.
+
+**Notes / Next Steps:**
+- Did not save a new live profile image during verification to avoid mutating the demo account without explicit confirmation.
+
 ## 2026-04-30 22:08 ICT - Codex
 
 **Task:** Remove Android WebView fallback and make Payments/Courts native.

@@ -103,7 +103,7 @@ The app connects to the deployed Render backend:
 https://two025-itcs383-bughair-1.onrender.com
 ```
 
-Current mobile coverage includes native login/register, forgot-password request, profile view/edit with profile picture display, courses with enrollment, trainers with review display, membership payment plan/history views, and badminton court availability/reservation views.
+Current mobile coverage includes native login/register, forgot-password request, profile view/edit with profile picture upload/display, courses with enrollment, trainers with review display, membership payment plan/history views, and badminton court availability/reservation views.
 
 Build the debug APK from PowerShell:
 
