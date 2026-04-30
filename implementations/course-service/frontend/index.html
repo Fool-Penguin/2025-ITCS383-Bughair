@@ -579,6 +579,12 @@ async function api(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   const res  = await fetch(API_BASE + path, opts);
   const json = await res.json().catch(() => ({}));
+  if ((res.status === 401 || res.status === 403) && TOKEN) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    TOKEN = null;
+    throw new Error('Your session expired. Please sign in again.');
+  }
   if (!res.ok) throw new Error(json.message || `HTTP ${res.status}`);
   return json;
 }
@@ -860,23 +866,33 @@ async function toggleEnroll(cid, btn) {
   const c = allCourses.find(x => x.id === cid);
   if (!c || c.status === 'cancelled') return;
 
+  const originalText = btn.textContent;
+  btn.disabled = true;
+
   if (enrolledSet.has(cid)) {
     // CANCEL enrollment
     try {
+      btn.textContent = 'Cancelling...';
       await api('POST', '/courses/enroll/cancel', { courseID: cid });
       enrolledSet.delete(cid); enrolledTimes.delete(cid);
       c.cur = Math.max(0, c.cur - 1);
-      btn.textContent = 'Enroll Now'; btn.className = 'enroll-btn'; btn.disabled = false;
       showToast('Enrollment cancelled.');
-      updateCapacityUI(c); refreshAllConflicts();
+      await loadCourses(currentFilterLevel);
       await loadMyEnrollments();
-    } catch (err) { showToast(err.message, 'error'); }
+    } catch (err) {
+      btn.textContent = originalText;
+      btn.disabled = false;
+      showToast(err.message, 'error');
+      if (err.message.includes('sign in')) setTimeout(() => { window.location.href = '/auth.html'; }, 900);
+    }
   } else {
-    if (c.cur >= c.max) return;
+    if (c.cur >= c.max) { btn.disabled = false; return; }
     const conflict = getConflict(cid);
+    if (conflict) btn.disabled = false;
     if (conflict) { showToast(`⚠ Conflicts with "${conflict}"`, 'error'); return; }
     // ENROLL
     try {
+      btn.textContent = 'Enrolling...';
       await api('POST', '/courses/enroll', { courseID: cid });
       enrolledSet.add(cid);
       const s = new Date(c.schedule);
@@ -884,9 +900,14 @@ async function toggleEnroll(cid, btn) {
       c.cur++;
       btn.textContent = '✓ Enrolled — tap to cancel'; btn.className = 'enroll-btn enrolled';
       showToast('Successfully enrolled!');
-      updateCapacityUI(c); refreshAllConflicts();
+      await loadCourses(currentFilterLevel);
       await loadMyEnrollments();
-    } catch (err) { showToast(err.message, 'error'); }
+    } catch (err) {
+      btn.textContent = originalText;
+      btn.disabled = false;
+      showToast(err.message, 'error');
+      if (err.message.includes('sign in')) setTimeout(() => { window.location.href = '/auth.html'; }, 900);
+    }
   }
 }
 

@@ -172,7 +172,7 @@ const enrollCourse = async (req, res) => {
 
     const existing = await client.query(
       `SELECT 1 FROM ${T('CourseEnrollments')}
-       WHERE "courseID"=$1 AND "memberID"=$2 AND "attendanceStatus" != 'cancelled'`,
+       WHERE "courseID"=$1 AND "memberID"=$2 AND "attendanceStatus" IS DISTINCT FROM 'cancelled'`,
       [courseID, memberID]
     );
     if (existing.rowCount > 0) return res.status(409).json({ success: false, message: 'Already enrolled in this course' });

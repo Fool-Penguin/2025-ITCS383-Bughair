@@ -26,6 +26,25 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 17:51 ICT - Codex
+
+**Task:** Follow up on course enrollment still failing in browser/production testing.
+
+**Changed:**
+- Made the course enrollment frontend show in-progress state, reload courses/enrollments after success, and redirect users to sign in when the API reports an expired/invalid session.
+- Hardened active-enrollment detection to treat null/non-cancelled statuses as active via `IS DISTINCT FROM 'cancelled'`.
+
+**Verified:**
+- Ran rollback-only database probe against the configured course database: first published course could accept a synthetic enrollment.
+- Ran actual Express route probe with a synthetic JWT/member and immediate cleanup: `/api/courses/enroll` returned 201.
+- Parsed the course-service frontend script and course controller for JavaScript syntax.
+- Ran `npm test -- --runInBand` in `implementations/course-service`: 23 tests passed, 92.71% line coverage.
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+
+**Notes / Next Steps:**
+- If production still fails after this deploy, hard-refresh/sign out and sign back in so the browser uses the latest JS and a fresh JWT.
+- If it still fails after fresh login, capture the exact toast/browser console/network response for `/api/courses/enroll`.
+
 ## 2026-04-30 17:36 ICT - Codex
 
 **Task:** Push the course enrollment, trainer review, and navigation fixes for deployment testing.
