@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 18:25 ICT - Codex
+
+**Task:** Fix course enroll button doing nothing when clicked.
+
+**Changed:**
+- Replaced the inline course enroll button `onclick` with a `data-enroll-id` attribute.
+- Added delegated document-level click handling for course enroll buttons so clicks are caught after dynamic card rendering.
+- Updated `docs/WORK_LOG.md` with this fix entry.
+
+**Verified:**
+- Parsed the course-service frontend script for JavaScript syntax.
+
+**Notes / Next Steps:**
+- This targets the observed browser symptom where clicking `Enroll Now` produced no visible state change or request.
+- Push and redeploy, then hard-refresh the course page before retesting.
+
 ## 2026-04-30 17:52 ICT - Codex
 
 **Task:** Push course enrollment hardening patch.

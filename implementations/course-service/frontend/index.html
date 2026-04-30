@@ -822,7 +822,7 @@ function renderCourses(list) {
       extraHtml = `
         ${(c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box"><span class="crb-label">Reason</span>${c.cancelReason}</div>` : ''}
         <div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>
-        <button class="${btn.cls}" ${btn.dis} onclick="toggleEnroll(${c.id},this)">${btn.txt}</button>`;
+        <button class="${btn.cls}" ${btn.dis} data-enroll-id="${Number(c.id)}">${btn.txt}</button>`;
     } else if (role === 'admin') {
       extraHtml = renderAdminButtons(c);
     }
@@ -1260,6 +1260,13 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 // ══════════════════════════════════════════════════════════
 // STAR RATING HELPERS
 // ══════════════════════════════════════════════════════════
+document.addEventListener('click', e => {
+  const enrollBtn = e.target.closest('[data-enroll-id]');
+  if (!enrollBtn) return;
+  e.preventDefault();
+  toggleEnroll(Number(enrollBtn.dataset.enrollId), enrollBtn);
+});
+
 function renderStars(avg) {
   let html = '';
   for (let i = 1; i <= 5; i++) {
