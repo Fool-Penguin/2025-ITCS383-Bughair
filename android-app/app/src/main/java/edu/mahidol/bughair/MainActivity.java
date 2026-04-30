@@ -3,8 +3,14 @@ package edu.mahidol.bughair;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -135,13 +141,13 @@ public class MainActivity extends Activity {
     }
 
     private void refreshStatus(String message) {
-        String prefix;
+        String display;
         if (session.isLoggedIn()) {
-            prefix = safe(session.fullName(), "Member").toUpperCase(Locale.US) + " | " + safe(session.memberId(), "MEMBER");
+            display = safe(session.fullName(), "Member").toUpperCase(Locale.US);
         } else {
-            prefix = "NO SESSION";
+            display = "WELCOME";
         }
-        status.setText(prefix + " - " + message);
+        status.setText(display);
         refreshHeaderAvatar();
     }
 
@@ -1217,10 +1223,9 @@ public class MainActivity extends Activity {
                 main.post(() -> {
                     holder.removeAllViews();
                     ImageView image = new ImageView(this);
-                    image.setImageBitmap(bitmap);
-                    image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    image.setImageBitmap(circleCrop(bitmap));
+                    image.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     image.setAdjustViewBounds(false);
-                    image.setBackground(fillBox(BG_3, 58));
                     holder.addView(image, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                 });
             } catch (Exception ignored) {
@@ -1245,6 +1250,24 @@ public class MainActivity extends Activity {
             }
         }
         return null;
+    }
+
+    private Bitmap circleCrop(Bitmap source) {
+        int size = Math.min(source.getWidth(), source.getHeight());
+        int x = (source.getWidth() - size) / 2;
+        int y = (source.getHeight() - size) / 2;
+        Bitmap squared = Bitmap.createBitmap(source, x, y, size, size);
+        Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        BitmapShader shader = new BitmapShader(squared, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        paint.setShader(shader);
+        RectF rect = new RectF(new Rect(0, 0, size, size));
+        canvas.drawOval(rect, paint);
+        if (squared != source) {
+            squared.recycle();
+        }
+        return output;
     }
 
     private TextView text(String value, int sp, int color, int style) {

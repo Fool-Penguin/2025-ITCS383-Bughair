@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 22:20 ICT - Codex
+
+**Task:** Polish Android profile header/status text and circular avatar display.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so the header status shows only the member name or `WELCOME`, not member ID or transient load messages.
+- Added circular bitmap cropping for profile images so avatars stay inside the round profile frame.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the rebuilt APK on `emulator-5554`, opened Profile, and confirmed the member ID/status message were removed from the header and profile images render circularly.
+
+**Notes / Next Steps:**
+- Local screenshots remain ignored by Git because they include live demo account details.
+
 ## 2026-04-30 22:15 ICT - Codex
 
 **Task:** Add native profile picture upload to the Android profile screen.
