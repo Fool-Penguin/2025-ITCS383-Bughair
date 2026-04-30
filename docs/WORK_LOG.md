@@ -26,6 +26,49 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 20:23 ICT - Codex
+
+**Task:** Record successful production password-reset email test.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with the successful SendGrid password-reset verification result.
+
+**Verified:**
+- User confirmed the deployed forgot-password email flow is working after switching to SendGrid.
+
+**Notes / Next Steps:**
+- Keep `SENDGRID_API_KEY` and `SENDGRID_FROM` in Render.
+- Rotate exposed SendGrid/Resend/Gmail/database credentials after the demo if not already rotated.
+
+## 2026-04-30 20:06 ICT - Codex
+
+**Task:** Diagnose why password reset still uses Resend after switching to SendGrid.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this SendGrid/Resend environment diagnosis entry.
+
+**Verified:**
+- Reviewed the provided Render log showing the app still executing the Resend provider path.
+
+**Notes / Next Steps:**
+- Delete `RESEND_API_KEY` and `RESEND_FROM` from Render, set `SENDGRID_API_KEY` and `SENDGRID_FROM`, then redeploy/restart.
+- If the next log still mentions Resend, Render is serving an older deployment or the SendGrid env vars were not saved.
+
+## 2026-04-30 20:00 ICT - Codex
+
+**Task:** Advise which Render email environment variables can be removed after switching to SendGrid.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this SendGrid env cleanup guidance entry.
+
+**Verified:**
+- Reviewed current password-reset provider priority in `authController.js`: SendGrid first, then Resend, then SMTP.
+- Reviewed the provided Render env screenshot.
+
+**Notes / Next Steps:**
+- Keep `SENDGRID_API_KEY`, add `SENDGRID_FROM`, and remove the old Resend/SMTP variables when using SendGrid.
+- Rotate exposed API keys, Gmail app password, and database credential after testing because they appeared in screenshots/chat.
+
 ## 2026-04-30 19:59 ICT - Codex
 
 **Task:** Compare local D5/WORK_LOG changes with current `origin/master` before pushing.
