@@ -9,14 +9,11 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const app = express();
 const PORT = process.env.PORT || 3003;
 
-// Init SQLite schema + seed data
-initDb();
-
 app.use(cors());
 app.use(express.json());
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'course-trainer-service', version: '1.0.0', db: 'SQLite' });
+  res.json({ status: 'ok', service: 'course-trainer-service', version: '1.0.0', db: 'Postgres (Supabase)' });
 });
 
 app.use('/api/courses', courseRoutes);
@@ -30,8 +27,15 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Course & Trainer Service running on http://localhost:${PORT}`);
-});
+(async () => {
+  try {
+    await initDb();
+  } catch (e) {
+    console.error('Seed failed (continuing — schema is already applied via _migration):', e.message);
+  }
+  app.listen(PORT, () => {
+    console.log(`Course & Trainer Service running on http://localhost:${PORT}`);
+  });
+})();
 
 module.exports = app;

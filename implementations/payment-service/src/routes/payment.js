@@ -13,6 +13,8 @@ const CreditCard = require("../services/creditCardService");
 const PayPal = require("../services/paypalService");
 const TrueMoney = require("../services/truemoneyService");
 
+const PLANS = `payment_svc."membership_plans"`;
+
 // Validation helper
 function validate(req, res) {
   const errors = validationResult(req);
@@ -29,9 +31,9 @@ function validate(req, res) {
  * GET /api/payments/plans
  * List available membership plans and their prices.
  */
-router.get("/plans", (req, res) => {
+router.get("/plans", async (req, res) => {
   try {
-    const plans = db.prepare("SELECT * FROM membership_plans WHERE is_active = 1").all();
+    const { rows: plans } = await db.query(`SELECT * FROM ${PLANS} WHERE is_active = 1`);
     return successResponse(res, { plans });
   } catch (err) {
     console.error("Plans error:", err);
@@ -49,10 +51,12 @@ router.get("/my", authenticate, [
   query("limit").optional().isInt({ min: 1, max: 100 }),
   query("offset").optional().isInt({ min: 0 }),
   query("status").optional().isIn(["PENDING","PROCESSING","SUCCESS","FAILED","REFUNDED","CANCELLED"]),
-], (req, res) => {
+], async (req, res) => {
   if (!validate(req, res)) return;
   const { limit = 20, offset = 0, status } = req.query;
-  const transactions = PaymentModel.findByMember(req.user.id, { limit: Number(limit), offset: Number(offset), status });
+  const transactions = await PaymentModel.findByMember(req.user.id, {
+    limit: Number(limit), offset: Number(offset), status,
+  });
   return successResponse(res, { transactions, count: transactions.length });
 });
 
@@ -62,23 +66,19 @@ router.get("/my", authenticate, [
  */
 router.get("/:id", authenticate, [
   param("id").notEmpty(),
-], (req, res) => {
+], async (req, res) => {
   if (!validate(req, res)) return;
-  const tx = PaymentModel.findById(req.params.id);
+  const tx = await PaymentModel.findById(req.params.id);
   if (!tx) return errorResponse(res, "Transaction not found", 404);
   if (req.user.role !== "ADMIN" && tx.member_id !== req.user.id) {
     return errorResponse(res, "Forbidden", 403);
   }
-  const refunds = PaymentModel.findRefundsByTransaction(tx.id);
+  const refunds = await PaymentModel.findRefundsByTransaction(tx.id);
   return successResponse(res, { transaction: tx, refunds });
 });
 
 //  CREDIT CARD
 
-/**
- * POST /api/payments/credit-card
- * Charge a credit card for membership / course / training / court.
- */
 router.post("/credit-card", authenticate, [
   body("purpose").isIn(["MEMBERSHIP","COURSE","TRAINING","COURT"]),
   body("amount").isFloat({ min: 1 }),
@@ -95,18 +95,16 @@ router.post("/credit-card", authenticate, [
 
   const { purpose, amount, currency = "THB", cardDetails, planId, metadata, idempotencyKey: clientKey } = req.body;
 
-  // Idempotency check
   const iKey = clientKey
     ? normaliseKey(clientKey)
     : generateIdempotencyKey(req.user.id, purpose, amount, planId || "");
 
-  const existing = PaymentModel.findByIdempotencyKey(iKey);
+  const existing = await PaymentModel.findByIdempotencyKey(iKey);
   if (existing) {
     return successResponse(res, { transaction: existing }, "Duplicate request — returning existing transaction", 200);
   }
 
-  // Create PENDING record
-  let tx = PaymentModel.createTransaction({
+  let tx = await PaymentModel.createTransaction({
     memberId: req.user.id, paymentMethod: "CREDIT_CARD",
     purpose, amount, currency, idempotencyKey: iKey,
     metadata: { planId, ...metadata },
@@ -116,23 +114,21 @@ router.post("/credit-card", authenticate, [
     entity: "payment_transactions", entityId: tx.id,
     details: { method: "CREDIT_CARD", amount, purpose }, ip: req.ip });
 
-  // Proces
-  PaymentModel.updateToProcessing(tx.id);
+  await PaymentModel.updateToProcessing(tx.id);
   const result = await CreditCard.processCreditCardPayment({
-    amount, currency,
-    cardDetails,
+    amount, currency, cardDetails,
     description: `${purpose} — member ${req.user.id}`,
     idempotencyKey: iKey,
   });
 
   if (result.success) {
-    tx = PaymentModel.updateStatus(tx.id, "SUCCESS", { referenceId: result.referenceId });
+    tx = await PaymentModel.updateStatus(tx.id, "SUCCESS", { referenceId: result.referenceId });
     auditLog({ actorId: req.user.id, actorRole: req.user.role, action: "PAYMENT_SUCCESS",
       entity: "payment_transactions", entityId: tx.id,
       details: { referenceId: result.referenceId }, ip: req.ip });
     return successResponse(res, { transaction: tx, gateway: result.gatewayResponse }, "Payment successful", 200);
   } else {
-    tx = PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
+    tx = await PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
     auditLog({ actorId: req.user.id, actorRole: req.user.role, action: "PAYMENT_FAILED",
       entity: "payment_transactions", entityId: tx.id,
       details: { reason: result.failureReason }, ip: req.ip });
@@ -142,10 +138,6 @@ router.post("/credit-card", authenticate, [
 
 //  PAYPAL — Step 1: Create Order
 
-/**
- * POST /api/payments/paypal/create-order
- * Creates a PayPal order and returns an approvalUrl for the client.
- */
 router.post("/paypal/create-order", authenticate, [
   body("purpose").isIn(["MEMBERSHIP","COURSE","TRAINING","COURT"]),
   body("amount").isFloat({ min: 1 }),
@@ -162,12 +154,12 @@ router.post("/paypal/create-order", authenticate, [
     ? normaliseKey(clientKey)
     : generateIdempotencyKey(req.user.id, purpose, amount, `paypal:${planId || ""}`);
 
-  const existing = PaymentModel.findByIdempotencyKey(iKey);
+  const existing = await PaymentModel.findByIdempotencyKey(iKey);
   if (existing && existing.status !== "FAILED") {
     return successResponse(res, { transaction: existing }, "Duplicate request — returning existing transaction");
   }
 
-  let tx = PaymentModel.createTransaction({
+  let tx = await PaymentModel.createTransaction({
     memberId: req.user.id, paymentMethod: "PAYPAL",
     purpose, amount, currency, idempotencyKey: iKey,
     metadata: { planId, ...metadata },
@@ -181,25 +173,20 @@ router.post("/paypal/create-order", authenticate, [
     description: `${purpose} — member ${req.user.id}`, returnUrl, cancelUrl });
 
   if (result.success) {
-    // Save PayPal orderId into reference_id for the capture step
-    tx = PaymentModel.updateStatus(tx.id, "PENDING", { referenceId: result.orderId });
+    tx = await PaymentModel.updateStatus(tx.id, "PENDING", { referenceId: result.orderId });
     return successResponse(res, {
       transaction: tx,
       orderId: result.orderId,
       approvalUrl: result.approvalUrl,
     }, "PayPal order created — redirect user to approvalUrl");
   } else {
-    PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
+    await PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
     return errorResponse(res, result.failureReason, 400);
   }
 });
 
 //  PAYPAL — Step 2: Capture Order
 
-/**
- * POST /api/payments/paypal/capture-order
- * Called after user approves the PayPal payment.
- */
 router.post("/paypal/capture-order", authenticate, [
   body("transactionId").notEmpty(),
   body("orderId").notEmpty(),
@@ -207,32 +194,28 @@ router.post("/paypal/capture-order", authenticate, [
   if (!validate(req, res)) return;
 
   const { transactionId, orderId } = req.body;
-  let tx = PaymentModel.findById(transactionId);
+  let tx = await PaymentModel.findById(transactionId);
   if (!tx) return errorResponse(res, "Transaction not found", 404);
   if (tx.member_id !== req.user.id) return errorResponse(res, "Forbidden", 403);
   if (tx.status !== "PENDING") return errorResponse(res, `Cannot capture a ${tx.status} transaction`, 409);
 
-  PaymentModel.updateToProcessing(tx.id);
+  await PaymentModel.updateToProcessing(tx.id);
   const result = await PayPal.capturePayPalOrder({ orderId });
 
   if (result.success) {
-    tx = PaymentModel.updateStatus(tx.id, "SUCCESS", { referenceId: result.referenceId });
+    tx = await PaymentModel.updateStatus(tx.id, "SUCCESS", { referenceId: result.referenceId });
     auditLog({ actorId: req.user.id, actorRole: req.user.role, action: "PAYMENT_SUCCESS",
       entity: "payment_transactions", entityId: tx.id,
       details: { method: "PAYPAL", referenceId: result.referenceId }, ip: req.ip });
     return successResponse(res, { transaction: tx, gateway: result.gatewayResponse }, "PayPal payment captured");
   } else {
-    tx = PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
+    tx = await PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
     return errorResponse(res, result.failureReason, 402);
   }
 });
 
 //  TRUE MONEY WALLET — Step 1: Request Payment
 
-/**
- * POST /api/payments/truemoney/request
- * Initiates a TrueMoney Wallet payment and returns a QR code / transaction ref.
- */
 router.post("/truemoney/request", authenticate, [
   body("purpose").isIn(["MEMBERSHIP","COURSE","TRAINING","COURT"]),
   body("amount").isFloat({ min: 1 }),
@@ -250,12 +233,12 @@ router.post("/truemoney/request", authenticate, [
     ? normaliseKey(clientKey)
     : generateIdempotencyKey(req.user.id, purpose, amount, `tmw:${mobileNumber}`);
 
-  const existing = PaymentModel.findByIdempotencyKey(iKey);
+  const existing = await PaymentModel.findByIdempotencyKey(iKey);
   if (existing && existing.status !== "FAILED") {
     return successResponse(res, { transaction: existing }, "Duplicate request — returning existing transaction");
   }
 
-  let tx = PaymentModel.createTransaction({
+  let tx = await PaymentModel.createTransaction({
     memberId: req.user.id, paymentMethod: "TRUEMONEY",
     purpose, amount, currency, idempotencyKey: iKey,
     metadata: { planId, mobileNumber: mobileNumber.replace(/(\d{3})\d{5}(\d{2})/, "$1XXXXX$2"), ...metadata },
@@ -272,7 +255,7 @@ router.post("/truemoney/request", authenticate, [
   });
 
   if (result.success) {
-    tx = PaymentModel.updateStatus(tx.id, "PENDING", { referenceId: result.transactionRef });
+    tx = await PaymentModel.updateStatus(tx.id, "PENDING", { referenceId: result.transactionRef });
     return successResponse(res, {
       transaction: tx,
       transactionRef: result.transactionRef,
@@ -280,17 +263,13 @@ router.post("/truemoney/request", authenticate, [
       gateway: result.gatewayResponse,
     }, "TrueMoney payment initiated — awaiting user confirmation");
   } else {
-    PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
+    await PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
     return errorResponse(res, result.failureReason, 402);
   }
 });
 
 //  TRUE MONEY WALLET — Step 2: Confirm Payment
 
-/**
- * POST /api/payments/truemoney/confirm
- * Confirm (poll/verify) a TrueMoney payment after user approves on mobile.
- */
 router.post("/truemoney/confirm", authenticate, [
   body("transactionId").notEmpty(),
   body("transactionRef").notEmpty(),
@@ -298,32 +277,28 @@ router.post("/truemoney/confirm", authenticate, [
   if (!validate(req, res)) return;
 
   const { transactionId, transactionRef } = req.body;
-  let tx = PaymentModel.findById(transactionId);
+  let tx = await PaymentModel.findById(transactionId);
   if (!tx) return errorResponse(res, "Transaction not found", 404);
   if (tx.member_id !== req.user.id) return errorResponse(res, "Forbidden", 403);
   if (tx.status !== "PENDING") return errorResponse(res, `Cannot confirm a ${tx.status} transaction`, 409);
 
-  PaymentModel.updateToProcessing(tx.id);
+  await PaymentModel.updateToProcessing(tx.id);
   const result = await TrueMoney.confirmTrueMoneyPayment({ transactionRef });
 
   if (result.success) {
-    tx = PaymentModel.updateStatus(tx.id, "SUCCESS", { referenceId: result.referenceId });
+    tx = await PaymentModel.updateStatus(tx.id, "SUCCESS", { referenceId: result.referenceId });
     auditLog({ actorId: req.user.id, actorRole: req.user.role, action: "PAYMENT_SUCCESS",
       entity: "payment_transactions", entityId: tx.id,
       details: { method: "TRUEMONEY", referenceId: result.referenceId }, ip: req.ip });
     return successResponse(res, { transaction: tx, gateway: result.gatewayResponse }, "TrueMoney payment confirmed");
   } else {
-    tx = PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
+    tx = await PaymentModel.updateStatus(tx.id, "FAILED", { failureReason: result.failureReason });
     return errorResponse(res, result.failureReason, 402);
   }
 });
 
 //  ADMIN ROUTES
 
-/**
- * GET /api/payments
- * Admin: list all transactions with filters.
- */
 router.get("/", authenticate, requireRole("ADMIN"), [
   query("limit").optional().isInt({ min: 1, max: 200 }),
   query("offset").optional().isInt({ min: 0 }),
@@ -332,48 +307,36 @@ router.get("/", authenticate, requireRole("ADMIN"), [
   query("purpose").optional().isIn(["MEMBERSHIP","COURSE","TRAINING","COURT"]),
   query("startDate").optional().isISO8601(),
   query("endDate").optional().isISO8601(),
-], (req, res) => {
+], async (req, res) => {
   if (!validate(req, res)) return;
   const { limit = 50, offset = 0, status, paymentMethod, purpose, startDate, endDate } = req.query;
-  const transactions = PaymentModel.findAll({
+  const transactions = await PaymentModel.findAll({
     limit: Number(limit), offset: Number(offset),
     status, paymentMethod, purpose, startDate, endDate,
   });
   return successResponse(res, { transactions, count: transactions.length });
 });
 
-/**
- * GET /api/payments/admin/member/:memberId
- * Admin: get all transactions for a specific member.
- */
 router.get("/admin/member/:memberId", authenticate, requireRole("ADMIN"), [
   param("memberId").notEmpty(),
-], (req, res) => {
+], async (req, res) => {
   if (!validate(req, res)) return;
-  const transactions = PaymentModel.findByMember(req.params.memberId);
+  const transactions = await PaymentModel.findByMember(req.params.memberId);
   return successResponse(res, { transactions, memberId: req.params.memberId });
 });
 
-/**
- * GET /api/payments/admin/reports/financial
- * Admin: financial summary report.
- */
 router.get("/admin/reports/financial", authenticate, requireRole("ADMIN"), [
   query("startDate").optional().isISO8601(),
   query("endDate").optional().isISO8601(),
-], (req, res) => {
+], async (req, res) => {
   if (!validate(req, res)) return;
   const { startDate, endDate } = req.query;
-  const summary = PaymentModel.getFinancialSummary({ startDate, endDate });
+  const summary = await PaymentModel.getFinancialSummary({ startDate, endDate });
   auditLog({ actorId: req.user.id, actorRole: "ADMIN", action: "VIEW_FINANCIAL_REPORT",
     entity: "payment_transactions", details: { startDate, endDate }, ip: req.ip });
   return successResponse(res, { report: summary, generatedAt: new Date().toISOString() });
 });
 
-/**
- * POST /api/payments/admin/refund/:id
- * Admin: issue a refund for a successful transaction.
- */
 router.post("/admin/refund/:id", authenticate, requireRole("ADMIN"), [
   param("id").notEmpty(),
   body("reason").notEmpty().isLength({ min: 5, max: 500 }),
@@ -381,18 +344,16 @@ router.post("/admin/refund/:id", authenticate, requireRole("ADMIN"), [
 ], async (req, res) => {
   if (!validate(req, res)) return;
 
-  const tx = PaymentModel.findById(req.params.id);
+  const tx = await PaymentModel.findById(req.params.id);
   if (!tx) return errorResponse(res, "Transaction not found", 404);
   if (tx.status !== "SUCCESS") return errorResponse(res, "Only successful transactions can be refunded", 409);
 
   const { reason, amount: refundAmount } = req.body;
-  const amount = refundAmount || tx.amount; // default: full refund
-  if (amount > tx.amount) return errorResponse(res, "Refund amount exceeds original transaction amount", 400);
+  const amount = refundAmount || Number(tx.amount);
+  if (amount > Number(tx.amount)) return errorResponse(res, "Refund amount exceeds original transaction amount", 400);
 
-  // Create refund record
-  let refund = PaymentModel.createRefund({ transactionId: tx.id, adminId: req.user.id, amount, reason });
+  let refund = await PaymentModel.createRefund({ transactionId: tx.id, adminId: req.user.id, amount, reason });
 
-  // Call the appropriate gateway
   let result;
   switch (tx.payment_method) {
     case "CREDIT_CARD":
@@ -409,34 +370,29 @@ router.post("/admin/refund/:id", authenticate, requireRole("ADMIN"), [
   }
 
   if (result.success) {
-    refund = PaymentModel.updateRefundStatus(refund.id, "SUCCESS", result.referenceId);
-    // Mark transaction as REFUNDED
-    PaymentModel.updateStatus(tx.id, "REFUNDED");
+    refund = await PaymentModel.updateRefundStatus(refund.id, "SUCCESS", result.referenceId);
+    await PaymentModel.updateStatus(tx.id, "REFUNDED");
     auditLog({ actorId: req.user.id, actorRole: "ADMIN", action: "REFUND_ISSUED",
       entity: "payment_refunds", entityId: refund.id,
       details: { transactionId: tx.id, amount, reason, gatewayRef: result.referenceId }, ip: req.ip });
     return successResponse(res, { refund, gateway: result.gatewayResponse }, "Refund processed successfully");
   } else {
-    PaymentModel.updateRefundStatus(refund.id, "FAILED");
+    await PaymentModel.updateRefundStatus(refund.id, "FAILED");
     return errorResponse(res, `Refund failed: ${result.failureReason}`, 500);
   }
 });
 
-/**
- * POST /api/payments/admin/cancel/:id
- * Admin: cancel a PENDING transaction.
- */
 router.post("/admin/cancel/:id", authenticate, requireRole("ADMIN"), [
   param("id").notEmpty(),
   body("reason").notEmpty(),
-], (req, res) => {
+], async (req, res) => {
   if (!validate(req, res)) return;
-  const tx = PaymentModel.findById(req.params.id);
+  const tx = await PaymentModel.findById(req.params.id);
   if (!tx) return errorResponse(res, "Transaction not found", 404);
   if (!["PENDING"].includes(tx.status)) {
     return errorResponse(res, `Cannot cancel a ${tx.status} transaction`, 409);
   }
-  const updated = PaymentModel.updateStatus(tx.id, "CANCELLED", { failureReason: req.body.reason });
+  const updated = await PaymentModel.updateStatus(tx.id, "CANCELLED", { failureReason: req.body.reason });
   auditLog({ actorId: req.user.id, actorRole: "ADMIN", action: "CANCEL_TRANSACTION",
     entity: "payment_transactions", entityId: tx.id,
     details: { reason: req.body.reason }, ip: req.ip });

@@ -8,9 +8,6 @@ const { initializeDatabase } = require("./config/database");
 const paymentRoutes = require("./routes/payment");
 const { errorResponse } = require("./utils/responseHelper");
 
-// ── Init DB ────────────────────────────────────────────────────────────────
-initializeDatabase();
-
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -54,12 +51,20 @@ app.use((err, req, res, next) => {
 });
 
 // ── Start ──────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🏋️  Fitness Payment Service`);
-  console.log(`🚀  Running on  http://localhost:${PORT}`);
-  console.log(`📋  Health      http://localhost:${PORT}/health`);
-  console.log(`💳  Payments    http://localhost:${PORT}/api/payments`);
-  console.log(`🌍  Environment ${process.env.NODE_ENV}\n`);
-});
+(async () => {
+  try {
+    await initializeDatabase();
+  } catch (e) {
+    console.error("DB init failed:", e.message);
+    process.exit(1);
+  }
+  app.listen(PORT, () => {
+    console.log(`\n🏋️  Fitness Payment Service`);
+    console.log(`🚀  Running on  http://localhost:${PORT}`);
+    console.log(`📋  Health      http://localhost:${PORT}/health`);
+    console.log(`💳  Payments    http://localhost:${PORT}/api/payments`);
+    console.log(`🌍  Environment ${process.env.NODE_ENV}\n`);
+  });
+})();
 
 module.exports = app;

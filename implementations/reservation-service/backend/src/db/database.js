@@ -1,111 +1,90 @@
 // ============================================================
 // src/db/database.js
-// SQLite database — fitcourt.db
+// Postgres (Supabase) — schema reservation_svc
 // ============================================================
 
-const Database = require("better-sqlite3");
-const path = require("path");
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
+const { Pool } = require('pg');
 
-const DB_PATH = path.join(__dirname, "fitcourt.db");
-let db;
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set. Add it to reservation-service/backend/.env');
+}
 
-function getDb() {
-  if (!db) {
-    db = new Database(DB_PATH);
-    db.pragma("journal_mode = WAL");
-    // NOTE: foreign_keys OFF intentionally so that attendance_logs and
-    // court_reservations can reference member IDs that come from the
-    // external Auth & Membership service (not seeded in our users table).
-    db.pragma("foreign_keys = OFF");
-    initSchema();
-    seedData();
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 10,
+});
+
+pool.on('error', (err) => console.error('Unexpected pg pool error:', err));
+
+let seeded = false;
+
+// Idempotent — seeds 5 courts and a few attendance rows on first call.
+async function seedIfEmpty() {
+  if (seeded) return;
+  seeded = true;
+  const { rows } = await pool.query('SELECT COUNT(*)::int AS c FROM reservation_svc.courts');
+  if (rows[0].c > 0) return;
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    for (let i = 1; i <= 5; i++) {
+      await client.query(
+        `INSERT INTO reservation_svc.courts (court_id, court_number)
+         VALUES ($1,$2) ON CONFLICT (court_id) DO NOTHING`,
+        [i, i]
+      );
+    }
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const seedLogs = [
+      ['M001', 'John Doe', `${todayStr} 08:00:00+00`],
+      ['M003', 'Tom Lee',  `${todayStr} 09:00:00+00`],
+      ['M005', 'Pat Wong', `${todayStr} 09:30:00+00`],
+      ['M007', 'Mark Tan', `${todayStr} 10:00:00+00`],
+    ];
+    for (const [id, name, time] of seedLogs) {
+      await client.query(
+        `INSERT INTO reservation_svc.attendance_logs (member_id, member_name, entry_time)
+         VALUES ($1,$2,$3::timestamptz)`,
+        [id, name, time]
+      );
+    }
+    await client.query('COMMIT');
+    console.log('Reservation DB seeded (5 courts + sample attendance logs)');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
   }
-  return db;
 }
 
-function initSchema() {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id          TEXT PRIMARY KEY,
-      name        TEXT NOT NULL,
-      email       TEXT UNIQUE NOT NULL,
-      password    TEXT NOT NULL,
-      role        TEXT NOT NULL DEFAULT 'member',
-      created_at  TEXT DEFAULT (datetime('now','localtime'))
-    );
-
-    CREATE TABLE IF NOT EXISTS courts (
-      court_id            INTEGER PRIMARY KEY,
-      court_number        INTEGER UNIQUE NOT NULL,
-      maintenance_start   TEXT,
-      maintenance_end     TEXT
-    );
-
-    -- No hard FK on member_id so external Auth service accounts work too
-    CREATE TABLE IF NOT EXISTS court_reservations (
-      reservation_id  TEXT PRIMARY KEY,
-      court_id        INTEGER NOT NULL,
-      member_id       TEXT NOT NULL,
-      member_name     TEXT NOT NULL,
-      date            TEXT NOT NULL,
-      time_slot       TEXT NOT NULL,
-      status          TEXT NOT NULL DEFAULT 'active',
-      created_at      TEXT DEFAULT (datetime('now','localtime'))
-    );
-
-    CREATE TABLE IF NOT EXISTS attendance_logs (
-      log_id       INTEGER PRIMARY KEY AUTOINCREMENT,
-      member_id    TEXT NOT NULL,
-      member_name  TEXT NOT NULL,
-      entry_time   TEXT DEFAULT (datetime('now','localtime')),
-      exit_time    TEXT
-    );
-  `);
+// Returns the connection pool. Kept named getDb() for backwards compat with old call sites.
+function getDb() {
+  // Fire-and-forget seed on first call
+  seedIfEmpty().catch((e) => console.error('Reservation seed failed:', e.message));
+  return pool;
 }
 
-function seedData() {
-  const db = getDb();
-  const courtCount = db.prepare("SELECT COUNT(*) as c FROM courts").get().c;
-  if (courtCount > 0) return; // ถ้ามีข้อมูลแล้วไม่ต้องใส่ซ้ำ
-
-  console.log("🌱 กำลังใส่ข้อมูลเริ่มต้นเพื่อให้ Dashboard มีข้อมูล...");
-
-  // 1. ใส่สนาม 1-5
-  const insertCourt = db.prepare("INSERT INTO courts (court_id, court_number) VALUES (?, ?)");
-  for (let i = 1; i <= 5; i++) insertCourt.run(i, i);
-
-  // 2. ใส่ Log การเข้างาน (เพื่อให้เลข Members Inside ขึ้นเป็น 4)
-  const today = new Date().toISOString().split('T')[0];
-  const il = db.prepare("INSERT INTO attendance_logs (member_id, member_name, entry_time) VALUES (?,?,?)");
-  il.run("M001", "John Doe", today + " 08:00:00");
-  il.run("M003", "Tom Lee",  today + " 09:00:00");
-  il.run("M005", "Pat Wong", today + " 09:30:00");
-  il.run("M007", "Mark Tan", today + " 10:00:00");
-
-  console.log("✅ ข้อมูลพร้อมรันแล้ว!");
-}
 // ── Helpers ────────────────────────────────────────────────
 function localDateStr(d) {
   const dt = d || new Date();
-  return dt.getFullYear() + "-" +
-    String(dt.getMonth() + 1).padStart(2, "0") + "-" +
-    String(dt.getDate()).padStart(2, "0");
-}
-function offsetDate(days) {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return localDateStr(d);
+  return dt.getFullYear() + '-' +
+    String(dt.getMonth() + 1).padStart(2, '0') + '-' +
+    String(dt.getDate()).padStart(2, '0');
 }
 
-// ── Public API for external Auth service integration ───────
-// Call this from Auth service after successful login/register
-// to upsert the user into our local users table
-function upsertUser(id, name, email, role) {
-  getDb().prepare(`
-    INSERT INTO users (id,name,email,password,role)
-    VALUES (?,?,?,'[external-auth]',?)
-    ON CONFLICT(id) DO UPDATE SET name=excluded.name, email=excluded.email, role=excluded.role
-  `).run(id, name, email, role || "member");
+// Upsert user from external Auth & Membership service.
+async function upsertUser(id, name, email, role) {
+  await pool.query(
+    `INSERT INTO reservation_svc.users (id,name,email,password,role)
+     VALUES ($1,$2,$3,'[external-auth]',$4)
+     ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, email=EXCLUDED.email, role=EXCLUDED.role`,
+    [id, name, email, role || 'member']
+  );
 }
 
-module.exports = { getDb, localDateStr, upsertUser };
+module.exports = { pool, getDb, localDateStr, upsertUser };

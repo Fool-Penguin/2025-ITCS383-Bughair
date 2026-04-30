@@ -8,17 +8,27 @@
     "test": "nyc node src/tests/courts.test.js"
   },
   "dependencies": {
-    "better-sqlite3": "^12.8.0"
+    "dotenv": "^16.6.1",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "nyc": "^15.1.0"
   },
   "nyc": {
-    "reporter": ["lcov", "text"],
+    "reporter": [
+      "lcov",
+      "text"
+    ],
     "all": true,
-    "include": ["src/**/*.js"],
-    "exclude": ["src/tests/**"],
-    "extension": [".js"],
+    "include": [
+      "src/**/*.js"
+    ],
+    "exclude": [
+      "src/tests/**"
+    ],
+    "extension": [
+      ".js"
+    ],
     "report-dir": "coverage"
   }
 }

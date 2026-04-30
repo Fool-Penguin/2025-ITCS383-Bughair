@@ -1,15 +1,17 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../fitness.db');
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set. Add it to course-service/.env');
+}
 
-const dir = path.dirname(DB_PATH);
-if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 10,
+});
 
-const db = new Database(DB_PATH);
+pool.on('error', (err) => {
+  console.error('Unexpected pg pool error:', err);
+});
 
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-module.exports = db;
+module.exports = pool;

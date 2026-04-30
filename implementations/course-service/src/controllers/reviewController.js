@@ -1,13 +1,14 @@
-const db = require('../config/db');
+const pool = require('../config/db');
+
+const T = (t) => `course_svc."${t}"`;
 
 // ─── MEMBER: Submit Review ───────────────────────────────────────────────────
-const submitReview = (req, res) => {
+const submitReview = async (req, res) => {
   try {
     const trainerID = parseInt(req.params.id);
     const memberID = req.user.id;
     const { rating, comment } = req.body;
 
-    // Validate inputs
     if (!rating) {
       return res.status(400).json({ success: false, message: 'Rating is required' });
     }
@@ -15,42 +16,47 @@ const submitReview = (req, res) => {
       return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5' });
     }
 
-    // Verify the trainer exists
-    const trainer = db.prepare('SELECT trainerID FROM Trainers WHERE trainerID = ?').get(trainerID);
-    if (!trainer) {
+    const trainer = await pool.query(
+      `SELECT 1 FROM ${T('Trainers')} WHERE "trainerID" = $1`,
+      [trainerID]
+    );
+    if (trainer.rowCount === 0) {
       return res.status(404).json({ success: false, message: 'Trainer not found' });
     }
 
-    // Check if user already reviewed this trainer
-    const existing = db.prepare(
-      'SELECT reviewID FROM TrainerReviews WHERE memberID = ? AND trainerID = ?'
-    ).get(memberID, trainerID);
+    const existing = await pool.query(
+      `SELECT "reviewID" FROM ${T('TrainerReviews')} WHERE "memberID" = $1 AND "trainerID" = $2`,
+      [memberID, trainerID]
+    );
 
-    if (existing) {
-      // Update existing review instead of failing
-      db.prepare(
-        'UPDATE TrainerReviews SET rating = ?, comment = ?, createdAt = datetime(\'now\'), status = \'visible\' WHERE reviewID = ?'
-      ).run(rating, comment || null, existing.reviewID);
-
-      return res.json({ 
-        success: true, 
-        message: 'Review updated successfully', 
-        data: { reviewID: existing.reviewID } 
+    if (existing.rowCount > 0) {
+      const reviewID = existing.rows[0].reviewID;
+      await pool.query(
+        `UPDATE ${T('TrainerReviews')}
+           SET rating = $1, comment = $2, "createdAt" = NOW(), status = 'visible'
+         WHERE "reviewID" = $3`,
+        [rating, comment || null, reviewID]
+      );
+      return res.json({
+        success: true,
+        message: 'Review updated successfully',
+        data: { reviewID },
       });
     }
 
-    // Insert new review
-    const result = db.prepare(
-      'INSERT INTO TrainerReviews (trainerID, memberID, rating, comment) VALUES (?, ?, ?, ?)'
-    ).run(trainerID, memberID, rating, comment || null);
+    const r = await pool.query(
+      `INSERT INTO ${T('TrainerReviews')} ("trainerID","memberID","rating","comment")
+       VALUES ($1,$2,$3,$4) RETURNING "reviewID"`,
+      [trainerID, memberID, rating, comment || null]
+    );
 
-    res.status(201).json({ 
-      success: true, 
-      message: 'Review submitted successfully', 
-      data: { reviewID: result.lastInsertRowid } 
+    res.status(201).json({
+      success: true,
+      message: 'Review submitted successfully',
+      data: { reviewID: r.rows[0].reviewID },
     });
   } catch (err) {
-    if (err.message.includes('UNIQUE')) {
+    if (err.code === '23505') {
       return res.status(409).json({ success: false, message: 'You have already reviewed this trainer' });
     }
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -58,45 +64,42 @@ const submitReview = (req, res) => {
 };
 
 // ─── PUBLIC: Get Trainer Reviews ─────────────────────────────────────────────
-const getTrainerReviews = (req, res) => {
+const getTrainerReviews = async (req, res) => {
   try {
     const trainerID = parseInt(req.params.id);
 
-    // Get reviews (only visible ones for public)
-    const reviews = db.prepare(`
-      SELECT r.reviewID, r.rating, r.comment, r.createdAt, r.status,
-             r.memberID, r.bookingID
-      FROM TrainerReviews r
-      WHERE r.trainerID = ? AND r.status = 'visible'
-      ORDER BY r.createdAt DESC
-    `).all(trainerID);
+    const reviewsRes = await pool.query(
+      `SELECT r."reviewID", r.rating, r.comment, r."createdAt", r.status,
+              r."memberID", r."bookingID"
+       FROM ${T('TrainerReviews')} r
+       WHERE r."trainerID" = $1 AND r.status = 'visible'
+       ORDER BY r."createdAt" DESC`,
+      [trainerID]
+    );
 
-    // Calculate average
-    const stats = db.prepare(`
-      SELECT 
-        COUNT(*) as totalReviews,
-        ROUND(AVG(rating), 1) as averageRating
-      FROM TrainerReviews 
-      WHERE trainerID = ? AND status = 'visible'
-    `).get(trainerID);
+    const statsRes = await pool.query(
+      `SELECT COUNT(*)::int AS "totalReviews",
+              ROUND(AVG(rating)::numeric, 1) AS "averageRating"
+       FROM ${T('TrainerReviews')} WHERE "trainerID" = $1 AND status = 'visible'`,
+      [trainerID]
+    );
 
-    // Get rating distribution
-    const distribution = db.prepare(`
-      SELECT rating, COUNT(*) as count
-      FROM TrainerReviews 
-      WHERE trainerID = ? AND status = 'visible'
-      GROUP BY rating
-      ORDER BY rating DESC
-    `).all(trainerID);
+    const distRes = await pool.query(
+      `SELECT rating, COUNT(*)::int AS count
+       FROM ${T('TrainerReviews')} WHERE "trainerID" = $1 AND status = 'visible'
+       GROUP BY rating ORDER BY rating DESC`,
+      [trainerID]
+    );
 
-    res.json({ 
-      success: true, 
+    const stats = statsRes.rows[0];
+    res.json({
+      success: true,
       data: {
-        reviews,
-        averageRating: stats.averageRating || 0,
+        reviews: reviewsRes.rows,
+        averageRating: stats.averageRating !== null ? Number(stats.averageRating) : 0,
         totalReviews: stats.totalReviews || 0,
-        distribution
-      }
+        distribution: distRes.rows,
+      },
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -104,32 +107,32 @@ const getTrainerReviews = (req, res) => {
 };
 
 // ─── ADMIN: Get All Reviews (includes hidden/flagged) ────────────────────────
-const getAllReviewsAdmin = (req, res) => {
+const getAllReviewsAdmin = async (req, res) => {
   try {
     const trainerID = parseInt(req.params.id);
-
-    const reviews = db.prepare(`
-      SELECT r.reviewID, r.rating, r.comment, r.createdAt, r.status,
-             r.memberID, r.bookingID, r.trainerID
-      FROM TrainerReviews r
-      WHERE r.trainerID = ?
-      ORDER BY r.createdAt DESC
-    `).all(trainerID);
-
-    res.json({ success: true, data: reviews });
+    const r = await pool.query(
+      `SELECT r."reviewID", r.rating, r.comment, r."createdAt", r.status,
+              r."memberID", r."bookingID", r."trainerID"
+       FROM ${T('TrainerReviews')} r
+       WHERE r."trainerID" = $1
+       ORDER BY r."createdAt" DESC`,
+      [trainerID]
+    );
+    res.json({ success: true, data: r.rows });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }
 };
 
 // ─── ADMIN: Delete Review (soft delete — set status to hidden) ───────────────
-const deleteReview = (req, res) => {
+const deleteReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const review = db.prepare('SELECT * FROM TrainerReviews WHERE reviewID = ?').get(reviewId);
-    if (!review) return res.status(404).json({ success: false, message: 'Review not found' });
-
-    db.prepare("UPDATE TrainerReviews SET status = 'hidden' WHERE reviewID = ?").run(reviewId);
+    const r = await pool.query(
+      `UPDATE ${T('TrainerReviews')} SET status = 'hidden' WHERE "reviewID" = $1`,
+      [reviewId]
+    );
+    if (r.rowCount === 0) return res.status(404).json({ success: false, message: 'Review not found' });
     res.json({ success: true, message: 'Review hidden successfully' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -137,13 +140,14 @@ const deleteReview = (req, res) => {
 };
 
 // ─── ADMIN: Flag Review ──────────────────────────────────────────────────────
-const flagReview = (req, res) => {
+const flagReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
-    const review = db.prepare('SELECT * FROM TrainerReviews WHERE reviewID = ?').get(reviewId);
-    if (!review) return res.status(404).json({ success: false, message: 'Review not found' });
-
-    db.prepare("UPDATE TrainerReviews SET status = 'flagged' WHERE reviewID = ?").run(reviewId);
+    const r = await pool.query(
+      `UPDATE ${T('TrainerReviews')} SET status = 'flagged' WHERE "reviewID" = $1`,
+      [reviewId]
+    );
+    if (r.rowCount === 0) return res.status(404).json({ success: false, message: 'Review not found' });
     res.json({ success: true, message: 'Review flagged for moderation' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
@@ -151,16 +155,16 @@ const flagReview = (req, res) => {
 };
 
 // ─── MEMBER: Check if already reviewed ───────────────────────────────────────
-const getMyReview = (req, res) => {
+const getMyReview = async (req, res) => {
   try {
     const trainerID = parseInt(req.params.id);
     const memberID = req.user.id;
 
-    const review = db.prepare(
-      'SELECT * FROM TrainerReviews WHERE memberID = ? AND trainerID = ?'
-    ).get(memberID, trainerID);
-
-    res.json({ success: true, data: review || null });
+    const r = await pool.query(
+      `SELECT * FROM ${T('TrainerReviews')} WHERE "memberID" = $1 AND "trainerID" = $2`,
+      [memberID, trainerID]
+    );
+    res.json({ success: true, data: r.rows[0] || null });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error', error: err.message });
   }

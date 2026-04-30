@@ -1,19 +1,17 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+const { Pool } = require('pg');
 
-// ✅ FIXED: Path from src/config -> src -> backend -> Auth_Membership -> payment-service -> data
-const dbDir = path.resolve(__dirname, '../../../../payment-service/data');
-const dbPath = path.join(dbDir, 'fitness_payment.db');
-
-// English Comment: Ensure the shared data directory exists
-if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not set. Add it to AuthMembership/backend-api_Module1/.env');
 }
 
-const db = new Database(dbPath);
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 10,
+});
 
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+pool.on('error', (err) => {
+    console.error('Unexpected pg pool error:', err);
+});
 
-module.exports = db;
+module.exports = pool;

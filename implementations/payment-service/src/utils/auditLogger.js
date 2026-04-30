@@ -1,23 +1,16 @@
-const { v4: uuidv4 } = require("uuid");
+const { randomUUID: uuidv4 } = require("crypto");
 const { db } = require("../config/database");
 
+const AUDIT = `payment_svc."audit_logs"`;
+
 /**
- * Write an entry to the audit_logs table.
- * @param {object} params
- * @param {string} params.actorId   - member_id or admin_id performing the action
- * @param {string} params.actorRole - 'MEMBER' | 'ADMIN' | 'SYSTEM'
- * @param {string} params.action    - e.g. 'INITIATE_PAYMENT', 'REFUND'
- * @param {string} params.entity    - table / domain, e.g. 'payment_transactions'
- * @param {string} [params.entityId]
- * @param {object} [params.details] - extra JSON-serialisable info
- * @param {string} [params.ip]
+ * Write an entry to the audit_logs table. Fire-and-forget — never throws.
  */
 function auditLog({ actorId, actorRole, action, entity, entityId, details, ip }) {
-  try {
-    db.prepare(`
-      INSERT INTO audit_logs (id, actor_id, actor_role, action, entity, entity_id, details, ip_address)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+  db.query(
+    `INSERT INTO ${AUDIT} (id, actor_id, actor_role, action, entity, entity_id, details, ip_address)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+    [
       uuidv4(),
       actorId,
       actorRole,
@@ -25,12 +18,12 @@ function auditLog({ actorId, actorRole, action, entity, entityId, details, ip })
       entity,
       entityId || null,
       details ? JSON.stringify(details) : null,
-      ip || null
-    );
-  } catch (err) {
+      ip || null,
+    ]
+  ).catch((err) => {
     // Non-fatal — log to console but don't crash the request
     console.error("Audit log error:", err.message);
-  }
+  });
 }
 
 module.exports = { auditLog };

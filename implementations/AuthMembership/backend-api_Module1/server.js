@@ -21,10 +21,6 @@ const courseRoutes = require('../../course-service/src/routes/courseRoutes');
 const trainerRoutes = require('../../course-service/src/routes/trainerRoutes');
 const reviewRoutes = require('../../course-service/src/routes/reviewRoutes');
 
-// สั่งให้ฐานข้อมูลเตรียมพร้อม
-initializeDatabase();
-courseInitDb();
-
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -133,10 +129,20 @@ app.use('/payment-service', express.static(path.join(__dirname, '../../payment-s
 app.use('/reservation-service', express.static(path.join(__dirname, '../../reservation-service')));
 app.use('/Admin', express.static(path.join(__dirname, '../../Admin')));
 
-// รันเซิร์ฟเวอร์
-app.listen(PORT, () => {
-    console.log(`\n=========================================`);
-    console.log(`🚀 FITPAY ELITE SYSTEM: ONLINE`);
-    console.log(`🔗 MAIN URL: http://localhost:${PORT}`);
-    console.log(`=========================================\n`);
-});
+// รันเซิร์ฟเวอร์ (DB seeds run in parallel; schema already lives in Supabase)
+(async () => {
+    try {
+        await Promise.all([
+            initializeDatabase(),     // payment_svc seeds (idempotent)
+            courseInitDb(),           // course_svc seeds (idempotent)
+        ]);
+    } catch (e) {
+        console.error('DB seed failed (continuing — schema is already applied):', e.message);
+    }
+    app.listen(PORT, () => {
+        console.log(`\n=========================================`);
+        console.log(`FITPAY ELITE SYSTEM: ONLINE`);
+        console.log(`MAIN URL: http://localhost:${PORT}`);
+        console.log(`=========================================\n`);
+    });
+})();
