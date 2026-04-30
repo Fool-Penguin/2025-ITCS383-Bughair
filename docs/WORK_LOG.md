@@ -26,6 +26,39 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:24 ICT - Codex
+
+**Task:** Add Resend support for password-reset emails because Render free services block SMTP ports.
+
+**Changed:**
+- Added Resend HTTPS email sending support in `implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`.
+- Added `RESEND_API_KEY` and `RESEND_FROM` placeholders to `render.yaml`.
+- Updated `docs/WORK_LOG.md` with this implementation entry.
+
+**Verified:**
+- Checked official Resend send-email API documentation.
+- Ran `node --check implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`.
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+
+**Notes / Next Steps:**
+- Configure `RESEND_API_KEY` and `RESEND_FROM` in Render, redeploy, and retest `/forgot-password`.
+- If using Resend's `onboarding@resend.dev` sandbox sender, recipient restrictions may apply; verify a custom domain in Resend for general member emails.
+
+## 2026-04-30 19:16 ICT - Codex
+
+**Task:** Diagnose Render forgot-password SMTP `Connection timeout` log.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this SMTP timeout diagnosis entry.
+
+**Verified:**
+- Reviewed the provided Render log showing `PASSWORD RESET LINK (email failed: Connection timeout)`.
+- Checked current Render SMTP/free-service behavior from Render changelog/community sources.
+
+**Notes / Next Steps:**
+- The timeout is consistent with outbound SMTP port blocking from Render free services, not a bad Gmail app password.
+- Use a paid Render instance for SMTP ports or switch reset emails to an HTTP email API provider.
+
 ## 2026-04-30 19:06 ICT - Codex
 
 **Task:** Commit and push reset-password email timeout fix.

@@ -19,7 +19,72 @@ function getBaseUrl(req) {
 
 function canExposeResetLink(req) {
     const host = req.hostname || '';
-    return !process.env.SMTP_USER || host === 'localhost' || host === '127.0.0.1';
+    const hasEmailProvider = process.env.RESEND_API_KEY || (process.env.SMTP_USER && process.env.SMTP_PASS);
+    return !hasEmailProvider || host === 'localhost' || host === '127.0.0.1';
+}
+
+function buildPasswordResetEmail(user, resetLink) {
+    return `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #c8f53c; background: #0d0d0d; padding: 20px; text-align: center;">FITNESS - Password Reset</h2>
+            <div style="padding: 20px; background: #f5f5f5;">
+                <p>Hi <strong>${user.full_name}</strong>,</p>
+                <p>You requested a password reset. Click the button below to set a new password:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetLink}" style="background: #c8f53c; color: #0d0d0d; padding: 14px 30px; text-decoration: none; font-weight: bold; border-radius: 4px;">Reset Password</a>
+                </div>
+                <p style="color: #888; font-size: 0.85rem;">This link expires in 1 hour. If you didn't request this, please ignore this email.</p>
+            </div>
+        </div>
+    `;
+}
+
+function logResetLink(reason, email, resetLink, token, expiresAt) {
+    console.log(`\n=========================================`);
+    console.log(`PASSWORD RESET LINK (${reason})`);
+    console.log(`   User: ${email}`);
+    console.log(`   Link: ${resetLink}`);
+    console.log(`   Token: ${token}`);
+    console.log(`   Expires: ${expiresAt}`);
+    console.log(`=========================================\n`);
+}
+
+async function sendWithResend(email, subject, html) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+        const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from: process.env.RESEND_FROM || process.env.SMTP_FROM || 'Bughair Fitness <onboarding@resend.dev>',
+                to: [email],
+                subject,
+                html
+            }),
+            signal: controller.signal
+        });
+
+        let payload = {};
+        try {
+            payload = await response.json();
+        } catch (_) {
+            payload = { message: await response.text().catch(() => '') };
+        }
+
+        if (!response.ok) {
+            const message = payload.message || payload.name || `HTTP ${response.status}`;
+            throw new Error(`Resend API error: ${message}`);
+        }
+
+        console.log(`Password reset email sent to: ${email} via Resend (${payload.id || 'no id'})`);
+    } finally {
+        clearTimeout(timeoutId);
+    }
 }
 
 // Register
@@ -148,9 +213,14 @@ exports.forgotPassword = async (req, res) => {
 
         // Build reset link for the current deployment. APP_BASE_URL is best for Render.
         const resetLink = `${getBaseUrl(req)}/reset-password?token=${token}`;
+        const subject = 'Password Reset - Fitness Management System';
+        const html = buildPasswordResetEmail(user, resetLink);
 
         // Try to send email, fallback to console log
         try {
+            if (process.env.RESEND_API_KEY) {
+                await sendWithResend(email, subject, html);
+            } else {
             const nodemailer = require('nodemailer');
             const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
             const transporter = nodemailer.createTransport({
@@ -185,7 +255,7 @@ exports.forgotPassword = async (req, res) => {
                         </div>
                     `
                 });
-                console.log(`Password reset email sent to: ${email}`);
+                console.log(`Password reset email sent to: ${email} via SMTP`);
             } else {
                 // No SMTP configured — log to console
                 console.log(`\n=========================================`);
@@ -195,6 +265,7 @@ exports.forgotPassword = async (req, res) => {
                 console.log(`   Token: ${token}`);
                 console.log(`   Expires: ${expiresAt}`);
                 console.log(`=========================================\n`);
+            }
             }
         } catch (emailErr) {
             console.log(`\n=========================================`);
