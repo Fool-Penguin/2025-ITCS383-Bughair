@@ -26,6 +26,23 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 21:17 ICT - Codex
+
+**Task:** Prepare immediate handoff because the user is near the usage limit before Android app work can continue.
+
+**Changed:**
+- Updated `docs/handoff/CURRENT_SESSION_HANDOFF.md` with the current repo state, Android app status, recommended next Android strategy, API endpoints, and immediate next commands.
+- Updated `docs/WORK_LOG.md` with this handoff entry.
+
+**Verified:**
+- Checked `git status --short`: clean before the handoff edits, aside from local Git config permission warnings.
+- Checked recent commits, including `f7292bc` final split doc, `5bcbd15` course enroll normalization fix, and `69663c4` SendGrid verification log.
+- Confirmed no Android project files existed before this handoff and Android SDK platforms `android-34`/`android-36` were present locally.
+
+**Notes / Next Steps:**
+- Next account should start from `docs/handoff/CURRENT_SESSION_HANDOFF.md` and `docs/handoff/3-HOUR-FINAL-SPLIT.md`.
+- Android project has not been created yet; create `android-app/` in Android Studio and get the smallest emulator-runnable app working first.
+
 ## 2026-04-30 21:03 ICT - Codex
 
 **Task:** Add a recommended tech stack to the final Android team split.

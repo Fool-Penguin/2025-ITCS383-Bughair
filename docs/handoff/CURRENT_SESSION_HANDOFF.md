@@ -4,6 +4,137 @@ Last updated: 2026-04-30 15:20 ICT
 
 This file exists so work can continue from another account or coding agent without relying on chat history.
 
+# 2026-04-30 21:12 ICT - Immediate Handoff: Android App Must Continue From New Account
+
+## Why This Handoff Exists
+
+The user is near the usage limit and wants to continue immediately from another account. The newest task was: build the Android application alone, as close to the web version as practical, with a working emulator demo.
+
+## Current Repo State Before This Handoff Edit
+
+- `git status --short` was clean before this handoff update.
+- Latest visible commits:
+  - `f7292bc` - `Add final three-hour team split`
+  - `5712d20` - merge latest master
+  - `5bcbd15` - fix course `Enroll Now` by normalising course data
+  - `69663c4` - record SendGrid password reset verification
+  - `ae0d349` - add AI usage deliverable
+- `docs/handoff/3-HOUR-FINAL-SPLIT.md` is already pushed and contains the role split, tech stack, AI-agent prompts, and push rules.
+- Password reset email is confirmed working in production via SendGrid.
+- Course enroll fix appears to have been pushed by another/latest account; browser retest may still be needed.
+
+## Android App Status
+
+- No Android project existed in this repo when checked with:
+
+```powershell
+rg --files -g "*.gradle" -g "*.gradle.kts" -g "AndroidManifest.xml" -g "settings.gradle*"
+```
+
+- No Android files were created before the user interrupted and requested this handoff.
+- Local Android SDK platforms were detected:
+  - `android-34`
+  - `android-36`
+- `gradle` command was not available globally in this shell.
+- Because global Gradle is unavailable, the next account should either:
+  - create the Android app in Android Studio so it generates the Gradle wrapper, or
+  - scaffold `android-app/` with a wrapper from Android Studio / an existing local template.
+
+## Recommended Android Strategy For The Next Account
+
+The fastest reliable strategy is:
+
+1. Create `android-app/` in Android Studio.
+2. Use a native Android app with a stable build first.
+3. Prefer Kotlin + Jetpack Compose if Android Studio creates it cleanly.
+4. If dependency/Gradle setup becomes slow, switch to plain Java/Kotlin Android views with built-in APIs.
+5. Implement:
+   - app shell / navigation
+   - login
+   - forgot password
+   - profile display/edit if token flow is stable
+   - courses list and enroll if stable
+   - trainers/reviews read-only or WebView fallback
+   - WebView/custom-tab fallbacks for payments, courts, admin
+6. Build/run on Android Studio emulator.
+7. Capture screenshots/video proof.
+8. Link Android repo/app path from README or final docs.
+
+## API Base URL
+
+Use:
+
+```text
+https://two025-itcs383-bughair-1.onrender.com
+```
+
+Key endpoints already used by the web app:
+
+```text
+POST /api/auth/login
+POST /api/auth/register
+POST /api/auth/forgot-password
+GET  /api/auth/profile
+PUT  /api/auth/profile
+GET  /api/courses
+POST /api/courses/enroll
+GET  /api/trainers
+GET  /api/trainers/:id/reviews
+```
+
+Authenticated endpoints need:
+
+```text
+Authorization: Bearer <JWT token>
+```
+
+## Android Implementation Notes
+
+If using WebView, include:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+Useful fallback URLs:
+
+```text
+/auth.html
+/forgot-password
+/home
+/profile
+/courses
+/payments
+/courts
+```
+
+Full URLs should be formed from the base URL above.
+
+## What Not To Do
+
+- Do not change backend/email provider again; SendGrid works.
+- Do not commit API keys, `.env`, database URLs, generated dependency folders, APKs unless the team explicitly wants APK artifacts committed.
+- Do not spend more than 30 minutes fighting a single native screen; use WebView fallback.
+- Do not edit shared docs while another person is editing them without pull/rebase first.
+
+## Must-Read For Next Account
+
+Read these in order:
+
+1. `docs/handoff/3-HOUR-FINAL-SPLIT.md`
+2. `docs/WORK_LOG.md`
+3. `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`
+4. `README.md`
+
+## Immediate Next Commands
+
+```powershell
+git status --short
+git pull --rebase origin master
+```
+
+Then create/open the Android project in Android Studio and build the smallest runnable emulator app first.
+
 ## Read First
 
 1. `docs/README.md`
