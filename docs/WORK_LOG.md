@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 14:50 ICT - Codex
+
+**Task:** Perform a small safe SonarCloud duplication pass.
+
+**Changed:**
+- Queried SonarCloud for files with duplicated lines on new code.
+- Updated `sonar-project.properties` to exclude obvious non-runtime alternate/backup files: `**/*_backup.html` and `implementations/course-service/frontend/index_with_api.html`.
+
+**Verified:**
+- Confirmed new duplication hotspots include real production files, so this pass did not hide real server/controller/frontend source.
+- Left real duplicated code for a later refactor pass.
+
+**Notes / Next Steps:**
+- Wait for SonarCloud to rerun after push.
+- Remaining duplication in real files should be documented in D2 or handled with a medium refactor pass.
+
 ## 2026-04-30 14:35 ICT - Codex
 
 **Task:** Raise SonarCloud new-code coverage above the D2 requirement after Sonar showed 87.5%.
