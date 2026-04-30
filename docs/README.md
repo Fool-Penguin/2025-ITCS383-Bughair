@@ -9,6 +9,7 @@ Start here when joining or resuming work on the Bughair Fitness Management Syste
 | `WORK_LOG.md` | Mandatory work log for every teammate and AI/coding agent |
 | `handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md` | Current project overview, architecture, requirements, setup, risks, and continuation checklist |
 | `handoff/Team Task Split.md` | Team roles, responsibilities, and deliverable ownership |
+| `handoff/CURRENT_SESSION_HANDOFF.md` | Latest account-transfer handoff: current status, Sonar state, database/mock-data plan, and next tasks |
 
 ## Project Description
 

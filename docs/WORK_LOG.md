@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 15:20 ICT - Codex
+
+**Task:** Prepare account-transfer handoff before usage limit is reached.
+
+**Changed:**
+- Added `docs/handoff/CURRENT_SESSION_HANDOFF.md` with current project status, known SonarCloud state, deliverable gaps, real database/mock-data plan, and continuation commands.
+- Updated `docs/README.md` to include the new handoff file.
+
+**Verified:**
+- Checked repository status before editing; it was clean.
+- Reviewed existing docs index and work log to avoid duplicating older handoff information.
+
+**Notes / Next Steps:**
+- Another account/agent should start from `docs/handoff/CURRENT_SESSION_HANDOFF.md`.
+- Real database seeding has not been performed yet; create/run an idempotent seed script only after confirming the intended `DATABASE_URL`.
+
 ## 2026-04-30 14:50 ICT - Codex
 
 **Task:** Perform a small safe SonarCloud duplication pass.
