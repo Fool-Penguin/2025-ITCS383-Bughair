@@ -381,6 +381,14 @@ To make maintenance easier, previous developers should have provided:
 - Clear notes about which UI flows were mocked and which were connected to real persistence.
 - Tests for profile update, password reset, trainer booking, review submission, duplicate review prevention, and admin moderation.
 
+■ Which change requests are easy to apply and why?
+- Change requests like trainer average rating display because it does not involve a logic that is too complex.
+■ Which change requests are difficult to apply and why?
+- Change requests like migrating backend to cloud due to the previous team did the local database, so we have to do many configurations by ourselves. Furthermore, some of the core functions are not properly implemented, just a hard-coded data. 
+■ To make the maintenance easier, what would you expect from the
+previous developers?
+- We expected previous developers to have an ideal file structure and functional core features of the app.
+
 ## 9. Conclusion
 
 The Member Profile Edit and Password Recovery feature mainly impacts AuthMembership. The Trainer Rating and Review feature mainly impacts course-service and admin moderation. The Android app is not implemented yet, so it is represented as planned/mock impact, but it will depend on the same gateway and backend APIs.
