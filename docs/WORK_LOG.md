@@ -26,6 +26,23 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:59 ICT - Codex
+
+**Task:** Compare local D5/WORK_LOG changes with current `origin/master` before pushing.
+
+**Changed:**
+- Fetched and rebased onto the latest `origin/master`.
+- Resolved the `docs/WORK_LOG.md` conflict by preserving the remote Resend/SendGrid entries and the local D5 documentation entries.
+- Updated `D5_AI-USAGE.md` to include the newly fetched Resend/SendGrid AI-assisted activities.
+- Updated `docs/WORK_LOG.md` with this comparison and merge-resolution entry.
+
+**Verified:**
+- Confirmed no conflict markers remain in `docs/WORK_LOG.md` or `D5_AI-USAGE.md`.
+- Reviewed the top of `docs/WORK_LOG.md` after conflict resolution.
+
+**Notes / Next Steps:**
+- Commit and push `docs/WORK_LOG.md` and `D5_AI-USAGE.md` to `origin/master`.
+
 ## 2026-04-30 19:55 ICT - Codex
 
 **Task:** Commit and push SendGrid password-reset email support.
@@ -59,6 +76,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - In Render, set `SENDGRID_API_KEY` and `SENDGRID_FROM`, redeploy, and retest `/forgot-password`.
 - If Resend env vars remain configured, SendGrid still takes priority when `SENDGRID_API_KEY` exists.
 
+## 2026-04-30 19:50 ICT - Codex
+
+**Task:** Trim D5 activity category descriptions and remove academic integrity section.
+
+**Changed:**
+- Removed descriptions and example bullets under `D5_AI-USAGE.md` sections 4.2 through 4.7.
+- Kept the description under section 4.1.
+- Removed the `Academic Integrity and Human Responsibility` section and renumbered `Evidence Source`.
+- Updated `docs/WORK_LOG.md` with this documentation-change entry.
+
+**Verified:**
+- Reviewed the affected D5 sections after editing.
+
+**Notes / Next Steps:**
+- None.
+
 ## 2026-04-30 19:47 ICT - Codex
 
 **Task:** Compare no-domain email provider options for password-reset delivery.
@@ -72,6 +105,36 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 **Notes / Next Steps:**
 - Most providers require either a verified sending domain or a restricted/verified sender setup.
 - If avoiding a real domain, SendGrid Single Sender over HTTPS API is likely the most practical next implementation path.
+
+## 2026-04-30 19:46 ICT - Codex
+
+**Task:** Update D5 summary table columns to include prompts.
+
+**Changed:**
+- Replaced the `Files / Systems Affected` column in `D5_AI-USAGE.md` with `Prompt`.
+- Reordered the summary table so `Prompt` appears before `Purpose`.
+- Updated `docs/WORK_LOG.md` with this documentation-change entry.
+
+**Verified:**
+- Checked the edited summary table structure.
+
+**Notes / Next Steps:**
+- The prompt entries are concise reconstructions from the recorded work-log tasks, not verbatim full chat transcripts.
+
+## 2026-04-30 19:39 ICT - Codex
+
+**Task:** Generate D5 AI usage report from the project work log.
+
+**Changed:**
+- Created `D5_AI-USAGE.md` with grouped AI-assisted activity summaries, a chronological usage trace, and an academic integrity note.
+- Updated `docs/WORK_LOG.md` with this deliverable-generation entry.
+
+**Verified:**
+- Read `docs/WORK_LOG.md`, `docs/project-description/Phase 2 Description.md`, `docs/README.md`, `AGENTS.md`, `D2_CODE_QUALITY.md`, and `D3_CHANGE_REQUESTS.md`.
+- Confirmed `D5_AI-USAGE.md` is no longer empty and is based on recorded work-log activity.
+
+**Notes / Next Steps:**
+- Review the D5 wording as a team before final submission.
 
 ## 2026-04-30 19:36 ICT - Codex
 
