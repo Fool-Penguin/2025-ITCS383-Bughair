@@ -10,7 +10,7 @@ This impact analysis focuses only on the three required maintenance features:
 | R2 | Trainer Rating and Review System |
 | R3 | Native Android Mobile Application |
 
-R1 and R2 are the Product Owner feature requests. R3 is included as planned/mock traceability because the Android app will be implemented later.
+R1 and R2 are the Product Owner feature requests. R3 is included because the native Android app has been implemented as the mobile client for the maintained system.
 
 ## 2. Traceability Objects
 
@@ -20,7 +20,7 @@ R1 and R2 are the Product Owner feature requests. R3 is included as planned/mock
 |---|---|
 | R1 | Members can update name, phone number, and profile picture. Members can also request a secure password reset link by email. |
 | R2 | Members can rate trainers 1-5 stars and leave comments after a completed private training session. The system shows average ratings, prevents duplicates, and allows admin moderation. |
-| R3 | A native Android app will provide the main member features using the existing backend APIs or fallback web routes. |
+| R3 | A native Android app provides the main member features using the existing backend APIs. |
 
 ### Design Objects
 
@@ -31,7 +31,7 @@ R1 and R2 are the Product Owner feature requests. R3 is included as planned/mock
 | D3 | Trainer review design: star rating, comment submission, average rating display, and duplicate prevention. |
 | D4 | Review eligibility design: only members with completed private trainer bookings can review that trainer. |
 | D5 | Admin moderation design: administrators can manage inappropriate review content. |
-| D6 | Android app design: native navigation, API client, token storage, and fallback web routes. |
+| D6 | Android app design: native navigation, API client, token storage, and feature screens for member workflows. |
 
 ### Code Objects
 
@@ -44,7 +44,7 @@ R1 and R2 are the Product Owner feature requests. R3 is included as planned/mock
 | C5 | Course-service trainer booking controller and completed-session checks. |
 | C6 | Course-service trainer/profile/review frontend UI. |
 | C7 | Admin service review moderation area. |
-| C8 | Planned Android app module with mock/native screens and API client. |
+| C8 | Android app module with native Java screens, API client, and local session storage. |
 | C9 | AuthMembership gateway routes used by web and Android clients. |
 
 ### Test Objects
@@ -56,7 +56,7 @@ R1 and R2 are the Product Owner feature requests. R3 is included as planned/mock
 | T3 | Trainer review submission and display tests. |
 | T4 | Completed-booking review eligibility tests. |
 | T5 | Admin review moderation smoke test. |
-| T6 | Android emulator/mock UI smoke test planned for later implementation. |
+| T6 | Android Gradle build and emulator UI smoke test. |
 | T7 | Gateway/API smoke test. |
 
 ## 3. Whole Software Traceability Graph
@@ -66,7 +66,7 @@ flowchart LR
     subgraph REQ["Requirements"]
         R1["R1<br/>Member Profile Edit<br/>Password Recovery"]
         R2["R2<br/>Trainer Rating<br/>Review System"]
-        R3["R3<br/>Native Android App<br/>(planned/mock)"]
+        R3["R3<br/>Native Android App"]
     end
 
     subgraph DES["Design"]
@@ -86,7 +86,7 @@ flowchart LR
         C5["C5<br/>Trainer Booking<br/>Backend"]
         C6["C6<br/>Trainer Review<br/>Frontend"]
         C7["C7<br/>Admin Moderation"]
-        C8["C8<br/>Android App<br/>(planned/mock)"]
+        C8["C8<br/>Android App<br/>Native Client"]
         C9["C9<br/>Gateway Routes"]
     end
 
@@ -96,7 +96,7 @@ flowchart LR
         T3["T3<br/>Review Submit/Display<br/>Tests"]
         T4["T4<br/>Booking Eligibility<br/>Tests"]
         T5["T5<br/>Admin Moderation<br/>Smoke Test"]
-        T6["T6<br/>Android Emulator<br/>Mock Test"]
+        T6["T6<br/>Android Build +<br/>Emulator Smoke Test"]
         T7["T7<br/>Gateway/API<br/>Smoke Test"]
     end
 
@@ -248,12 +248,12 @@ Brief impact: this feature mainly affects course-service trainer booking and rev
 
 ### 4.3 Feature 3: Native Android Mobile Application
 
-This feature is planned for later implementation, so Android-specific code and tests are represented as mock/planned objects.
+This feature is implemented in `android-app/` as a native Java Android client that calls the deployed backend APIs.
 
 ```mermaid
 flowchart LR
     subgraph REQ["Requirement"]
-        R3["R3<br/>Native Android App<br/>(planned/mock)"]
+        R3["R3<br/>Native Android App"]
     end
 
     subgraph DES["Affected Design"]
@@ -261,15 +261,15 @@ flowchart LR
     end
 
     subgraph CODE["Affected Code"]
-        C8["C8<br/>Android App<br/>(planned/mock)"]
-        C9["C9<br/>Gateway Routes"]
+        C8["C8<br/>Android App<br/>Native Java Client"]
+        C9["C9<br/>Gateway + Feature APIs"]
         C1["C1<br/>Auth/Profile API"]
         C4["C4<br/>Review API"]
-        C6["C6<br/>Web Fallback UI"]
+        C5["C5<br/>Booking API"]
     end
 
     subgraph TEST["Affected Test"]
-        T6["T6<br/>Android Emulator<br/>Mock Test"]
+        T6["T6<br/>Android Build +<br/>Emulator Smoke Test"]
         T7["T7<br/>Gateway/API<br/>Smoke Test"]
     end
 
@@ -278,15 +278,15 @@ flowchart LR
     D6 --> C9
     D6 --> C1
     D6 --> C4
-    D6 --> C6
+    D6 --> C5
     C8 --> T6
     C9 --> T7
     C1 --> T7
     C4 --> T7
-    C6 --> T6
+    C5 --> T7
 ```
 
-Brief impact: this feature has broad future impact because Android must use the same backend capabilities as the web app. Since it is not implemented yet, this graph is a mock/planned impact map.
+Brief impact: this feature has broad impact because Android reuses the same backend capabilities as the web app while adding a separate native UI layer. Changes to authentication, profile, course enrollment, trainer booking/review, payment, court reservation, or attendance endpoints can affect the Android client.
 
 ## 5. Directed SLO Graph
 
@@ -302,7 +302,7 @@ SLOs are code modules only.
 | SLO5 | Trainer booking backend |
 | SLO6 | Trainer review frontend UI |
 | SLO7 | Admin moderation module |
-| SLO8 | Android app module, planned/mock |
+| SLO8 | Android app module |
 
 ```mermaid
 flowchart LR
@@ -314,7 +314,7 @@ flowchart LR
     SLO5["SLO5<br/>Trainer Booking"]
     SLO6["SLO6<br/>Review UI"]
     SLO7["SLO7<br/>Admin Moderation"]
-    SLO8["SLO8<br/>Android Mock"]
+    SLO8["SLO8<br/>Android App"]
 
     SLO8 --> SLO0
     SLO8 --> SLO1
@@ -369,7 +369,7 @@ The matrix shows shortest directed graph distances. `0` means the same module. `
 | Password recovery | It crosses frontend forms, backend token logic, database storage, email delivery, and public reset URLs. |
 | Trainer review submission | It depends on member identity, completed trainer bookings, duplicate prevention, database persistence, and frontend state. |
 | Completed-session validation | This rule is important for fairness, but it is difficult because review permission depends on booking status. |
-| Android app | It is planned/mock now, but implementation will be difficult because it must reuse authentication, profile, and trainer review APIs correctly. |
+| Android app | It is difficult because the native app must keep authentication, profile, course, trainer review, payment, court reservation, and attendance flows aligned with the deployed backend APIs. |
 
 ## 8. Expectations from Previous Developers
 
@@ -391,6 +391,6 @@ previous developers?
 
 ## 9. Conclusion
 
-The Member Profile Edit and Password Recovery feature mainly impacts AuthMembership. The Trainer Rating and Review feature mainly impacts course-service and admin moderation. The Android app is not implemented yet, so it is represented as planned/mock impact, but it will depend on the same gateway and backend APIs.
+The Member Profile Edit and Password Recovery feature mainly impacts AuthMembership. The Trainer Rating and Review feature mainly impacts course-service and admin moderation. The Android app is implemented as a native client and depends on the same gateway and backend APIs.
 
-The highest-risk areas are password reset security, review eligibility validation, duplicate review prevention, and future Android integration.
+The highest-risk areas are password reset security, review eligibility validation, duplicate review prevention, and keeping Android API behavior synchronized with backend changes.

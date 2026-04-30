@@ -26,6 +26,52 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 23:53 ICT - Codex
+
+**Task:** Push the D4 Android/mobile impact analysis update.
+
+**Changed:**
+- Prepared `D4_IMPACT_ANALYSIS.md` and `docs/WORK_LOG.md` for commit and push.
+- Added this required push work-log entry.
+
+**Verified:**
+- Ran `git status --short --branch`, `git diff --stat`, and `git diff --check`.
+
+**Notes / Next Steps:**
+- Push outcome will be reported after GitHub accepts the commit.
+
+## 2026-04-30 23:53 ICT - Codex
+
+**Task:** Update only the Android/mobile parts of D4 impact analysis.
+
+**Changed:**
+- Updated Android references in `D4_IMPACT_ANALYSIS.md` from planned/mock wording to the implemented native Android app state.
+- Adjusted Android traceability labels, affected Android graph text, SLO8 wording, Android difficulty note, and Android conclusion/risk wording.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, and `docs/WORK_LOG.md`.
+- Checked `android-app/README.md` and current handoff notes for Android app status.
+- Ran `rg` to confirm old Android planned/mock/fallback wording was removed from D4.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; only the existing LF-to-CRLF warning was reported.
+
+**Notes / Next Steps:**
+- D4 edits were limited to Android/mobile-related text and graph labels.
+
+## 2026-04-30 23:45 ICT - Antigravity (Claude)
+
+**Task:** Implement attendance check-in/out on Android and add half-width action buttons for trainers/courses.
+
+**Changed:**
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to support attendance check-in and check-out logic for court reservations.
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` to use half-width action buttons for trainer sessions and course enrollments, reducing layout bulk.
+- Resolved merge conflicts in `docs/WORK_LOG.md` after rebasing onto `origin/master`.
+
+**Verified:**
+- Checked compilation and resolved Git merge conflicts.
+
+**Notes / Next Steps:**
+- Pushing the final working code to `origin/master`.
+
 ## 2026-04-30 23:50 ICT - Codex
 
 **Task:** Push the current code to `origin/master`.
