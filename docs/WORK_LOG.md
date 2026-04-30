@@ -26,6 +26,129 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 21:03 ICT - Codex
+
+**Task:** Add a recommended tech stack to the final Android team split.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` with a recommended Android, backend, email, visual, and do-not-use tech stack section.
+- Updated `docs/WORK_LOG.md` with this documentation entry.
+
+**Verified:**
+- Checked that the split now explicitly names Kotlin, Jetpack Compose, Navigation Compose, simple MVVM, Gradle debug build, WebView fallback, Node/Express, Supabase/Postgres, and SendGrid.
+
+**Notes / Next Steps:**
+- All AI coding agents should follow the same stack to avoid incompatible Android implementations.
+
+## 2026-04-30 21:02 ICT - Codex
+
+**Task:** Strengthen final split push rules and make it AI-agent handoff ready.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` to make the direct-to-master announce/pull-rebase rule a must-do checklist.
+- Added AI-agent usage rules and role-specific AI prompt blocks for all five team members.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the updated split for explicit push safety and AI-agent delegation instructions.
+
+**Notes / Next Steps:**
+- Give each team member their role section plus shared rules/prerequisites/push rules when using GPT-5.5 or another AI coding agent.
+- No one should push directly to `master` without announcing and rebasing first.
+
+## 2026-04-30 21:00 ICT - Codex
+
+**Task:** Revise Person 5 in the final split so they also contribute code.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` so Person 5 owns Android integration code, Gradle/build config, shared helpers, route wiring, and final push.
+- Clarified that Person 5 can resolve integration/build errors without taking over feature-screen internals from other Android leads.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the updated Person 5 role for coding ownership and conflict boundaries.
+
+**Notes / Next Steps:**
+- Person 5 should code shared integration/build glue while still coordinating final merges.
+
+## 2026-04-30 20:59 ICT - Codex
+
+**Task:** Make the final split more practical for simultaneous coding with low merge-conflict risk.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` with explicit file ownership, branch/push rules, and conflict boundaries for all five people.
+- Adjusted the working order so Android screens integrate through route names and Person 5 merges branches one at a time.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the split for realistic simultaneous coding and shared-file conflict avoidance.
+
+**Notes / Next Steps:**
+- Each team member should announce their owned files/folders before coding.
+- Person 5 should be the only person editing `docs/WORK_LOG.md`, README, and final handoff docs during the final push window.
+
+## 2026-04-30 20:56 ICT - Codex
+
+**Task:** Check whether the 3-hour final split documentation is ready to push.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this readiness-check entry.
+
+**Verified:**
+- Ran `git status --short`.
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+- Searched `docs/WORK_LOG.md` and `docs/handoff/3-HOUR-FINAL-SPLIT.md` for conflict markers; none found.
+
+**Notes / Next Steps:**
+- The documentation changes are ready to commit and push.
+
+## 2026-04-30 20:52 ICT - Codex
+
+**Task:** Add prerequisites and timed working order to the 3-hour final split.
+
+**Changed:**
+- Updated `docs/handoff/3-HOUR-FINAL-SPLIT.md` with prerequisites for web/backend, Android, and documentation work.
+- Added a timed working order covering setup, parallel work, integration, evidence, and final freeze.
+- Updated `docs/WORK_LOG.md` with this documentation entry.
+
+**Verified:**
+- Reviewed the added prerequisites and working order for the current Render/SendGrid/Android emulator context.
+
+**Notes / Next Steps:**
+- Team members should check prerequisites before starting feature work.
+- Use the timed order to avoid blocking each other during the final hours.
+
+## 2026-04-30 20:50 ICT - Codex
+
+**Task:** Revise the 3-hour team split to target closer Android parity with the web app.
+
+**Changed:**
+- Reworked `docs/handoff/3-HOUR-FINAL-SPLIT.md` around Android shell/UI, auth/profile, courses/trainers/reviews, web QA/docs, and final integration roles.
+- Added native-first priorities with WebView fallback rules for risky modules.
+- Updated `docs/WORK_LOG.md` with this revision entry.
+
+**Verified:**
+- Reviewed the updated split for 5-person ownership, Android emulator proof, build proof, and final freeze rules.
+
+**Notes / Next Steps:**
+- Share the updated split and assign Android work across at least three people if closer parity is the priority.
+- Keep the rule that a working fallback is better than an unfinished native screen.
+
+## 2026-04-30 20:47 ICT - Codex
+
+**Task:** Create a ready-to-share 3-hour final work split for a 5-person team.
+
+**Changed:**
+- Added `docs/handoff/3-HOUR-FINAL-SPLIT.md` with owner checklists, proof-of-done, stop conditions, and final-freeze guidance.
+- Updated `docs/WORK_LOG.md` with this documentation entry.
+
+**Verified:**
+- Created the markdown split document in the handoff folder.
+
+**Notes / Next Steps:**
+- Share the split document with all five team members immediately.
+- Keep final work focused on demo evidence, D2-D5 completion, Android emulator proof, and final push safety.
+
 ## 2026-04-30 20:33 ICT - Codex
 
 **Task:** Re-analyze why course `Enroll Now` is clickable but performs no action.
@@ -80,7 +203,6 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 **Notes / Next Steps:**
 - Redeploy Render or push this change, then hard-refresh the production course page and retest `Enroll Now`.
 - If production still fails, check DevTools Network for `POST /api/courses/enroll` and Console for runtime errors.
-
 ## 2026-04-30 20:23 ICT - Codex
 
 **Task:** Record successful production password-reset email test.
