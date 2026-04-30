@@ -26,6 +26,20 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 17:36 ICT - Codex
+
+**Task:** Push the course enrollment, trainer review, and navigation fixes for deployment testing.
+
+**Changed:**
+- Pushed commit `4fff2ff` (`Fix course enrollment and trainer reviews`) to `origin/master`.
+- Updated `docs/WORK_LOG.md` with this push record.
+
+**Verified:**
+- `git push origin master` completed successfully: `7d4be38..4fff2ff master -> master`.
+
+**Notes / Next Steps:**
+- Watch GitHub Actions/Render/SonarCloud, then production-test enroll/cancel/re-enroll and trainer book/complete/review.
+
 ## 2026-04-30 17:32 ICT - Codex
 
 **Task:** Fix course enrollment, trainer review clicks/submission, and course page top navigation consistency.
