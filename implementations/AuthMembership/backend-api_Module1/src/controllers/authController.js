@@ -19,8 +19,23 @@ function getBaseUrl(req) {
 
 function canExposeResetLink(req) {
     const host = req.hostname || '';
-    const hasEmailProvider = process.env.RESEND_API_KEY || (process.env.SMTP_USER && process.env.SMTP_PASS);
+    const hasEmailProvider = process.env.SENDGRID_API_KEY || process.env.RESEND_API_KEY || (process.env.SMTP_USER && process.env.SMTP_PASS);
     return !hasEmailProvider || host === 'localhost' || host === '127.0.0.1';
+}
+
+function parseEmailAddress(value, fallbackName = 'Bughair Fitness') {
+    const sender = (value || '').trim();
+    const match = sender.match(/^"?([^"<]*)"?\s*<([^>]+)>$/);
+    if (match) {
+        return {
+            name: match[1].trim() || fallbackName,
+            email: match[2].trim()
+        };
+    }
+    return {
+        name: fallbackName,
+        email: sender
+    };
 }
 
 function buildPasswordResetEmail(user, resetLink) {
@@ -47,6 +62,42 @@ function logResetLink(reason, email, resetLink, token, expiresAt) {
     console.log(`   Token: ${token}`);
     console.log(`   Expires: ${expiresAt}`);
     console.log(`=========================================\n`);
+}
+
+async function sendWithSendGrid(email, subject, html) {
+    const sender = parseEmailAddress(process.env.SENDGRID_FROM);
+    if (!sender.email) {
+        throw new Error('SENDGRID_FROM is required when SENDGRID_API_KEY is configured');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+        const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                personalizations: [{ to: [{ email }] }],
+                from: sender,
+                subject,
+                content: [{ type: 'text/html', value: html }]
+            }),
+            signal: controller.signal
+        });
+
+        if (!response.ok) {
+            const body = await response.text().catch(() => '');
+            throw new Error(`SendGrid API error: HTTP ${response.status}${body ? ` ${body}` : ''}`);
+        }
+
+        console.log(`Password reset email sent to: ${email} via SendGrid`);
+    } finally {
+        clearTimeout(timeoutId);
+    }
 }
 
 async function sendWithResend(email, subject, html) {
@@ -218,7 +269,9 @@ exports.forgotPassword = async (req, res) => {
 
         // Try to send email, fallback to console log
         try {
-            if (process.env.RESEND_API_KEY) {
+            if (process.env.SENDGRID_API_KEY) {
+                await sendWithSendGrid(email, subject, html);
+            } else if (process.env.RESEND_API_KEY) {
                 await sendWithResend(email, subject, html);
             } else {
             const nodemailer = require('nodemailer');

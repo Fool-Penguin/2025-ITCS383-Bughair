@@ -26,6 +26,53 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:50 ICT - Codex
+
+**Task:** Add SendGrid support for password-reset emails as a no-domain alternative.
+
+**Changed:**
+- Added SendGrid HTTPS email sending support in `implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`.
+- Added `SENDGRID_API_KEY` and `SENDGRID_FROM` placeholders to `render.yaml`.
+- Updated `docs/WORK_LOG.md` with this implementation entry.
+
+**Verified:**
+- Ran `node --check implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`.
+- Ran `git diff --check`: no whitespace/conflict-marker errors, only CRLF conversion warnings.
+
+**Notes / Next Steps:**
+- In SendGrid, verify a Single Sender email address.
+- In Render, set `SENDGRID_API_KEY` and `SENDGRID_FROM`, redeploy, and retest `/forgot-password`.
+- If Resend env vars remain configured, SendGrid still takes priority when `SENDGRID_API_KEY` exists.
+
+## 2026-04-30 19:47 ICT - Codex
+
+**Task:** Compare no-domain email provider options for password-reset delivery.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this provider guidance entry.
+
+**Verified:**
+- Checked current official/provider docs for Resend, SendGrid single sender verification, Mailgun sandbox recipients, and Brevo sender/domain requirements.
+
+**Notes / Next Steps:**
+- Most providers require either a verified sending domain or a restricted/verified sender setup.
+- If avoiding a real domain, SendGrid Single Sender over HTTPS API is likely the most practical next implementation path.
+
+## 2026-04-30 19:36 ICT - Codex
+
+**Task:** Diagnose Resend password-reset error for unverified `yourdomain.com` sender.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this Resend configuration diagnosis entry.
+
+**Verified:**
+- Reviewed the provided Render log showing `Resend API error: The yourdomain.com domain is not verified`.
+- Checked Resend documentation for domain verification and sender behavior.
+
+**Notes / Next Steps:**
+- Remove the placeholder `RESEND_FROM` value using `yourdomain.com`, or verify a real sending domain in Resend.
+- For quick testing, leave `RESEND_FROM` unset so the app uses Resend's sandbox sender; sandbox delivery is limited.
+
 ## 2026-04-30 19:27 ICT - Codex
 
 **Task:** Prevent Resend from accidentally using the old Gmail SMTP sender.
