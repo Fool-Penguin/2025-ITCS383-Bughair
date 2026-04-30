@@ -26,6 +26,25 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 22:08 ICT - Codex
+
+**Task:** Remove Android WebView fallback and make Payments/Courts native.
+
+**Changed:**
+- Removed `WebFallbackActivity` and the visible `WEB` header button from the Android app.
+- Updated `android-app/app/src/main/java/edu/mahidol/bughair/MainActivity.java` so Payments and Courts are native Android screens backed by existing APIs.
+- Added native payment plan/history loading, demo-card payment action wiring, court availability/reservation loading, and first-available-slot court booking action wiring.
+- Updated root `README.md` and `android-app/README.md` to describe native Android coverage instead of WebView fallback.
+- Updated `docs/WORK_LOG.md` with this entry.
+
+**Verified:**
+- Ran `$env:ANDROID_HOME="C:\Users\markz\AppData\Local\Android\Sdk"; .\gradlew.bat assembleDebug --offline` from `android-app`; build succeeded.
+- Installed the APK on `emulator-5554` and confirmed native Payments loaded 3 membership plans from the deployed API.
+- Confirmed native Courts loaded 5 courts plus dashboard court stats from the deployed API.
+
+**Notes / Next Steps:**
+- Payment and court booking mutation buttons are wired but were not clicked during verification to avoid creating live transactions or reservations without explicit confirmation.
+
 ## 2026-04-30 21:58 ICT - Codex
 
 **Task:** Prepare Android app changes for push after a teammate updated `origin/master`.

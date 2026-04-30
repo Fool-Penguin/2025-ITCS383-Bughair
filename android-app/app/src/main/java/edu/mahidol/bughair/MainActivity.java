@@ -1,7 +1,6 @@
 package edu.mahidol.bughair;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -28,6 +27,8 @@ import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -45,6 +46,11 @@ public class MainActivity extends Activity {
     private static final int MUTED = Color.rgb(136, 136, 136);
     private static final int DANGER = Color.rgb(255, 69, 69);
     private static final int WARN = Color.rgb(250, 204, 21);
+    private static final String[] COURT_SLOTS = {
+            "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00",
+            "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00",
+            "17:00-18:00", "18:00-19:00", "19:00-20:00", "20:00-21:00"
+    };
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -90,10 +96,6 @@ public class MainActivity extends Activity {
         headerAvatarParams.setMargins(0, 0, dp(12), 0);
         header.addView(headerAvatar, headerAvatarParams);
 
-        Button web = miniButton("WEB");
-        web.setOnClickListener(v -> openWeb("/home"));
-        header.addView(web);
-
         status = text("", 13, TEXT, Typeface.BOLD);
         status.setPadding(dp(18), dp(10), dp(18), dp(8));
         root.addView(status);
@@ -111,8 +113,8 @@ public class MainActivity extends Activity {
         addNav(nav, "Profile", v -> showProfile());
         addNav(nav, "Courses", v -> showCourses());
         addNav(nav, "Trainers", v -> showTrainers());
-        addNav(nav, "Payments", v -> openWeb("/payments"));
-        addNav(nav, "Courts", v -> openWeb("/courts"));
+        addNav(nav, "Payments", v -> showPayments());
+        addNav(nav, "Courts", v -> showCourts());
 
         ScrollView scroll = new ScrollView(this);
         content = new LinearLayout(this);
@@ -165,10 +167,10 @@ public class MainActivity extends Activity {
         LinearLayout grid = new LinearLayout(this);
         grid.setOrientation(LinearLayout.VERTICAL);
         content.addView(grid);
-        grid.addView(menuCard("COURT BOOKING", "Reserve badminton courts through the deployed web flow.", v -> openWeb("/courts")));
+        grid.addView(menuCard("COURT BOOKING", "View court availability and your reservations natively.", v -> showCourts()));
         grid.addView(menuCard("FITNESS COURSES", "Browse classes natively and enroll after login.", v -> showCourses()));
         grid.addView(menuCard("PROFILE EDIT", "Update name, phone, and profile picture URL.", v -> showProfile()));
-        grid.addView(menuCard("PAYMENTS", "Open membership payment and wallet pages.", v -> openWeb("/payments")));
+        grid.addView(menuCard("PAYMENTS", "View membership plans and payment history natively.", v -> showPayments()));
 
         if (session.isLoggedIn()) {
             Button logout = outlineButton("LOGOUT");
@@ -304,9 +306,6 @@ public class MainActivity extends Activity {
             });
         });
         content.addView(send);
-        Button web = outlineButton("OPEN WEB RECOVERY");
-        web.setOnClickListener(v -> openWeb("/forgot-password"));
-        content.addView(web);
     }
 
     private void showProfile() {
@@ -314,10 +313,7 @@ public class MainActivity extends Activity {
         clear();
         pageHero("EDIT", "PROFILE", "Update your personal information and keep the Android session in sync.");
         if (!session.isLoggedIn()) {
-            content.addView(menuCard("LOGIN REQUIRED", "Use native sign in or open the web profile page.", v -> showAuth()));
-            Button web = outlineButton("OPEN WEB PROFILE");
-            web.setOnClickListener(v -> openWeb("/profile"));
-            content.addView(web);
+            content.addView(menuCard("LOGIN REQUIRED", "Use native sign in to access your profile.", v -> showAuth()));
             return;
         }
         Button load = outlineButton("REFRESH PROFILE");
@@ -428,10 +424,6 @@ public class MainActivity extends Activity {
         refreshStatus(courses.length() + " courses loaded");
         clear();
         pageHero("FITNESS", "COURSES", courses.length() + " published classes loaded.");
-        Button web = outlineButton("OPEN FULL WEB COURSE PAGE");
-        web.setOnClickListener(v -> openWeb("/courses"));
-        content.addView(web);
-
         if (courses.length() == 0) {
             emptyState("No published courses returned from the deployed API.");
             return;
@@ -520,9 +512,6 @@ public class MainActivity extends Activity {
         refreshStatus(trainers.length() + " trainers loaded");
         clear();
         pageHero("TRAINERS", "REVIEWS", trainers.length() + " active trainers loaded.");
-        Button web = outlineButton("OPEN FULL WEB COURSE PAGE");
-        web.setOnClickListener(v -> openWeb("/courses"));
-        content.addView(web);
         if (trainers.length() == 0) {
             emptyState("No active trainers returned from the deployed API.");
             return;
@@ -534,6 +523,288 @@ public class MainActivity extends Activity {
             }
             content.addView(trainerCard(trainer));
         }
+    }
+
+    private void showPayments() {
+        setActiveNav("Payments");
+        clear();
+        pageHero("MEMBERSHIP", "PAYMENTS", "View plans and your payment history through the native Android client.");
+        loadPayments();
+    }
+
+    private void loadPayments() {
+        runTask("Loading payments...", () -> {
+            ApiClient.ApiResponse plansResponse = ApiClient.get("/api/payments/plans", "");
+            JSONObject plansJson = plansResponse.json();
+            if (!plansResponse.ok() || !plansJson.optBoolean("success")) {
+                throw new Exception(plansJson.optString("message", "Payment plans failed"));
+            }
+            JSONObject plansData = plansJson.optJSONObject("data");
+            JSONArray plans = plansData == null ? new JSONArray() : plansData.optJSONArray("plans");
+            if (plans == null) {
+                plans = new JSONArray();
+            }
+
+            JSONArray transactions = new JSONArray();
+            if (session.isLoggedIn()) {
+                ApiClient.ApiResponse historyResponse = ApiClient.get("/api/payments/my", session.token());
+                JSONObject historyJson = historyResponse.json();
+                if (historyResponse.ok() && historyJson.optBoolean("success")) {
+                    JSONObject historyData = historyJson.optJSONObject("data");
+                    JSONArray historyRows = historyData == null ? null : historyData.optJSONArray("transactions");
+                    if (historyRows != null) {
+                        transactions = historyRows;
+                    }
+                }
+            }
+
+            JSONArray finalPlans = plans;
+            JSONArray finalTransactions = transactions;
+            main.post(() -> renderPayments(finalPlans, finalTransactions));
+        });
+    }
+
+    private void renderPayments(JSONArray plans, JSONArray transactions) {
+        refreshStatus(plans.length() + " plans loaded");
+        clear();
+        pageHero("MEMBERSHIP", "PAYMENTS", "Select a plan during the demo and review member payment history.");
+
+        sectionTitle("Plans");
+        if (plans.length() == 0) {
+            emptyState("No active membership plans returned from the deployed API.");
+        }
+        for (int i = 0; i < plans.length(); i++) {
+            JSONObject plan = plans.optJSONObject(i);
+            if (plan == null) {
+                continue;
+            }
+            LinearLayout card = card();
+            card.addView(text(safe(plan.optString("name"), "Membership Plan").toUpperCase(Locale.US), 24, TEXT, Typeface.BOLD));
+            card.addView(chip(formatMoney(plan.optDouble("price", 0), safe(plan.optString("currency"), "THB")), LIME));
+            card.addView(paragraph(safe(plan.optString("description"), "Fitness membership plan.")));
+            card.addView(meta("DURATION", safe(plan.optString("duration_days"), safe(plan.optString("duration"), "-")) + " days"));
+            double price = plan.optDouble("price", 0);
+            Button action = primaryButton(session.isLoggedIn() ? (price > 0 ? "PAY WITH DEMO CARD" : "FREE PLAN") : "LOGIN TO PAY");
+            action.setOnClickListener(v -> {
+                if (!session.isLoggedIn()) {
+                    showAuth();
+                } else if (price <= 0) {
+                    refreshStatus("Free plan selected");
+                } else {
+                    payWithDemoCard(plan);
+                }
+            });
+            card.addView(action);
+            content.addView(card);
+        }
+
+        sectionTitle("My Transactions");
+        if (!session.isLoggedIn()) {
+            emptyState("Login to load your payment history.");
+            return;
+        }
+        if (transactions.length() == 0) {
+            emptyState("No member transactions returned for this account.");
+            return;
+        }
+        for (int i = 0; i < transactions.length(); i++) {
+            JSONObject tx = transactions.optJSONObject(i);
+            if (tx == null) {
+                continue;
+            }
+            LinearLayout card = card();
+            card.addView(text(safe(tx.optString("purpose"), "PAYMENT"), 20, TEXT, Typeface.BOLD));
+            card.addView(chip(safe(tx.optString("status"), "STATUS"), LIME));
+            card.addView(meta("METHOD", safe(tx.optString("payment_method"), "-")));
+            card.addView(meta("AMOUNT", formatMoney(tx.optDouble("amount", 0), safe(tx.optString("currency"), "THB"))));
+            card.addView(meta("DATE", safe(tx.optString("created_at"), "-")));
+            content.addView(card);
+        }
+    }
+
+    private void showCourts() {
+        setActiveNav("Courts");
+        clear();
+        pageHero("COURT", "BOOKING", "View court availability and member reservations natively.");
+        loadCourts();
+    }
+
+    private void loadCourts() {
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        runTask("Loading courts...", () -> {
+            ApiClient.ApiResponse statsResponse = ApiClient.get("/api/dashboard/stats", "");
+            JSONObject statsJson = statsResponse.json();
+            JSONObject stats = new JSONObject();
+            if (statsResponse.ok() && statsJson.optBoolean("success")) {
+                stats = statsJson.optJSONObject("stats");
+                if (stats == null) {
+                    stats = new JSONObject();
+                }
+            }
+
+            ApiClient.ApiResponse courtsResponse = ApiClient.get("/api/courts/available?date=" + today, "");
+            JSONObject courtsJson = courtsResponse.json();
+            if (!courtsResponse.ok() || !courtsJson.optBoolean("success")) {
+                throw new Exception(courtsJson.optString("message", "Court availability failed"));
+            }
+            JSONArray courts = courtsJson.optJSONArray("courts");
+            if (courts == null) {
+                courts = new JSONArray();
+            }
+
+            JSONArray reservations = new JSONArray();
+            if (session.isLoggedIn()) {
+                ApiClient.ApiResponse reservationsResponse = ApiClient.get("/api/courts/reservations?member_id=" + session.memberId(), "");
+                JSONObject reservationsJson = reservationsResponse.json();
+                if (reservationsResponse.ok() && reservationsJson.optBoolean("success")) {
+                    JSONArray rows = reservationsJson.optJSONArray("reservations");
+                    if (rows != null) {
+                        reservations = rows;
+                    }
+                }
+            }
+
+            JSONObject finalStats = stats;
+            JSONArray finalCourts = courts;
+            JSONArray finalReservations = reservations;
+            main.post(() -> renderCourts(today, finalStats, finalCourts, finalReservations));
+        });
+    }
+
+    private void renderCourts(String date, JSONObject stats, JSONArray courts, JSONArray reservations) {
+        refreshStatus(courts.length() + " courts loaded");
+        clear();
+        pageHero("COURT", "BOOKING", "Availability for " + date + ".");
+        LinearLayout summary = card();
+        summary.addView(statRow("AVAILABLE", String.valueOf(stats.optInt("courts_available", 0)),
+                "BOOKED", String.valueOf(stats.optInt("courts_booked", 0)),
+                "INSIDE", String.valueOf(stats.optInt("members_inside", 0))));
+        content.addView(summary);
+
+        sectionTitle("Courts");
+        if (courts.length() == 0) {
+            emptyState("No court availability returned from the deployed API.");
+        }
+        for (int i = 0; i < courts.length(); i++) {
+            JSONObject court = courts.optJSONObject(i);
+            if (court == null) {
+                continue;
+            }
+            LinearLayout card = card();
+            String status = safe(court.optString("status"), "unknown");
+            card.addView(text("COURT " + court.optInt("court_number", court.optInt("court_id")), 26, TEXT, Typeface.BOLD));
+            card.addView(chip(status.toUpperCase(Locale.US), "available".equals(status) ? LIME : DANGER));
+            JSONArray booked = court.optJSONArray("booked_slots");
+            card.addView(meta("BOOKED SLOTS", booked == null ? "0" : String.valueOf(booked.length())));
+            String slot = firstAvailableSlot(booked);
+            Button action = primaryButton(session.isLoggedIn() ? (slot == null ? "FULLY BOOKED" : "BOOK " + slot) : "LOGIN TO BOOK");
+            action.setEnabled(slot != null || !session.isLoggedIn());
+            action.setOnClickListener(v -> {
+                if (!session.isLoggedIn()) {
+                    showAuth();
+                } else if (slot != null) {
+                    bookCourt(court.optInt("court_id"), date, slot);
+                } else {
+                    refreshStatus("No available slots for this court");
+                }
+            });
+            card.addView(action);
+            content.addView(card);
+        }
+
+        sectionTitle("My Reservations");
+        if (!session.isLoggedIn()) {
+            emptyState("Login to load your reservations.");
+            return;
+        }
+        if (reservations.length() == 0) {
+            emptyState("No reservations returned for this member.");
+            return;
+        }
+        for (int i = 0; i < reservations.length(); i++) {
+            JSONObject reservation = reservations.optJSONObject(i);
+            if (reservation == null) {
+                continue;
+            }
+            LinearLayout card = card();
+            card.addView(text(safe(reservation.optString("reservation_id"), "RESERVATION"), 20, TEXT, Typeface.BOLD));
+            card.addView(meta("COURT", String.valueOf(reservation.optInt("court_id"))));
+            card.addView(meta("DATE", safe(reservation.optString("date"), "-")));
+            card.addView(meta("TIME", safe(reservation.optString("time_slot"), "-")));
+            card.addView(chip(safe(reservation.optString("status"), "status").toUpperCase(Locale.US), LIME));
+            content.addView(card);
+        }
+    }
+
+    private void payWithDemoCard(JSONObject plan) {
+        runTask("Processing payment...", () -> {
+            JSONObject body = new JSONObject();
+            double amount = plan.optDouble("price", 0);
+            body.put("purpose", "MEMBERSHIP");
+            body.put("amount", amount);
+            body.put("currency", safe(plan.optString("currency"), "THB"));
+            body.put("planId", safe(plan.optString("id"), safe(plan.optString("plan_id"), plan.optString("name"))));
+            body.put("idempotencyKey", "android-" + session.memberId() + "-" + System.currentTimeMillis());
+
+            JSONObject cardDetails = new JSONObject();
+            cardDetails.put("cardHolderName", safe(session.fullName(), "Demo Member"));
+            cardDetails.put("cardNumber", "4111111111111111");
+            cardDetails.put("expiryMonth", 12);
+            cardDetails.put("expiryYear", 2030);
+            cardDetails.put("cvv", "123");
+            body.put("cardDetails", cardDetails);
+
+            ApiClient.ApiResponse response = ApiClient.post("/api/payments/credit-card", body, session.token());
+            JSONObject json = response.json();
+            if (!response.ok() || !json.optBoolean("success")) {
+                throw new Exception(json.optString("message", "Payment failed"));
+            }
+            main.post(() -> {
+                refreshStatus(json.optString("message", "Payment completed"));
+                loadPayments();
+            });
+        });
+    }
+
+    private void bookCourt(int courtId, String date, String slot) {
+        runTask("Booking court...", () -> {
+            JSONObject body = new JSONObject();
+            body.put("court_id", courtId);
+            body.put("member_id", session.memberId());
+            body.put("member_name", safe(session.fullName(), session.memberId()));
+            body.put("date", date);
+            body.put("time_slot", slot);
+            ApiClient.ApiResponse response = ApiClient.post("/api/courts/book", body, "");
+            JSONObject json = response.json();
+            if (!response.ok() || !json.optBoolean("success")) {
+                throw new Exception(json.optString("message", "Court booking failed"));
+            }
+            main.post(() -> {
+                refreshStatus("Court booked");
+                loadCourts();
+            });
+        });
+    }
+
+    private String firstAvailableSlot(JSONArray booked) {
+        for (String slot : COURT_SLOTS) {
+            if (!jsonArrayContains(booked, slot)) {
+                return slot;
+            }
+        }
+        return null;
+    }
+
+    private boolean jsonArrayContains(JSONArray values, String target) {
+        if (values == null) {
+            return false;
+        }
+        for (int i = 0; i < values.length(); i++) {
+            if (target.equals(values.optString(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private View trainerCard(JSONObject trainer) {
@@ -921,14 +1192,12 @@ public class MainActivity extends Activity {
         return drawable;
     }
 
-    private void openWeb(String path) {
-        Intent intent = new Intent(this, WebFallbackActivity.class);
-        intent.putExtra(WebFallbackActivity.EXTRA_PATH, path);
-        startActivity(intent);
-    }
-
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private String formatMoney(double amount, String currency) {
+        return String.format(Locale.US, "%,.0f %s", amount, safe(currency, "THB"));
     }
 
     private String safe(String value, String fallback) {
