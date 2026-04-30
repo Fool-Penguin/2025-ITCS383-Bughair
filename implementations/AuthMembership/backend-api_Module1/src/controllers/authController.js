@@ -25,13 +25,24 @@ function canExposeResetLink(req) {
 
 function parseEmailAddress(value, fallbackName = 'Bughair Fitness') {
     const sender = (value || '').trim();
-    const match = sender.match(/^"?([^"<]*)"?\s*<([^>]+)>$/);
-    if (match) {
+
+    // Extract email from angle brackets without regex to avoid ReDoS
+    const openAngle = sender.lastIndexOf('<');
+    const closeAngle = sender.indexOf('>', openAngle >= 0 ? openAngle : 0);
+
+    if (openAngle >= 0 && closeAngle > openAngle && closeAngle === sender.length - 1) {
+        const email = sender.slice(openAngle + 1, closeAngle).trim();
+        let name = sender.slice(0, openAngle).trim();
+        // Strip surrounding quotes from display name
+        if (name.length >= 2 && name.startsWith('"') && name.endsWith('"')) {
+            name = name.slice(1, -1).trim();
+        }
         return {
-            name: match[1].trim() || fallbackName,
-            email: match[2].trim()
+            name: name || fallbackName,
+            email
         };
     }
+
     return {
         name: fallbackName,
         email: sender
