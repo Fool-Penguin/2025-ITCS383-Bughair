@@ -26,6 +26,81 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 19:03 ICT - Codex
+
+**Task:** Review password-reset SMTP environment variable configuration from screenshot.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this configuration review entry.
+
+**Verified:**
+- Checked the screenshot values against the current `nodemailer` configuration requirements.
+
+**Notes / Next Steps:**
+- SMTP shape is mostly correct for Gmail, but secrets were visible in the screenshot and should be rotated after testing.
+- Remove spaces from the Gmail app password in `SMTP_PASS`, save the Render environment, redeploy/restart, and check Render logs during `/forgot-password` testing.
+
+## 2026-04-30 19:01 ICT - Codex
+
+**Task:** Fix forgot-password page getting stuck on `SENDING...`.
+
+**Changed:**
+- Added SMTP connection, greeting, and socket timeouts in `implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`.
+- Added a browser-side abort timeout and recovery toast in `implementations/AuthMembership/frontend/forgot-password.html`.
+- Updated `docs/WORK_LOG.md` with this fix entry.
+
+**Verified:**
+- Ran `node --check implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`.
+- Parsed the inline script in `implementations/AuthMembership/frontend/forgot-password.html` with `new Function(...)`.
+
+**Notes / Next Steps:**
+- Redeploy Render before retesting production.
+- If the page times out or email still does not arrive, inspect Render logs for the SMTP error and verify `APP_BASE_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM`.
+
+## 2026-04-30 18:46 ICT - Codex
+
+**Task:** Explain how to get an SMTP app password for reset-password email sending.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this guidance entry.
+
+**Verified:**
+- Checked current Google Account Help guidance for app passwords.
+
+**Notes / Next Steps:**
+- Gmail app passwords require 2-Step Verification and may be unavailable for some work/school accounts, Advanced Protection accounts, or accounts using only security keys.
+- Use the generated app password only in Render `SMTP_PASS`; do not commit it.
+
+## 2026-04-30 18:40 ICT - Codex
+
+**Task:** Explain how to make the reset password function send real emails.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this password-reset email guidance entry.
+
+**Verified:**
+- Reviewed `implementations/AuthMembership/backend-api_Module1/src/controllers/authController.js`, `implementations/AuthMembership/backend-api_Module1/package.json`, `render.yaml`, and password-reset related routes/frontend references.
+- Confirmed the backend already uses `nodemailer` and will send mail when `SMTP_USER` and `SMTP_PASS` are configured.
+
+**Notes / Next Steps:**
+- Configure Render SMTP environment variables and test `/forgot-password` with a real member email.
+- Current code intentionally returns a generic success response even if email fails, so check Render logs for `Password reset email sent to:` or the logged fallback link/error.
+
+## 2026-04-30 18:37 ICT - Codex
+
+**Task:** Read project docs to understand the current situation and prepare for the next incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this orientation entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, `docs/WORK_LOG.md`, `docs/handoff/CURRENT_SESSION_HANDOFF.md`, and `docs/handoff/Team Task Split.md`.
+- Checked `git status --short`; no tracked/untracked changes were listed, only local Git ignore permission warnings.
+
+**Notes / Next Steps:**
+- Current critical blocker is still the production/browser course `Enroll Now` click doing nothing; next work should inspect deployed page DevTools click/network behavior before more backend edits.
+- Remaining final-deliverable priorities include D2 final metrics, D4 impact analysis, D5 AI usage, Android repo/link verification, and Sonar/GitHub Actions re-checks.
+
 ## 2026-04-30 18:33 ICT - Codex
 
 **Task:** Prepare handoff because course enroll button remains stuck in browser and user is near usage limit.

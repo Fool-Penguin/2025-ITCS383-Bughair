@@ -152,10 +152,14 @@ exports.forgotPassword = async (req, res) => {
         // Try to send email, fallback to console log
         try {
             const nodemailer = require('nodemailer');
+            const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
             const transporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                port: parseInt(process.env.SMTP_PORT || '587'),
-                secure: false,
+                port: smtpPort,
+                secure: smtpPort === 465,
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 15000,
                 auth: {
                     user: process.env.SMTP_USER,
                     pass: process.env.SMTP_PASS
