@@ -592,15 +592,15 @@ async function api(method, path, body) {
 // map backend field names → frontend
 function mapCourse(c) {
   return {
-    id:           c.courseID,
+    id:           Number(c.courseID),
     name:         c.courseName,
     type:         c.courseType,
     level:        c.fitnessLevel,
     instructor:   c.instructor,
     schedule:     c.schedule,
     dur:          c.durationHours   || 1,
-    max:          c.maxAttendees,
-    cur:          c.currentAttendees || 0,
+    max:          Number(c.maxAttendees),
+    cur:          Number(c.currentAttendees || 0),
     desc:         c.description,
     status:       c.status,
     cancelReason: c.cancelReason || null
@@ -822,7 +822,7 @@ function renderCourses(list) {
       extraHtml = `
         ${(c.status === 'cancelled' && c.cancelReason) ? `<div class="cancel-reason-box"><span class="crb-label">Reason</span>${c.cancelReason}</div>` : ''}
         <div class="conflict-warn ${conflict ? 'show' : ''}" id="cw-${c.id}">⚠ Conflicts with <strong>${conflict || ''}</strong></div>
-        <button class="${btn.cls}" ${btn.dis} data-enroll-id="${Number(c.id)}">${btn.txt}</button>`;
+        <button class="${btn.cls}" ${btn.dis} data-enroll-id="${Number(c.id)}" onclick="handleEnrollButtonClick(event, this)">${btn.txt}</button>`;
     } else if (role === 'admin') {
       extraHtml = renderAdminButtons(c);
     }
@@ -909,6 +909,19 @@ async function toggleEnroll(cid, btn) {
       if (err.message.includes('sign in')) setTimeout(() => { window.location.href = '/auth.html'; }, 900);
     }
   }
+}
+
+function handleEnrollButtonClick(event, btn) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  const cid = Number(btn?.dataset?.enrollId);
+  if (!Number.isFinite(cid)) {
+    showToast('Could not identify this course. Please refresh and try again.', 'error');
+    return;
+  }
+  toggleEnroll(cid, btn);
 }
 
 function updateCapacityUI(c) {
@@ -1263,9 +1276,8 @@ document.querySelectorAll('.modal-overlay').forEach(el => {
 document.addEventListener('click', e => {
   const enrollBtn = e.target.closest('[data-enroll-id]');
   if (!enrollBtn) return;
-  e.preventDefault();
-  toggleEnroll(Number(enrollBtn.dataset.enrollId), enrollBtn);
-});
+  handleEnrollButtonClick(e, enrollBtn);
+}, true);
 
 function renderStars(avg) {
   let html = '';

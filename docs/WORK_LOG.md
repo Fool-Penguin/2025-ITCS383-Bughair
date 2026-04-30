@@ -26,6 +26,61 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 20:33 ICT - Codex
+
+**Task:** Re-analyze why course `Enroll Now` is clickable but performs no action.
+
+**Changed:**
+- Normalized course IDs, max attendee counts, and current attendee counts to numbers in `implementations/course-service/frontend/index.html`.
+- This fixes the silent early return in `toggleEnroll()` where `allCourses.find(x => x.id === cid)` failed because API course IDs were strings while button IDs were numbers.
+- Updated `docs/WORK_LOG.md` with this root-cause entry.
+
+**Verified:**
+- Confirmed local `/api/courses` returns `courseID` values as strings.
+- Parsed the course-service frontend inline script with `new Function(...)`.
+- Ran a small Node check confirming normalized IDs pass strict equality with clicked numeric IDs.
+- Ran `npm test -- --runInBand` in `implementations/course-service`: 23 tests passed, 92.71% line coverage.
+
+**Notes / Next Steps:**
+- Retest in the browser at `http://127.0.0.1:3003/courses`; after clicking, the button should change to `Enrolling...` and send `POST /api/courses/enroll`.
+
+## 2026-04-30 20:27 ICT - Codex
+
+**Task:** Run the main gateway locally to test the course page.
+
+**Changed:**
+- Installed missing local service dependencies for AuthMembership, Payment, Reservation, Admin, and course-service runtime/testing as needed.
+- Started the AuthMembership gateway locally with the existing course-service `.env` loaded into the process environment.
+- Updated `docs/WORK_LOG.md` with this local-run verification entry.
+
+**Verified:**
+- Gateway started successfully from `implementations/AuthMembership/backend-api_Module1/server.js`.
+- Confirmed local URL is `http://127.0.0.1:3003/courses` because the loaded `.env` sets `PORT=3003`.
+- `GET /courses` returned HTTP 200 and served HTML containing `handleEnrollButtonClick`.
+- `GET /api/courses` returned success with 3 courses; first course was `Morning Yoga Flow`.
+
+**Notes / Next Steps:**
+- Local gateway process is running under Node and can be used for browser testing at `http://127.0.0.1:3003`.
+- Stop it later with `Stop-Process -Id 10268` if still running.
+
+## 2026-04-30 20:18 ICT - Codex
+
+**Task:** Analyze and fix course `Enroll Now` button not working properly.
+
+**Changed:**
+- Updated `implementations/course-service/frontend/index.html` so course enroll buttons use a shared `handleEnrollButtonClick` handler.
+- Wired the handler both directly on rendered enroll buttons and through a capturing delegated document listener for more reliable browser click handling.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, `docs/handoff/CURRENT_SESSION_HANDOFF.md`, and recent `docs/WORK_LOG.md` entries.
+- Parsed the course-service frontend inline script with `new Function(...)`.
+- Installed local course-service dependencies and ran `npm test -- --runInBand`: 23 tests passed, 92.71% line coverage.
+- Ran `git diff --check` for the edited frontend file: no whitespace/conflict-marker errors, only LF-to-CRLF warnings.
+
+**Notes / Next Steps:**
+- Redeploy Render or push this change, then hard-refresh the production course page and retest `Enroll Now`.
+- If production still fails, check DevTools Network for `POST /api/courses/enroll` and Console for runtime errors.
+
 ## 2026-04-30 19:59 ICT - Codex
 
 **Task:** Compare local D5/WORK_LOG changes with current `origin/master` before pushing.
