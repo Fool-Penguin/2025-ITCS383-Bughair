@@ -42,7 +42,7 @@ This document breaks down the required new features (Native Android App, Member 
 ### CR-04: Member Profile Edit Interface and API
 | Attribute | Description |
 |---|---|
-| **Associated Feature** | Member Profile Edit & Password Recovery System |
+| **Associated Feature** | Member Profile Edit |
 | **Description** | "Add functionality for users to edit their profile information (name, phone number, and profile picture). Includes frontend form and backend API changes." |
 | **Maintenance Type** | Perfective |
 | **Priority** | Medium |
@@ -53,7 +53,7 @@ This document breaks down the required new features (Native Android App, Member 
 ### CR-05: Password Recovery Mechanism
 | Attribute | Description |
 |---|---|
-| **Associated Feature** | Member Profile Edit & Password Recovery System |
+| **Associated Feature** | Password Reset System |
 | **Description** | "Implement 'Forgot Password' feature, including generating secure reset tokens, sending recovery emails, and updating the password via a secure link." |
 | **Maintenance Type** | Perfective |
 | **Priority** | High |
