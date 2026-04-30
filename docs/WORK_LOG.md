@@ -26,6 +26,22 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 14:20 ICT - Codex
+
+**Task:** Fix reservation-service CI failure caused by missing `DATABASE_URL` during tests.
+
+**Changed:**
+- Added a test-mode in-memory Postgres pool fallback in `implementations/reservation-service/backend/src/db/database.js`.
+- Rewrote `implementations/reservation-service/backend/src/tests/courts.test.js` to await async helpers and avoid live database access.
+
+**Verified:**
+- Ran `npm test` in `implementations/reservation-service/backend`.
+- Result: 17 tests passed, 0 failed, no `DATABASE_URL` required.
+
+**Notes / Next Steps:**
+- This affects tests only when `NODE_ENV=test` or `RESERVATION_TEST_MODE=1` and no `DATABASE_URL` is set.
+- Production still requires `DATABASE_URL`.
+
 ## 2026-04-30 14:05 ICT - Codex
 
 **Task:** Fix SonarCloud coverage calculation after confirming test files were counted as uncovered source.

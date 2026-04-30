@@ -6,15 +6,64 @@
 require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const { Pool } = require('pg');
 
-if (!process.env.DATABASE_URL) {
+const isTestMode = process.env.NODE_ENV === 'test' || process.env.RESERVATION_TEST_MODE === '1';
+let pool;
+
+function createTestPool() {
+  const data = require('./data');
+  const result = (rows = []) => ({ rows, rowCount: rows.length });
+
+  return {
+    on() {},
+    async connect() {
+      return { query: this.query, release() {} };
+    },
+    async query(sql, params = []) {
+      if (sql.includes('FROM reservation_svc.courts WHERE court_id=$1')) {
+        return result(data.courts.filter((court) => court.court_id === Number(params[0])));
+      }
+
+      if (sql.includes('FROM reservation_svc.court_reservations')) {
+        const [first, date, slot] = params;
+        const rows = data.courtReservations.filter((reservation) => {
+          if (reservation.status !== 'active') return false;
+          if (date && reservation.date !== date) return false;
+
+          if (sql.includes('member_id=$1')) {
+            return reservation.member_id === first && reservation.time_slot === slot;
+          }
+
+          if (sql.includes('time_slot LIKE')) {
+            return reservation.court_id === Number(first) && reservation.time_slot.startsWith(String(slot).replace('%', ''));
+          }
+
+          return reservation.court_id === Number(first) && reservation.time_slot === slot;
+        });
+        return result(rows.length > 0 ? [{ exists: 1 }] : []);
+      }
+
+      if (sql.includes('FROM reservation_svc.attendance_logs')) {
+        return result([{ c: 0 }]);
+      }
+
+      return result([]);
+    },
+  };
+}
+
+if (!process.env.DATABASE_URL && !isTestMode) {
   throw new Error('DATABASE_URL is not set. Add it to reservation-service/backend/.env');
 }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  max: 10,
-});
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 10,
+  });
+} else {
+  pool = createTestPool();
+}
 
 pool.on('error', (err) => console.error('Unexpected pg pool error:', err));
 
