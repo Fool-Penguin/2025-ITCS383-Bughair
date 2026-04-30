@@ -26,6 +26,21 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 14:05 ICT - Codex
+
+**Task:** Fix SonarCloud coverage calculation after confirming test files were counted as uncovered source.
+
+**Changed:**
+- Updated `sonar-project.properties` to exclude `implementations/course-service/tests/**` from Sonar source/coverage measurement.
+
+**Verified:**
+- Checked SonarCloud metrics before the change: overall coverage 62.5%, course-service `src` line coverage 91.2%, course-service `tests` coverage 0.0%.
+- Confirmed the fix targets only test files, not production source files.
+
+**Notes / Next Steps:**
+- Push the config change and wait for SonarCloud to rerun on the new commit.
+- Quality gate may still fail for reliability, security, or duplication even after coverage improves.
+
 ## 2026-04-30 13:50 ICT - Codex
 
 **Task:** Restructure documentation so teammates and future agents can find project description and handoff files quickly.
