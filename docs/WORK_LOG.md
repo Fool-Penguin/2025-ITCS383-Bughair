@@ -26,6 +26,23 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 18:33 ICT - Codex
+
+**Task:** Prepare handoff because course enroll button remains stuck in browser and user is near usage limit.
+
+**Changed:**
+- Updated `docs/handoff/CURRENT_SESSION_HANDOFF.md` with the current critical course-enrollment bug status.
+- Added exact commits, verified backend/API facts, user-observed browser symptom, and DevTools next-check steps.
+- Updated `docs/WORK_LOG.md` with this handoff entry.
+
+**Verified:**
+- Checked `git status --short`: clean before the handoff docs edit.
+- Checked recent commits: latest pushed functional fix is `9089636`.
+
+**Notes / Next Steps:**
+- The next agent should not continue blind backend fixes; use browser DevTools to inspect whether clicks are caught and whether `POST /api/courses/enroll` fires.
+- Commit/push this handoff entry if time allows.
+
 ## 2026-04-30 18:25 ICT - Codex
 
 **Task:** Fix course enroll button doing nothing when clicked.

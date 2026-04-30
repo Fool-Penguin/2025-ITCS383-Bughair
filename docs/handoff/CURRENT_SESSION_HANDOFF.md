@@ -142,6 +142,147 @@ _migration
 ## Important Caution
 
 The project has real deployment and database credentials in local environment files. Do not paste `.env` contents into chat, docs, commits, screenshots, or issue reports.
+
+# 2026-04-30 18:30 ICT - Current Critical Handoff: Course Enroll Button Still Stuck
+
+## Latest Repository State
+
+Latest pushed commits on `origin/master`:
+
+- `9089636` - `Fix course enroll button click handling`
+- `ec080bc` - `Record enrollment hardening push`
+- `35994af` - `Harden course enrollment feedback`
+- `0bbae73` - `Record course review fix push`
+- `4fff2ff` - `Fix course enrollment and trainer reviews`
+
+Local working tree was clean after `9089636` was pushed.
+
+## User-Observed Blocking Bug
+
+The production/browser course page still shows no visible behavior when clicking the `Enroll Now` button on course cards.
+
+User provided a screenshot showing:
+
+- Route/page: course page under the main deployed app.
+- User appears logged in; nav shows member name and member id.
+- Course cards render correctly.
+- `Enroll Now` button is visible.
+- Clicking the button causes no visible state change.
+- User reports this remains stuck even after the latest pushed click-handler fix.
+
+Important: stop assuming the backend is the primary failure. The backend route was probed successfully. The next person should inspect browser event handling and network behavior directly.
+
+## What Was Tried
+
+Backend/data fixes already committed:
+
+- `courseController.enrollCourse` now derives active capacity from non-cancelled enrollments.
+- Re-enrolling after cancellation now updates the cancelled enrollment row instead of inserting and hitting the unique `(courseID, memberID)` constraint.
+- Active enrollment detection was hardened with `IS DISTINCT FROM 'cancelled'`.
+
+Frontend fixes already committed:
+
+- Enroll button shows `Enrolling...` / `Cancelling...`.
+- Frontend clears stale local auth and redirects to `/auth.html` on 401/403.
+- Frontend reloads course and enrollment panels after successful enroll/cancel.
+- Inline `onclick="toggleEnroll(...)"` was replaced with `data-enroll-id`.
+- A delegated `document.addEventListener('click', ...)` handler was added for `[data-enroll-id]`.
+
+## Verification Already Done
+
+From `implementations/course-service`:
+
+```powershell
+npm test -- --runInBand
+```
+
+Latest result after course/trainer fixes:
+
+- 23 tests passed.
+- 92.71% line coverage.
+
+Database/API probes already done:
+
+- Rollback-only DB probe against configured `DATABASE_URL`: the first published course could accept a synthetic enrollment.
+- Actual Express route probe using `supertest` and a synthetic JWT/member id: `POST /api/courses/enroll` returned `201 { success: true, message: 'Enrolled successfully' }`.
+- Synthetic test enrollment row was cleaned up immediately.
+
+So: the route and database can work with a fresh JWT in local/gateway-compatible service context.
+
+## Most Likely Next Investigation
+
+Use browser DevTools on the deployed page. Do not continue blind backend edits.
+
+Check in this order:
+
+1. Confirm deployed JS includes the latest fix:
+   - Inspect the button element.
+   - It should have `data-enroll-id="1"` or similar.
+   - It should NOT have inline `onclick="toggleEnroll(...)"` anymore.
+   - If it still has inline `onclick`, Render is serving old code or browser cache is stale.
+
+2. In DevTools Console, run:
+
+```js
+document.querySelectorAll('[data-enroll-id]').length
+```
+
+Expected: `3` or the number of visible course cards.
+
+3. In DevTools Console, run:
+
+```js
+typeof toggleEnroll
+```
+
+Expected: `"function"`.
+
+4. In DevTools Console, temporarily add:
+
+```js
+document.addEventListener('click', e => console.log('clicked', e.target, e.target.closest('[data-enroll-id]')), true)
+```
+
+Then click `Enroll Now`.
+
+- If nothing logs, something is overlaying/intercepting the click or the browser is not executing the inspected page context.
+- If it logs a button but no network request, inspect JS errors in Console.
+- If a network request fires, inspect `/api/courses/enroll` status and response body.
+
+5. In Network tab, click `Enroll Now` and check whether a request appears:
+
+- Expected request: `POST /api/courses/enroll`
+- Expected body: `{ "courseID": 1 }` or selected course id.
+- Expected auth header: `Authorization: Bearer <token>`
+
+6. If no request appears, test manually in Console:
+
+```js
+fetch('/api/courses/enroll', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`
+  },
+  body: JSON.stringify({ courseID: 1 })
+}).then(r => r.json().then(j => ({ status: r.status, body: j }))).then(console.log)
+```
+
+Use a visible course id. This will separate click handler failure from API/auth failure.
+
+## Suspicions
+
+- Render or browser may still be serving stale `implementations/course-service/frontend/index.html`.
+- A front-end JavaScript error earlier in initialization may prevent the delegated handler from registering, even though the local script parse check passes.
+- A transparent overlay or layout issue may be intercepting clicks, though `.cancelled-overlay` has `pointer-events: none`.
+- The deployed page may not be the file edited in `implementations/course-service/frontend/index.html`, despite gateway route `/courses` being intended to serve that file.
+
+## Do Not Lose Time On
+
+- More course-service unit tests for enroll; they already pass.
+- More DB insert/re-enroll logic unless Network proves the API returns a backend error.
+- More blind pushes without checking DevTools click/network behavior.
+
 # 2026-04-30 16:42 ICT / 17:00 ICT - Profile, Booking, and Review Work Handoff
 
 User initially asked to stop current work and prepare handoff. The interrupted changes were later continued and verified at 17:00 ICT.
