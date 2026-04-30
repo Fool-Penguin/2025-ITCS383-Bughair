@@ -248,7 +248,86 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 **Notes / Next Steps:**
 - D5 is now complete and covers all recorded AI-assisted activity through 21:18 ICT.
 - If more AI-assisted work happens before the 23:55 deadline, add entries to both D5 and this work log.
+## 2026-04-30 22:12 ICT - Codex
 
+**Task:** Recheck and correct D4 against the exact Product Owner feature requests.
+
+**Changed:**
+- Updated `D4_IMPACT_ANALYSIS.md` to focus only on the two Product Owner feature requests plus the required planned/mock Android app.
+- Removed unnecessary CI/Sonar objects from the D4 SLO graph and matrix so SLOs are code modules only.
+- Reworded requirements, design objects, affected graphs, SLO graph, matrix, and analysis to match Member Profile Edit and Password Recovery plus Trainer Rating and Review requirements.
+- Updated `docs/WORK_LOG.md` with this correction entry.
+
+**Verified:**
+- Rechecked D4 against the provided feature request text.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Preview Mermaid diagrams before submission to confirm the layout renders clearly.
+
+## 2026-04-30 22:05 ICT - Codex
+
+**Task:** Simplify D4 traceability graphs to the three requested maintenance features.
+
+**Changed:**
+- Updated `D4_IMPACT_ANALYSIS.md` so the whole traceability graph has only three requirements: Member Profile Edit and Password Recovery, Trainer Rating and Review System, and Native Android Mobile Application.
+- Changed Mermaid graph nodes to box-style nodes with brief labels instead of many circular IDs.
+- Marked Android app traceability as planned/mock because it will be implemented later.
+- Kept separate affected graphs for each of the three features and aligned the SLO graph/matrix to the simplified object set.
+- Updated `docs/WORK_LOG.md` with this refinement entry.
+
+**Verified:**
+- Reviewed the rewritten D4 opening sections and graph structure.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Preview the Mermaid graphs in a Markdown renderer before final submission to ensure the box layout is visually acceptable.
+
+## 2026-04-30 21:57 ICT - Codex
+
+**Task:** Redo D4 impact analysis graphs to match the project description format.
+
+**Changed:**
+- Rewrote `D4_IMPACT_ANALYSIS.md` around Requirement, Design, Code, and Test traceability columns.
+- Added separate affected-only traceability graphs for Native Android App, Member Profile Edit and Password Recovery, and Trainer Rating and Review System.
+- Replaced the previous architecture-style graph with a code-module SLO directed graph and connectivity matrix.
+- Updated `docs/WORK_LOG.md` with this redo entry.
+
+**Verified:**
+- Reviewed the rewritten D4 start and graph structure.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Render `D4_IMPACT_ANALYSIS.md` in a Mermaid-capable Markdown viewer before submission to confirm the diagrams display cleanly.
+
+## 2026-04-30 21:47 ICT - Codex
+
+**Task:** Complete D4 impact analysis deliverable.
+
+**Changed:**
+- Filled `D4_IMPACT_ANALYSIS.md` with the whole-system traceability graph, affected-part graph, directed SLO graph, connectivity matrix, CR impact analysis, easy/hard change discussion, previous-developer expectations, and risk summary.
+- Updated `docs/WORK_LOG.md` with this D4 completion entry.
+
+**Verified:**
+- Read phase requirements, product-owner feature requests, root `D3_CHANGE_REQUESTS.md`, current handoff, and project overview.
+- Ran `git diff --check -- D4_IMPACT_ANALYSIS.md`; no whitespace/conflict-marker errors, only the existing LF-to-CRLF warning.
+
+**Notes / Next Steps:**
+- Review D4 visually in a Markdown viewer that supports Mermaid graphs before final submission.
+- D3 contains duplicate `CR-09` labels; D4 normalizes them in its analysis note to keep references unambiguous.
+
+## 2026-04-30 21:44 ICT - Codex
+
+**Task:** Read project docs to understand the current situation before an incoming task.
+
+**Changed:**
+- Updated `docs/WORK_LOG.md` with this documentation-read entry.
+
+**Verified:**
+- Read `docs/README.md`, `docs/handoff/PROJECT_OVERVIEW_AND_REQUIREMENTS.md`, and `docs/WORK_LOG.md`.
+
+**Notes / Next Steps:**
+- Current focus is final demo readiness: Android app work, D2-D5 deliverables, Sonar/CI evidence, and careful push coordination near the deadline.
 ## 2026-04-30 21:17 ICT - Codex
 
 **Task:** Prepare immediate handoff because the user is near the usage limit before Android app work can continue.
