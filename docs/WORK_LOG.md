@@ -26,6 +26,20 @@ Use Asia/Bangkok time when possible. Keep entries short but specific enough that
 - Anything unfinished, risky, blocked, or useful for the next person.
 ```
 
+## 2026-04-30 17:52 ICT - Codex
+
+**Task:** Push course enrollment hardening patch.
+
+**Changed:**
+- Pushed commit `35994af` (`Harden course enrollment feedback`) to `origin/master`.
+- Updated `docs/WORK_LOG.md` with this push record.
+
+**Verified:**
+- `git push origin master` completed successfully: `0bbae73..35994af master -> master`.
+
+**Notes / Next Steps:**
+- Wait for Render/GitHub Actions to finish, then hard-refresh/sign in again before retesting enrollment.
+
 ## 2026-04-30 17:51 ICT - Codex
 
 **Task:** Follow up on course enrollment still failing in browser/production testing.
