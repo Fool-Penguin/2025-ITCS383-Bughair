@@ -6,6 +6,13 @@ const pool = require('../config/db');
 const USERS  = `payment_svc."Users"`;
 const TOKENS = `payment_svc."password_reset_tokens"`;
 
+function getBaseUrl(req) {
+    if (process.env.APP_BASE_URL) return process.env.APP_BASE_URL.replace(/\/$/, '');
+
+    const proto = req.get('x-forwarded-proto') || req.protocol;
+    return `${proto}://${req.get('host')}`;
+}
+
 // Register
 exports.register = async (req, res) => {
     const { email, password, full_name, role } = req.body;
@@ -129,8 +136,8 @@ exports.forgotPassword = async (req, res) => {
             [user.id, token, expiresAt]
         );
 
-        // Build reset link
-        const resetLink = `http://localhost:8080/reset-password.html?token=${token}`;
+        // Build reset link for the current deployment. APP_BASE_URL is best for Render.
+        const resetLink = `${getBaseUrl(req)}/reset-password?token=${token}`;
 
         // Try to send email, fallback to console log
         try {

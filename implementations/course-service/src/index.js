@@ -22,12 +22,15 @@ app.use('/api/trainers', reviewRoutes);
 
 app.use((req, res) => res.status(404).json({ success: false, message: 'Route not found' }));
 
+/* istanbul ignore next */
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
-(async () => {
+/* istanbul ignore next */
+if (require.main === module) {
+  (async () => {
   try {
     await initDb();
   } catch (e) {
@@ -36,6 +39,7 @@ app.use((err, req, res, next) => {
   app.listen(PORT, () => {
     console.log(`Course & Trainer Service running on http://localhost:${PORT}`);
   });
-})();
+  })();
+}
 
 module.exports = app;
